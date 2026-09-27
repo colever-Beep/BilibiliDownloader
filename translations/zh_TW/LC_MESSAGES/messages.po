@@ -1,0 +1,941 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: bili23 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-26 14:04\n"
+"PO-Revision-Date: 2026-09-26 14:04\n"
+"Last-Translator: \n"
+"Language: zh_TW\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+
+msgid " / 共 {} 页"
+msgstr " / 共 {} 頁"
+
+msgid "B站下载器"
+msgstr "B站下載器"
+
+msgid "B站下载器 Pro"
+msgstr "B站下載器 Pro"
+
+msgid "Cookie 登录"
+msgstr "Cookie 登入"
+
+msgid "H.264（兼容性好）"
+msgstr "H.264（相容性佳）"
+
+msgid "H.265（体积更小）"
+msgstr "H.265（體積更小）"
+
+msgid "UP主"
+msgstr "UP主"
+
+msgid "bilibili音乐"
+msgstr "bilibili音樂"
+
+msgid "{}/{} 已完成"
+msgstr "{}/{} 已完成"
+
+msgid "「{}」：{} 视频 / {} 番剧 / {} UP主"
+msgstr "「{}」：{} 影片 / {} 番劇 / {} UP主"
+
+msgid "「{}」：{} 音乐视频"
+msgstr "「{}」：{} 音樂影片"
+
+msgid "上一页"
+msgstr "上一頁"
+
+msgid "下一页"
+msgstr "下一頁"
+
+msgid "下载"
+msgstr "下載"
+
+msgid "下载中"
+msgstr "下載中"
+
+msgid "下载中..."
+msgstr "下載中..."
+
+msgid "下载完成"
+msgstr "下載完成"
+
+msgid "下载正在进行中"
+msgstr "下載正在進行中"
+
+msgid "下载结束：完成{}，失败{}，取消{}\n保存路径: {}"
+msgstr "下載結束：完成{}，失敗{}，取消{}\n儲存路徑: {}"
+
+msgid "下载设置"
+msgstr "下載設定"
+
+msgid "下载进行中，无法清空队列"
+msgstr "下載進行中，無法清空佇列"
+
+msgid "下载选项"
+msgstr "下載選項"
+
+msgid "不使用"
+msgstr "不使用"
+
+msgid "主题强调色，应用于按钮与高亮"
+msgstr "主題強調色，應用於按鈕與高亮"
+
+msgid "二维码已失效，请点击刷新"
+msgstr "二維碼已失效，請點擊刷新"
+
+msgid "二维码生成失败："
+msgstr "二維碼生成失敗："
+
+msgid "二维码登录"
+msgstr "二維碼登錄"
+
+msgid "你还没有创建任何收藏夹"
+msgstr "你還沒有建立任何收藏夾"
+
+msgid "使用 Cookie 登录"
+msgstr "使用 Cookie 登入"
+
+msgid "停止异常：{}"
+msgstr "停止異常：{}"
+
+msgid "停止录制"
+msgstr "停止錄製"
+
+msgid "全不选"
+msgstr "全不選"
+
+msgid "全站热门"
+msgstr "全站熱門"
+
+msgid "全选"
+msgstr "全選"
+
+msgid "全选全部"
+msgstr "全選全部"
+
+msgid "全选已加载"
+msgstr "全選已載入"
+
+msgid "全选当前页"
+msgstr "全選當前頁"
+
+msgid "全部结束"
+msgstr "全部結束"
+
+msgid "共 {n} 个收藏夹"
+msgstr "共 {n} 個收藏夾"
+
+msgid "共 {} 个直播间"
+msgstr "共 {} 個直播間"
+
+msgid "共 {} 条结果"
+msgstr "共 {} 條結果"
+
+msgid "共 {} 行"
+msgstr "共 {} 行"
+
+msgid "关于"
+msgstr "關於"
+
+msgid "关注列表为空"
+msgstr "關注列表為空"
+
+msgid "关闭"
+msgstr "關閉"
+
+msgid "关闭方式"
+msgstr "關閉方式"
+
+msgid "关闭程序时："
+msgstr "關閉程式時："
+
+msgid "写入解析记录失败：{}"
+msgstr "寫入解析記錄失敗：{}"
+
+msgid "准备中…"
+msgstr "準備中…"
+
+msgid "出错"
+msgstr "出錯"
+
+msgid "分区"
+msgstr "分區"
+
+msgid "删除"
+msgstr "刪除"
+
+msgid "删除选中"
+msgstr "刪除選中"
+
+msgid "刷新"
+msgstr "重新整理"
+
+msgid "刷新二维码"
+msgstr "重新整理二維碼"
+
+msgid "加入队列"
+msgstr "加入佇列"
+
+msgid "加载中..."
+msgstr "載入中..."
+
+msgid "加载关注列表失败：{}"
+msgstr "載入關注列表失敗：{}"
+
+msgid "加载失败"
+msgstr "載入失敗"
+
+msgid "加载失败：{}"
+msgstr "載入失敗：{}"
+
+msgid "加载排行榜失败：{}"
+msgstr "載入排行榜失敗：{}"
+
+msgid "加载收藏夹失败：{}"
+msgstr "載入收藏夾失敗：{}"
+
+msgid "加载更多"
+msgstr "載入更多"
+
+msgid "加载每周必看失败：{}"
+msgstr "載入每週必看失敗：{}"
+
+msgid "加载热门直播中..."
+msgstr "載入熱門直播中..."
+
+msgid "加载直播列表失败：{}"
+msgstr "載入直播清單失敗：{}"
+
+msgid "加载第 {pn} 页失败：{err}"
+msgstr "載入第 {pn} 頁失敗：{err}"
+
+msgid "加载第 {} 页…"
+msgstr "載入第 {} 頁…"
+
+msgid "加载追番列表失败：{}"
+msgstr "載入追番列表失敗：{}"
+
+msgid "即将清空日志窗口，同时会清空同目录下的 download.log 文件。\n是否继续？"
+msgstr "即將清空日誌視窗，同時會清空同目錄下的 download.log 檔案。\n是否繼續？"
+
+msgid "历史记录"
+msgstr "歷史記錄"
+
+msgid "原始流（不转码）"
+msgstr "原始流（不轉碼）"
+
+msgid "发现"
+msgstr "發現"
+
+msgid "发生未处理的界面异常："
+msgstr "發生未處理的介面異常："
+
+msgid "取消"
+msgstr "取消"
+
+msgid "取消中..."
+msgstr "取消中..."
+
+msgid "在浏览器中打开主页"
+msgstr "在瀏覽器中開啟主頁"
+
+msgid "基于 PySide6 重构的 B 站视频下载工具，支持视频 / 番剧 / 直播录制与批量下载、弹幕字幕元数据抓取。"
+msgstr "基於 PySide6 重構的 B 站影片下載工具，支援影片 / 番劇 / 直播錄製與批次下載、彈幕字幕元資料抓取。"
+
+msgid "基本设置"
+msgstr "基本設定"
+
+msgid "复制链接"
+msgstr "複製連結"
+
+msgid "失败"
+msgstr "失敗"
+
+msgid "媒体设置"
+msgstr "媒體設定"
+
+msgid "完成"
+msgstr "完成"
+
+msgid "已停止"
+msgstr "已停止"
+
+msgid "已停止录制"
+msgstr "已停止錄製"
+
+msgid "已取消"
+msgstr "已取消"
+
+msgid "已取消录制"
+msgstr "已取消錄製"
+
+msgid "已开始录制：{}"
+msgstr "已開始錄製：{}"
+
+msgid "已录制"
+msgstr "已錄製"
+
+msgid "已扫码，请在手机端确认"
+msgstr "已掃碼，請在手機端確認"
+
+msgid "已暂停"
+msgstr "已暫停"
+
+msgid "已清空"
+msgstr "已清空"
+
+msgid "已登录"
+msgstr "已登入"
+
+msgid "已选 {n}"
+msgstr "已選 {n}"
+
+msgid "已选择 {} 个视频 · 本次下载设置（确认后生效）"
+msgstr "已選擇 {} 個影片 · 本次下載設定（確認後生效）"
+
+msgid "开始下载"
+msgstr "開始下載"
+
+msgid "开始录制"
+msgstr "開始錄製"
+
+msgid "开始解析"
+msgstr "開始解析"
+
+msgid "强调色"
+msgstr "強調色"
+
+msgid "录制"
+msgstr "錄製"
+
+msgid "录制中"
+msgstr "錄製中"
+
+msgid "录制直播"
+msgstr "錄製直播"
+
+msgid "录制设置"
+msgstr "錄製設定"
+
+msgid "录制选项弹窗异常，按默认设置开始：{}"
+msgstr "錄製選項彈窗異常，按預設設定開始：{}"
+
+msgid "总计 {total} 个分集"
+msgstr "總計 {total} 個分集"
+
+msgid "总计 {total} 个分集（匹配 {matched}）"
+msgstr "總計 {total} 個分集（匹配 {matched}）"
+
+msgid "总计 {} 个视频"
+msgstr "總計 {} 個影片"
+
+msgid "总进度"
+msgstr "總進度"
+
+msgid "恢复默认列宽"
+msgstr "恢復預設列寬"
+
+msgid "我的"
+msgstr "我的"
+
+msgid "我的关注"
+msgstr "我的關注"
+
+msgid "我的关注 · 共 {total} 位UP主"
+msgstr "我的關注 · 共 {total} 位UP主"
+
+msgid "我的收藏夹"
+msgstr "我的收藏夾"
+
+msgid "我的追番"
+msgstr "我的追番"
+
+msgid "房间号"
+msgstr "房間號"
+
+msgid "打开"
+msgstr "開啟"
+
+msgid "打开TA的个人空间"
+msgstr "打開TA的個人空間"
+
+msgid "打开TA的空间"
+msgstr "打開TA的空間"
+
+msgid "打开下载目录"
+msgstr "開啟下載目錄"
+
+msgid "打开文件位置"
+msgstr "開啟檔案位置"
+
+msgid "打开直播间"
+msgstr "開啟直播間"
+
+msgid "批量解析"
+msgstr "批次解析"
+
+msgid "批量解析（一行一个链接，自动识别类型）"
+msgstr "批次解析（一行一個連結，自動識別類型）"
+
+msgid "排行榜"
+msgstr "排行榜"
+
+msgid "排行榜为空或获取失败"
+msgstr "排行榜為空或取得失敗"
+
+msgid "提示"
+msgstr "提示"
+
+msgid "搜索"
+msgstr "搜尋"
+
+msgid "搜索 B站"
+msgstr "搜尋 B站"
+
+msgid "搜索UP主昵称 / 签名…"
+msgstr "搜尋UP主暱稱 / 簽名…"
+
+msgid "搜索中..."
+msgstr "搜尋中..."
+
+msgid "搜索分集标题…"
+msgstr "搜尋分集標題…"
+
+msgid "搜索失败：{}"
+msgstr "搜尋失敗：{}"
+
+msgid "搜索异常：{}"
+msgstr "搜尋異常：{}"
+
+msgid "搜索标题 / UP主 / 类型…"
+msgstr "搜尋標題 / UP主 / 類型…"
+
+msgid "搜索直播"
+msgstr "搜尋直播"
+
+msgid "搜索直播间关键词"
+msgstr "搜尋直播間關鍵詞"
+
+msgid "搜索视频 / 番剧 / UP主…"
+msgstr "搜尋影片 / 番劇 / UP主…"
+
+msgid "搜索需要登录（用于签名校验），请先登录。"
+msgstr "搜尋需要登入（用於簽章校驗），請先登入。"
+
+msgid "搜索音乐 / MV / 歌单…"
+msgstr "搜尋音樂 / MV / 歌單…"
+
+msgid "播放"
+msgstr "播放"
+
+msgid "收藏"
+msgstr "收藏"
+
+msgid "文件大小"
+msgstr "檔案大小"
+
+msgid "无法获取该番剧的 season_id，无法解析分集"
+msgstr "無法獲取該番劇的 season_id，無法解析分集"
+
+msgid "无法识别直播间：{}"
+msgstr "無法識別直播間：{}"
+
+msgid "无法通过搜索打开 UP 主空间"
+msgstr "無法透過搜尋開啟 UP 主空間"
+
+msgid "日志"
+msgstr "日誌"
+
+msgid "时间"
+msgstr "時間"
+
+msgid "显示窗口"
+msgstr "顯示視窗"
+
+msgid "暂停"
+msgstr "暫停"
+
+msgid "暂无搜索结果"
+msgstr "暫無搜尋結果"
+
+msgid "最小化到托盘"
+msgstr "最小化到托盤"
+
+msgid "未命名收藏夹"
+msgstr "未命名收藏夾"
+
+msgid "未开播"
+msgstr "未開播"
+
+msgid "未找到 FFmpeg，无法合并音视频（可在「设置」中指定路径，或留空使用 bin/ffmpeg.exe）"
+msgstr "未找到 FFmpeg，無法合併音視頻（可在「設定」中指定路徑，或留空使用 bin/ffmpeg.exe）"
+
+msgid "未找到与「{}」相关的结果"
+msgstr "未找到與「{}」相關的結果"
+
+msgid "未找到与「{}」相关的音乐视频"
+msgstr "未找到與「{}」相關的音樂影片"
+
+msgid "未找到直播间"
+msgstr "未找到直播間"
+
+msgid "未找到结果"
+msgstr "未找到結果"
+
+msgid "未找到音乐相关视频"
+msgstr "未找到音樂相關影片"
+
+msgid "未登录"
+msgstr "未登入"
+
+msgid "未知"
+msgstr "未知"
+
+msgid "未知UP主"
+msgstr "未知UP主"
+
+msgid "未知直播"
+msgstr "未知直播"
+
+msgid "未获取到直播流地址（未开播 / 风控拦截）"
+msgstr "未獲取直播流位址（未開播 / 風控攔截）"
+
+msgid "未解析到任何分集"
+msgstr "未解析到任何分集"
+
+msgid "本次录制设置（确认后生效）"
+msgstr "本次錄製設定（確認後生效）"
+
+msgid "来源"
+msgstr "來源"
+
+msgid "查看"
+msgstr "檢視"
+
+msgid "查看应用运行日志"
+msgstr "檢視應用程式執行日誌"
+
+msgid "查看日志"
+msgstr "查看日誌"
+
+msgid "标题"
+msgstr "標題"
+
+msgid "正在下载"
+msgstr "正在下載"
+
+msgid "正在加载直播列表..."
+msgstr "正在載入直播清單..."
+
+msgid "正在加载第 1 页…"
+msgstr "正在載入第 1 頁…"
+
+msgid "正在加载第 {pn} 页..."
+msgstr "正在載入第 {pn} 頁..."
+
+msgid "正在搜索：{} …"
+msgstr "正在搜尋：{} …"
+
+msgid "正在检查分P…"
+msgstr "正在檢查分P…"
+
+msgid "正在生成二维码…"
+msgstr "正在生成二維碼…"
+
+msgid "正在获取直播流地址：roomid={}"
+msgstr "正在獲取直播流位址：roomid={}"
+
+msgid "正在补全信息…"
+msgstr "正在補全資訊…"
+
+msgid "正在解析并补全番剧分集…"
+msgstr "正在解析並補全番劇分集…"
+
+msgid "正在验证 Cookie…"
+msgstr "正在驗證 Cookie…"
+
+msgid "每周必看"
+msgstr "每週必看"
+
+msgid "每周必看为空或获取失败"
+msgstr "每週必看為空或取得失敗"
+
+msgid "每行一个链接，支持视频 / 番剧 / 合集 / 用户空间等，自动识别类型"
+msgstr "每行一個連結，支援影片 / 番劇 / 合集 / 用戶空間等，自動辨識類型"
+
+msgid "没有等待中的任务，请对暂停/失败的任务点击『继续/重试』"
+msgstr "沒有等待中的任務，請對暫停/失敗的任務點擊『繼續/重試』"
+
+msgid "浅色"
+msgstr "淺色"
+
+msgid "浏览"
+msgstr "瀏覽"
+
+msgid "深色"
+msgstr "深色"
+
+msgid "添加"
+msgstr "新增"
+
+msgid "添加全部视频结果"
+msgstr "新增全部影片結果"
+
+msgid "添加全部音乐结果"
+msgstr "新增全部音樂結果"
+
+msgid "添加选中到下载队列"
+msgstr "新增選中到下載佇列"
+
+msgid "清空"
+msgstr "清空"
+
+msgid "清空勾选"
+msgstr "清空勾選"
+
+msgid "清空日志"
+msgstr "清空日誌"
+
+msgid "清空日志失败：{}"
+msgstr "清空日誌失敗：{}"
+
+msgid "清空记录"
+msgstr "清空記錄"
+
+msgid "清空队列"
+msgstr "清空佇列"
+
+msgid "点击「打开TA的个人空间」浏览并下载该UP的视频"
+msgstr "點擊「打開TA的個人空間」瀏覽並下載該UP的影片"
+
+msgid "点赞"
+msgstr "點讚"
+
+msgid "热门直播"
+msgstr "熱門直播"
+
+msgid "状态"
+msgstr "狀態"
+
+msgid "状态: 下载中"
+msgstr "狀態: 下載中"
+
+msgid "状态: 空闲"
+msgstr "狀態: 閒置"
+
+msgid "状态: 错误"
+msgstr "狀態: 錯誤"
+
+msgid "界面语言"
+msgstr "介面語言"
+
+msgid "番剧"
+msgstr "番劇"
+
+msgid "番剧解析失败：{}"
+msgstr "番劇解析失敗：{}"
+
+msgid "登出"
+msgstr "登出"
+
+msgid "登录"
+msgstr "登入"
+
+msgid "登录 B站"
+msgstr "登入 B站"
+
+msgid "登录后才能查看历史记录"
+msgstr "登入後才能查看歷史記錄"
+
+msgid "登录后才能查看收藏夹"
+msgstr "登入後才能查看收藏夾"
+
+msgid "登录失败："
+msgstr "登入失敗："
+
+msgid "登录失败：Cookie 无效或已过期（需含 SESSDATA）"
+msgstr "登入失敗：Cookie 無效或已過期（需含 SESSDATA）"
+
+msgid "登录成功，但保存 Cookie 失败："
+msgstr "登入成功，但儲存 Cookie 失敗："
+
+msgid "直接退出"
+msgstr "直接退出"
+
+msgid "直播"
+msgstr "直播"
+
+msgid "直播中"
+msgstr "直播中"
+
+msgid "直播中心"
+msgstr "直播中心"
+
+msgid "直播列表为空"
+msgstr "直播清單為空"
+
+msgid "直播录制"
+msgstr "直播錄製"
+
+msgid "直播录制选项"
+msgstr "直播錄製選項"
+
+msgid "直播间"
+msgstr "直播間"
+
+msgid "直播间：{} · 本次录制设置"
+msgstr "直播間：{} · 本次錄製設定"
+
+msgid "确定"
+msgstr "確定"
+
+msgid "确定清空全部解析记录？"
+msgstr "確定清空全部解析記錄？"
+
+msgid "确定要清空队列中的 {} 个任务吗？"
+msgstr "確定要清空佇列中的 {} 個任務嗎？"
+
+msgid "确认"
+msgstr "確認"
+
+msgid "确认添加"
+msgstr "確認新增"
+
+msgid "确认清空"
+msgstr "確認清空"
+
+msgid "程序异常"
+msgstr "程式異常"
+
+msgid "稍后再看"
+msgstr "稍後再看"
+
+msgid "空闲"
+msgstr "閒置"
+
+msgid "第 1 页"
+msgstr "第 1 頁"
+
+msgid "第 {pn} 页"
+msgstr "第 {pn} 頁"
+
+msgid "第 {pn} 页没有数据"
+msgstr "第 {pn} 頁沒有資料"
+
+msgid "第 {pn} 页，共 {n} 条"
+msgstr "第 {pn} 頁，共 {n} 條"
+
+msgid "第 {} / {} 页"
+msgstr "第 {} / {} 頁"
+
+msgid "第 {} 页{}"
+msgstr "第 {} 頁{}"
+
+msgid "第 {} 页加载失败：{}"
+msgstr "第 {} 頁載入失敗：{}"
+
+msgid "第 {} 页：{} 个视频"
+msgstr "第 {} 頁：{} 個影片"
+
+msgid "等待"
+msgstr "等待"
+
+msgid "等待扫码…"
+msgstr "等待掃碼…"
+
+msgid "粘贴"
+msgstr "粘貼"
+
+msgid "粘贴B站链接（视频/合集/番剧/课程/音频/每周必看…）"
+msgstr "粘貼B站連結（影片/合集/番劇/課程/音訊/每週必看…）"
+
+msgid "粘贴浏览器中复制的 Cookie 字符串（支持 Netscape / 请求头 Cookie / JSON 三种格式），点击登录即可。二维码异常时可用此方式登录。"
+msgstr "粘貼瀏覽器中複製的 Cookie 字串（支援 Netscape / 請求頭 Cookie / JSON 三種格式），點擊登入即可。二維碼異常時可用此方式登入。"
+
+msgid "继续"
+msgstr "繼續"
+
+msgid "自动重命名"
+msgstr "自動重新命名"
+
+msgid "获取流地址中…"
+msgstr "獲取流地址中…"
+
+msgid "获取流地址失败：{}"
+msgstr "獲取流地址失敗：{}"
+
+msgid "覆盖"
+msgstr "覆蓋"
+
+msgid "视频"
+msgstr "影片"
+
+msgid "解析"
+msgstr "解析"
+
+msgid "解析中..."
+msgstr "解析中..."
+
+msgid "解析记录"
+msgstr "解析記錄"
+
+msgid "设置"
+msgstr "設定"
+
+msgid "该分类下无分集"
+msgstr "該分類下無分集"
+
+msgid "该分类下无视频"
+msgstr "該分類下無影片"
+
+msgid "该分类下没有视频"
+msgstr "該分類下沒有影片"
+
+msgid "该番剧没有可下载的分集"
+msgstr "該番劇沒有可下載的分集"
+
+msgid "请使用哔哩哔哩客户端扫码登录"
+msgstr "請使用嗶哩嗶哩客戶端掃碼登入"
+
+msgid "请先登录B站账号，否则无法获取稍后再看列表。"
+msgstr "請先登入B站帳號，否則無法取得稍後再看列表。"
+
+msgid "请先登录以查看关注列表"
+msgstr "請先登入以查看關注列表"
+
+msgid "请先登录以查看追番列表"
+msgstr "請先登入以查看追番列表"
+
+msgid "请先粘贴 Cookie 字符串"
+msgstr "請先貼上 Cookie 字串"
+
+msgid "请先粘贴至少一个链接"
+msgstr "請先貼上至少一個連結"
+
+msgid "请先输入直播间链接或房间号"
+msgstr "請先輸入直播間連結或房間號"
+
+msgid "请先选中一个直播间"
+msgstr "請先選中一個直播間"
+
+msgid "请先选中一条记录"
+msgstr "請先選中一條記錄"
+
+msgid "请至少勾选一个视频"
+msgstr "請至少勾選一個影片"
+
+msgid "请输入有效页码"
+msgstr "請輸入有效頁碼"
+
+msgid "读取日志失败：{}"
+msgstr "讀取日誌失敗：{}"
+
+msgid "跟随系统"
+msgstr "跟隨系統"
+
+msgid "跳至"
+msgstr "跳至"
+
+msgid "跳转"
+msgstr "跳轉"
+
+msgid "跳转页码："
+msgstr "跳轉頁碼："
+
+msgid "轮询失败："
+msgstr "輪詢失敗："
+
+msgid "输入关键词后回车或点击搜索"
+msgstr "輸入關鍵詞後回車或點擊搜尋"
+
+msgid "输入关键词后点击搜索"
+msgstr "輸入關鍵字後點擊搜尋"
+
+msgid "输入直播间链接（https://live.bilibili.com/房间号）或纯房间号"
+msgstr "輸入直播間連結（https://live.bilibili.com/房間號）或純房間號"
+
+msgid "输出文件"
+msgstr "輸出檔案"
+
+msgid "追番列表为空"
+msgstr "追番列表為空"
+
+msgid "退出"
+msgstr "退出"
+
+msgid "选择 FFmpeg 可执行文件"
+msgstr "選擇 FFmpeg 可執行檔"
+
+msgid "选择下载目录"
+msgstr "選擇下載目錄"
+
+msgid "选择下载视频"
+msgstr "選擇下載影片"
+
+msgid "选择分集"
+msgstr "選擇分集"
+
+msgid "选择收藏夹"
+msgstr "選擇收藏夾"
+
+msgid "选择界面显示语言"
+msgstr "選擇介面顯示語言"
+
+msgid "选择番剧分集"
+msgstr "選擇番劇分集"
+
+msgid "选择视频"
+msgstr "選擇影片"
+
+msgid "选择颜色"
+msgstr "選擇顏色"
+
+msgid "选项"
+msgstr "選項"
+
+msgid "重试"
+msgstr "重試"
+
+msgid "链接"
+msgstr "連結"
+
+msgid "链接解析失败，请确认输入的是有效的 B 站链接"
+msgstr "連結解析失敗，請確認輸入的是有效的 B 站連結"
+
+msgid "错误"
+msgstr "錯誤"
+
+msgid "队列为空，请先添加视频"
+msgstr "佇列為空，請先新增影片"
+
+msgid "附加文件"
+msgstr "附加檔案"
+
+msgid "隐藏窗口"
+msgstr "隱藏視窗"
+
+msgid "需要认证时填写"
+msgstr "需要認證時填寫"
+
+msgid "音乐"
+msgstr "音樂"
+
+msgid "音频格式仅在「音画分离」或「仅下载音频」时生效"
+msgstr "音訊格式僅在「音畫分離」或「僅下載音訊」時生效"
+
+msgid "高级"
+msgstr "高級"
+
+msgid "（匹配 {matched}）"
+msgstr "（匹配 {matched}）"
+
+msgid "（匹配 {}）"
+msgstr "（匹配 {}）"
+
+msgid "（还有更多）"
+msgstr "（還有更多）"

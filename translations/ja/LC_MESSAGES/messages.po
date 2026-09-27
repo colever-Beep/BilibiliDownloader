@@ -1,0 +1,941 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: bili23 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-26 14:04\n"
+"PO-Revision-Date: 2026-09-26 14:04\n"
+"Last-Translator: \n"
+"Language: ja\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+
+msgid " / 共 {} 页"
+msgstr " / 全 {} ページ"
+
+msgid "B站下载器"
+msgstr "Bilibiliダウンローダー"
+
+msgid "B站下载器 Pro"
+msgstr "Bilibiliダウンローダー Pro"
+
+msgid "Cookie 登录"
+msgstr "Cookie ログイン"
+
+msgid "H.264（兼容性好）"
+msgstr "H.264（互換性良好）"
+
+msgid "H.265（体积更小）"
+msgstr "H.265（容量削減）"
+
+msgid "UP主"
+msgstr "投稿者"
+
+msgid "bilibili音乐"
+msgstr "bilibiliミュージック"
+
+msgid "{}/{} 已完成"
+msgstr "{}/{} 完了"
+
+msgid "「{}」：{} 视频 / {} 番剧 / {} UP主"
+msgstr "{}: 動画 {} / アニメ {} / 投稿者 {}"
+
+msgid "「{}」：{} 音乐视频"
+msgstr "「{}」：{} 音楽動画"
+
+msgid "上一页"
+msgstr "前へ"
+
+msgid "下一页"
+msgstr "次へ"
+
+msgid "下载"
+msgstr "ダウンロード"
+
+msgid "下载中"
+msgstr "ダウンロード中"
+
+msgid "下载中..."
+msgstr "ダウンロード中..."
+
+msgid "下载完成"
+msgstr "ダウンロード完了"
+
+msgid "下载正在进行中"
+msgstr "ダウンロード実行中です"
+
+msgid "下载结束：完成{}，失败{}，取消{}\n保存路径: {}"
+msgstr "ダウンロード終了：完了{}、失敗{}、キャンセル{}\n保存先: {}"
+
+msgid "下载设置"
+msgstr "ダウンロード"
+
+msgid "下载进行中，无法清空队列"
+msgstr "ダウンロード中はキューをクリアできません"
+
+msgid "下载选项"
+msgstr "ダウンロード設定"
+
+msgid "不使用"
+msgstr "使用しない"
+
+msgid "主题强调色，应用于按钮与高亮"
+msgstr "テーマのアクセントカラー。ボタンと強調に使用されます"
+
+msgid "二维码已失效，请点击刷新"
+msgstr "QRコードの有効期限が切れました。クリックして更新してください"
+
+msgid "二维码生成失败："
+msgstr "QRコードの生成に失敗しました："
+
+msgid "二维码登录"
+msgstr "QRコードログイン"
+
+msgid "你还没有创建任何收藏夹"
+msgstr "お気に入りがまだ作成されていません"
+
+msgid "使用 Cookie 登录"
+msgstr "Cookie でログイン"
+
+msgid "停止异常：{}"
+msgstr "停止例外：{}"
+
+msgid "停止录制"
+msgstr "録画を停止"
+
+msgid "全不选"
+msgstr "すべて解除"
+
+msgid "全站热门"
+msgstr "全体人気"
+
+msgid "全选"
+msgstr "すべて選択"
+
+msgid "全选全部"
+msgstr "すべて選択"
+
+msgid "全选已加载"
+msgstr "読み込み済みを全選択"
+
+msgid "全选当前页"
+msgstr "現在のページを全選択"
+
+msgid "全部结束"
+msgstr "すべて完了"
+
+msgid "共 {n} 个收藏夹"
+msgstr "全 {n} のお気に入り"
+
+msgid "共 {} 个直播间"
+msgstr "全 {} のライブルーム"
+
+msgid "共 {} 条结果"
+msgstr "全 {} 件の結果"
+
+msgid "共 {} 行"
+msgstr "{} 行"
+
+msgid "关于"
+msgstr "このアプリについて"
+
+msgid "关注列表为空"
+msgstr "フォローリストが空です"
+
+msgid "关闭"
+msgstr "閉じる"
+
+msgid "关闭方式"
+msgstr "終了時の動作"
+
+msgid "关闭程序时："
+msgstr "プログラム終了時："
+
+msgid "写入解析记录失败：{}"
+msgstr "解析記録の書き込みに失敗しました：{}"
+
+msgid "准备中…"
+msgstr "準備中…"
+
+msgid "出错"
+msgstr "エラー"
+
+msgid "分区"
+msgstr "カテゴリ"
+
+msgid "删除"
+msgstr "削除"
+
+msgid "删除选中"
+msgstr "選択を削除"
+
+msgid "刷新"
+msgstr "更新"
+
+msgid "刷新二维码"
+msgstr "QRコードを更新"
+
+msgid "加入队列"
+msgstr "キューに追加"
+
+msgid "加载中..."
+msgstr "読み込み中..."
+
+msgid "加载关注列表失败：{}"
+msgstr "フォローリストの読み込みに失敗しました：{}"
+
+msgid "加载失败"
+msgstr "読み込み失敗"
+
+msgid "加载失败：{}"
+msgstr "読み込み失敗：{}"
+
+msgid "加载排行榜失败：{}"
+msgstr "ランキングの読み込みに失敗しました：{}"
+
+msgid "加载收藏夹失败：{}"
+msgstr "お気に入りの読み込みに失敗しました：{}"
+
+msgid "加载更多"
+msgstr "もっと読み込む"
+
+msgid "加载每周必看失败：{}"
+msgstr "「今週の見どころ」の読み込みに失敗しました：{}"
+
+msgid "加载热门直播中..."
+msgstr "人気ライブを読み込み中..."
+
+msgid "加载直播列表失败：{}"
+msgstr "ライブ一覧の読み込み失敗: {}"
+
+msgid "加载第 {pn} 页失败：{err}"
+msgstr "ページ{pn}の読み込みに失敗しました：{err}"
+
+msgid "加载第 {} 页…"
+msgstr "ページ {} を読み込み中…"
+
+msgid "加载追番列表失败：{}"
+msgstr "アニメリストの読み込みに失敗しました：{}"
+
+msgid "即将清空日志窗口，同时会清空同目录下的 download.log 文件。\n是否继续？"
+msgstr "ログウィンドウをクリアすると、同じフォルダの download.log も空になります。\n続行しますか？"
+
+msgid "历史记录"
+msgstr "履歴"
+
+msgid "原始流（不转码）"
+msgstr "元ストリーム（変換なし）"
+
+msgid "发现"
+msgstr "発見"
+
+msgid "发生未处理的界面异常："
+msgstr "処理されないUI例外が発生しました："
+
+msgid "取消"
+msgstr "キャンセル"
+
+msgid "取消中..."
+msgstr "キャンセル中..."
+
+msgid "在浏览器中打开主页"
+msgstr "ブラウザでホームページを開く"
+
+msgid "基于 PySide6 重构的 B 站视频下载工具，支持视频 / 番剧 / 直播录制与批量下载、弹幕字幕元数据抓取。"
+msgstr "PySide6 で再構築された Bilibili 動画ダウンローダー。動画 / アニメ / ライブ録画と一括ダウンロード、弾幕・字幕・メタデータ取得に対応。"
+
+msgid "基本设置"
+msgstr "一般設定"
+
+msgid "复制链接"
+msgstr "リンクをコピー"
+
+msgid "失败"
+msgstr "失敗"
+
+msgid "媒体设置"
+msgstr "メディア"
+
+msgid "完成"
+msgstr "完了"
+
+msgid "已停止"
+msgstr "停止済み"
+
+msgid "已停止录制"
+msgstr "録画停止済み"
+
+msgid "已取消"
+msgstr "キャンセル"
+
+msgid "已取消录制"
+msgstr "録画キャンセル済み"
+
+msgid "已开始录制：{}"
+msgstr "録画を開始しました：{}"
+
+msgid "已录制"
+msgstr "録画済み"
+
+msgid "已扫码，请在手机端确认"
+msgstr "スキャンされました。スマホで確認してください"
+
+msgid "已暂停"
+msgstr "一時停止"
+
+msgid "已清空"
+msgstr "クリア済み"
+
+msgid "已登录"
+msgstr "ログイン済み"
+
+msgid "已选 {n}"
+msgstr "{n} 選択済み"
+
+msgid "已选择 {} 个视频 · 本次下载设置（确认后生效）"
+msgstr "動画 {} 件を選択 · 今回のダウンロード設定（確定で反映）"
+
+msgid "开始下载"
+msgstr "ダウンロード開始"
+
+msgid "开始录制"
+msgstr "録画開始"
+
+msgid "开始解析"
+msgstr "解析開始"
+
+msgid "强调色"
+msgstr "アクセントカラー"
+
+msgid "录制"
+msgstr "録画"
+
+msgid "录制中"
+msgstr "録画中"
+
+msgid "录制直播"
+msgstr "ライブ録画"
+
+msgid "录制设置"
+msgstr "録画設定"
+
+msgid "录制选项弹窗异常，按默认设置开始：{}"
+msgstr "録画オプション画面エラー、既定設定で開始：{}"
+
+msgid "总计 {total} 个分集"
+msgstr "合計 {total} エピソード"
+
+msgid "总计 {total} 个分集（匹配 {matched}）"
+msgstr "合計 {total} エピソード（{matched} 件一致）"
+
+msgid "总计 {} 个视频"
+msgstr "合計 {} 個の動画"
+
+msgid "总进度"
+msgstr "全体進捗"
+
+msgid "恢复默认列宽"
+msgstr "デフォルトの列幅に戻す"
+
+msgid "我的"
+msgstr "マイ"
+
+msgid "我的关注"
+msgstr "フォロー中"
+
+msgid "我的关注 · 共 {total} 位UP主"
+msgstr "フォロー中 · 投稿者 {total} 人"
+
+msgid "我的收藏夹"
+msgstr "マイ・お気に入り"
+
+msgid "我的追番"
+msgstr "フォロー中のアニメ"
+
+msgid "房间号"
+msgstr "ルームID"
+
+msgid "打开"
+msgstr "開く"
+
+msgid "打开TA的个人空间"
+msgstr "その個人スペースを開く"
+
+msgid "打开TA的空间"
+msgstr "そのスペースを開く"
+
+msgid "打开下载目录"
+msgstr "ダウンロードフォルダを開く"
+
+msgid "打开文件位置"
+msgstr "ファイルの場所を開く"
+
+msgid "打开直播间"
+msgstr "ライブルームを開く"
+
+msgid "批量解析"
+msgstr "一括解析"
+
+msgid "批量解析（一行一个链接，自动识别类型）"
+msgstr "一括解析（1行に1リンク、タイプを自動判別）"
+
+msgid "排行榜"
+msgstr "ランキング"
+
+msgid "排行榜为空或获取失败"
+msgstr "ランキングが空か、取得に失敗しました"
+
+msgid "提示"
+msgstr "ヒント"
+
+msgid "搜索"
+msgstr "検索"
+
+msgid "搜索 B站"
+msgstr "Bilibiliを検索"
+
+msgid "搜索UP主昵称 / 签名…"
+msgstr "投稿者名 / 署名を検索…"
+
+msgid "搜索中..."
+msgstr "検索中..."
+
+msgid "搜索分集标题…"
+msgstr "エピソードタイトルを検索…"
+
+msgid "搜索失败：{}"
+msgstr "検索失敗：{}"
+
+msgid "搜索异常：{}"
+msgstr "検索エラー: {}"
+
+msgid "搜索标题 / UP主 / 类型…"
+msgstr "タイトル / 投稿者 / タイプを検索…"
+
+msgid "搜索直播"
+msgstr "ライブ検索"
+
+msgid "搜索直播间关键词"
+msgstr "ライブルームのキーワードを検索"
+
+msgid "搜索视频 / 番剧 / UP主…"
+msgstr "動画 / アニメ / 投稿者を検索…"
+
+msgid "搜索需要登录（用于签名校验），请先登录。"
+msgstr "検索にはログインが必要です（署名検証用）。先にログインしてください。"
+
+msgid "搜索音乐 / MV / 歌单…"
+msgstr "音楽 / MV / プレイリストを検索…"
+
+msgid "播放"
+msgstr "再生数"
+
+msgid "收藏"
+msgstr "お気に入り"
+
+msgid "文件大小"
+msgstr "ファイルサイズ"
+
+msgid "无法获取该番剧的 season_id，无法解析分集"
+msgstr "このアニメの season_id を取得できないため、エピソードを解析できません"
+
+msgid "无法识别直播间：{}"
+msgstr "ライブルームを識別できません：{}"
+
+msgid "无法通过搜索打开 UP 主空间"
+msgstr "検索から投稿者の空間を開けません"
+
+msgid "日志"
+msgstr "ログ"
+
+msgid "时间"
+msgstr "時間"
+
+msgid "显示窗口"
+msgstr "ウィンドウを表示"
+
+msgid "暂停"
+msgstr "一時停止"
+
+msgid "暂无搜索结果"
+msgstr "検索結果はありません"
+
+msgid "最小化到托盘"
+msgstr "トレイに最小化"
+
+msgid "未命名收藏夹"
+msgstr "名前のないお気に入り"
+
+msgid "未开播"
+msgstr "配信外"
+
+msgid "未找到 FFmpeg，无法合并音视频（可在「设置」中指定路径，或留空使用 bin/ffmpeg.exe）"
+msgstr "FFmpeg が見つかりません。音声/映像を結合できません（「設定」でパスを指定するか、空欄にして bin/ffmpeg.exe を使用）"
+
+msgid "未找到与「{}」相关的结果"
+msgstr "「{}」に関連する結果は見つかりませんでした"
+
+msgid "未找到与「{}」相关的音乐视频"
+msgstr "「{}」に関連する音楽動画が見つかりません"
+
+msgid "未找到直播间"
+msgstr "ライブルームが見つかりません"
+
+msgid "未找到结果"
+msgstr "結果が見つかりません"
+
+msgid "未找到音乐相关视频"
+msgstr "音楽動画が見つかりません"
+
+msgid "未登录"
+msgstr "未ログイン"
+
+msgid "未知"
+msgstr "不明"
+
+msgid "未知UP主"
+msgstr "不明な投稿者"
+
+msgid "未知直播"
+msgstr "不明なライブ"
+
+msgid "未获取到直播流地址（未开播 / 风控拦截）"
+msgstr "ライブ配信URL取得失敗（配信なし / リスク制御）"
+
+msgid "未解析到任何分集"
+msgstr "エピソードが解析されませんでした"
+
+msgid "本次录制设置（确认后生效）"
+msgstr "今回の録画設定（確認後に適用）"
+
+msgid "来源"
+msgstr "ソース"
+
+msgid "查看"
+msgstr "表示"
+
+msgid "查看应用运行日志"
+msgstr "アプリ実行ログを表示"
+
+msgid "查看日志"
+msgstr "ログを見る"
+
+msgid "标题"
+msgstr "タイトル"
+
+msgid "正在下载"
+msgstr "ダウンロード中"
+
+msgid "正在加载直播列表..."
+msgstr "ライブ一覧を読み込み中..."
+
+msgid "正在加载第 1 页…"
+msgstr "ページ 1 を読み込み中…"
+
+msgid "正在加载第 {pn} 页..."
+msgstr "ページ{pn}を読み込み中..."
+
+msgid "正在搜索：{} …"
+msgstr "検索中: {} …"
+
+msgid "正在检查分P…"
+msgstr "分割動画(P)を確認中…"
+
+msgid "正在生成二维码…"
+msgstr "QRコードを生成中…"
+
+msgid "正在获取直播流地址：roomid={}"
+msgstr "ライブ配信URL取得中：roomid={}"
+
+msgid "正在补全信息…"
+msgstr "情報を補完中…"
+
+msgid "正在解析并补全番剧分集…"
+msgstr "アニメのエピソードを解析・補完中…"
+
+msgid "正在验证 Cookie…"
+msgstr "Cookieを検証中…"
+
+msgid "每周必看"
+msgstr "週間おすすめ"
+
+msgid "每周必看为空或获取失败"
+msgstr "「今週の見どころ」が空か、取得に失敗しました"
+
+msgid "每行一个链接，支持视频 / 番剧 / 合集 / 用户空间等，自动识别类型"
+msgstr "1行に1リンク。動画 / アニメ / コレクション / ユーザー空間などに対応、種類は自動判別されます"
+
+msgid "没有等待中的任务，请对暂停/失败的任务点击『继续/重试』"
+msgstr "待機中のタスクはありません。一時停止または失敗したタスクの「続行/再試行」をクリックしてください"
+
+msgid "浅色"
+msgstr "ライト"
+
+msgid "浏览"
+msgstr "参照"
+
+msgid "深色"
+msgstr "ダーク"
+
+msgid "添加"
+msgstr "追加"
+
+msgid "添加全部视频结果"
+msgstr "すべての動画結果を追加"
+
+msgid "添加全部音乐结果"
+msgstr "すべての音楽結果を追加"
+
+msgid "添加选中到下载队列"
+msgstr "選択項目をダウンロードキューに追加"
+
+msgid "清空"
+msgstr "クリア"
+
+msgid "清空勾选"
+msgstr "選択をクリア"
+
+msgid "清空日志"
+msgstr "ログをクリア"
+
+msgid "清空日志失败：{}"
+msgstr "ログのクリアに失敗しました：{}"
+
+msgid "清空记录"
+msgstr "記録をクリア"
+
+msgid "清空队列"
+msgstr "キューを空にする"
+
+msgid "点击「打开TA的个人空间」浏览并下载该UP的视频"
+msgstr "「そのスペースを開く」でこの投稿者の動画を閲覧・ダウンロード"
+
+msgid "点赞"
+msgstr "高評価"
+
+msgid "热门直播"
+msgstr "人気ライブ"
+
+msgid "状态"
+msgstr "ステータス"
+
+msgid "状态: 下载中"
+msgstr "状態: ダウンロード中"
+
+msgid "状态: 空闲"
+msgstr "状態: 待機中"
+
+msgid "状态: 错误"
+msgstr "状態: エラー"
+
+msgid "界面语言"
+msgstr "言語"
+
+msgid "番剧"
+msgstr "アニメ"
+
+msgid "番剧解析失败：{}"
+msgstr "アニメの解析に失敗: {}"
+
+msgid "登出"
+msgstr "ログアウト"
+
+msgid "登录"
+msgstr "ログイン"
+
+msgid "登录 B站"
+msgstr "Bilibili にログイン"
+
+msgid "登录后才能查看历史记录"
+msgstr "視聴履歴を見るにはログインが必要です"
+
+msgid "登录后才能查看收藏夹"
+msgstr "お気に入りを表示するにはログインが必要です"
+
+msgid "登录失败："
+msgstr "ログイン失敗："
+
+msgid "登录失败：Cookie 无效或已过期（需含 SESSDATA）"
+msgstr "ログイン失敗：Cookie が無効または期限切れです（SESSDATA が必要）"
+
+msgid "登录成功，但保存 Cookie 失败："
+msgstr "ログインに成功しましたが、Cookie の保存に失敗しました："
+
+msgid "直接退出"
+msgstr "そのまま終了"
+
+msgid "直播"
+msgstr "ライブ"
+
+msgid "直播中"
+msgstr "配信中"
+
+msgid "直播中心"
+msgstr "ライブセンター"
+
+msgid "直播列表为空"
+msgstr "ライブ一覧が空です"
+
+msgid "直播录制"
+msgstr "ライブ録画"
+
+msgid "直播录制选项"
+msgstr "ライブ録画オプション"
+
+msgid "直播间"
+msgstr "ライブルーム"
+
+msgid "直播间：{} · 本次录制设置"
+msgstr "ライブルーム：{} · 今回の録画設定"
+
+msgid "确定"
+msgstr "OK"
+
+msgid "确定清空全部解析记录？"
+msgstr "すべての解析記録をクリアしますか？"
+
+msgid "确定要清空队列中的 {} 个任务吗？"
+msgstr "キューから {} 個のタスクを削除しますか？"
+
+msgid "确认"
+msgstr "確認"
+
+msgid "确认添加"
+msgstr "追加を確定"
+
+msgid "确认清空"
+msgstr "削除の確認"
+
+msgid "程序异常"
+msgstr "プログラム異常"
+
+msgid "稍后再看"
+msgstr "後で見る"
+
+msgid "空闲"
+msgstr "待機中"
+
+msgid "第 1 页"
+msgstr "ページ1"
+
+msgid "第 {pn} 页"
+msgstr "ページ{pn}"
+
+msgid "第 {pn} 页没有数据"
+msgstr "ページ{pn}にデータがありません"
+
+msgid "第 {pn} 页，共 {n} 条"
+msgstr "ページ{pn}、全{n}件"
+
+msgid "第 {} / {} 页"
+msgstr "{} / {} ページ"
+
+msgid "第 {} 页{}"
+msgstr "{} ページ{}"
+
+msgid "第 {} 页加载失败：{}"
+msgstr "ページ {} の読み込み失敗: {}"
+
+msgid "第 {} 页：{} 个视频"
+msgstr "{} ページ: 動画 {} 件"
+
+msgid "等待"
+msgstr "待機中"
+
+msgid "等待扫码…"
+msgstr "スキャン待機中…"
+
+msgid "粘贴"
+msgstr "貼り付け"
+
+msgid "粘贴B站链接（视频/合集/番剧/课程/音频/每周必看…）"
+msgstr "Bilibiliのリンクを貼り付け（動画/コレクション/アニメ/講座/音声/週間…）"
+
+msgid "粘贴浏览器中复制的 Cookie 字符串（支持 Netscape / 请求头 Cookie / JSON 三种格式），点击登录即可。二维码异常时可用此方式登录。"
+msgstr "ブラウザでコピーした Cookie 文字列を貼り付けます（Netscape / リクエストヘッダ Cookie / JSON の3形式に対応）。ログインをクリックして続行します。QRコードが異常の場合はこの方法でログインできます。"
+
+msgid "继续"
+msgstr "続行"
+
+msgid "自动重命名"
+msgstr "自動リネーム"
+
+msgid "获取流地址中…"
+msgstr "ストリームURL取得中…"
+
+msgid "获取流地址失败：{}"
+msgstr "ストリームURL取得失敗：{}"
+
+msgid "覆盖"
+msgstr "上書き"
+
+msgid "视频"
+msgstr "動画"
+
+msgid "解析"
+msgstr "解析"
+
+msgid "解析中..."
+msgstr "解析中..."
+
+msgid "解析记录"
+msgstr "解析履歴"
+
+msgid "设置"
+msgstr "設定"
+
+msgid "该分类下无分集"
+msgstr "このカテゴリにエピソードはありません"
+
+msgid "该分类下无视频"
+msgstr "このカテゴリーには動画がありません"
+
+msgid "该分类下没有视频"
+msgstr "このカテゴリに動画はありません"
+
+msgid "该番剧没有可下载的分集"
+msgstr "このアニメにはダウンロード可能なエピソードがありません"
+
+msgid "请使用哔哩哔哩客户端扫码登录"
+msgstr "Bilibili クライアントでスキャンしてログインしてください"
+
+msgid "请先登录B站账号，否则无法获取稍后再看列表。"
+msgstr "Bilibiliアカウントでログインしてください。そうでなければ「後で見る」リストを取得できません。"
+
+msgid "请先登录以查看关注列表"
+msgstr "フォロー一覧を見るにはログインしてください"
+
+msgid "请先登录以查看追番列表"
+msgstr "アニメリストを見るにはログインしてください"
+
+msgid "请先粘贴 Cookie 字符串"
+msgstr "まず Cookie 文字列を貼り付けてください"
+
+msgid "请先粘贴至少一个链接"
+msgstr "まず1つ以上のリンクを貼り付けてください"
+
+msgid "请先输入直播间链接或房间号"
+msgstr "まずライブルームのリンクまたはルーム番号を入力してください"
+
+msgid "请先选中一个直播间"
+msgstr "まずライブルームを選択してください"
+
+msgid "请先选中一条记录"
+msgstr "まずレコードを1件選択してください"
+
+msgid "请至少勾选一个视频"
+msgstr "少なくとも1つの動画を選択してください"
+
+msgid "请输入有效页码"
+msgstr "有効なページ番号を入力してください"
+
+msgid "读取日志失败：{}"
+msgstr "ログの読み取りに失敗しました：{}"
+
+msgid "跟随系统"
+msgstr "システムに従う"
+
+msgid "跳至"
+msgstr "移動"
+
+msgid "跳转"
+msgstr "移動"
+
+msgid "跳转页码："
+msgstr "ページ移動: "
+
+msgid "轮询失败："
+msgstr "ポーリング失敗："
+
+msgid "输入关键词后回车或点击搜索"
+msgstr "キーワードを入力後、Enter または検索をクリック"
+
+msgid "输入关键词后点击搜索"
+msgstr "キーワードを入力して検索をクリック"
+
+msgid "输入直播间链接（https://live.bilibili.com/房间号）或纯房间号"
+msgstr "ライブルームのリンク（https://live.bilibili.com/ルーム番号）またはルーム番号を入力"
+
+msgid "输出文件"
+msgstr "出力ファイル"
+
+msgid "追番列表为空"
+msgstr "アニメリストが空です"
+
+msgid "退出"
+msgstr "終了"
+
+msgid "选择 FFmpeg 可执行文件"
+msgstr "FFmpeg 実行ファイルを選択"
+
+msgid "选择下载目录"
+msgstr "ダウンロード先を選択"
+
+msgid "选择下载视频"
+msgstr "ダウンロードする動画を選択"
+
+msgid "选择分集"
+msgstr "エピソードを選択"
+
+msgid "选择收藏夹"
+msgstr "お気に入りを選択"
+
+msgid "选择界面显示语言"
+msgstr "表示言語を選択"
+
+msgid "选择番剧分集"
+msgstr "番組エピソードを選択"
+
+msgid "选择视频"
+msgstr "動画を選択"
+
+msgid "选择颜色"
+msgstr "色を選択"
+
+msgid "选项"
+msgstr "オプション"
+
+msgid "重试"
+msgstr "再試行"
+
+msgid "链接"
+msgstr "リンク"
+
+msgid "链接解析失败，请确认输入的是有效的 B 站链接"
+msgstr "リンク解析に失敗しました。有効な Bilibili の URL か確認してください"
+
+msgid "错误"
+msgstr "エラー"
+
+msgid "队列为空，请先添加视频"
+msgstr "キューが空です。まず動画を追加してください"
+
+msgid "附加文件"
+msgstr "追加ファイル"
+
+msgid "隐藏窗口"
+msgstr "ウィンドウを隠す"
+
+msgid "需要认证时填写"
+msgstr "認証が必要な場合に入力"
+
+msgid "音乐"
+msgstr "音楽"
+
+msgid "音频格式仅在「音画分离」或「仅下载音频」时生效"
+msgstr "音声形式は「音声分離」または「音声のみ」の場合のみ有効"
+
+msgid "高级"
+msgstr "詳細"
+
+msgid "（匹配 {matched}）"
+msgstr "（{matched} 件一致）"
+
+msgid "（匹配 {}）"
+msgstr "（一致: {}）"
+
+msgid "（还有更多）"
+msgstr "（さらにあり）"

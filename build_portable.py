@@ -1,0 +1,79 @@
+"""便携版打包驱动（onedir 模式）。
+
+与 build_exe.py 使用同一 auto-py-to-exe 引擎，区别：
+- 不加 --onefile → 产物为 dist/BiliDownloader/ 文件夹（exe + _internal），
+  启动无需解压临时目录，双击即用，适合压缩成 zip 分发的便携版。
+- ffmpeg 仍不打包（体积考虑），首次使用时由 utils/ffmpeg_provider 自动
+  下载到 exe 同目录 bin/；离线用户可手动放入。
+"""
+import os
+import sys
+import shlex
+import glob
+import subprocess
+
+import auto_py_to_exe.config as ape_config
+from auto_py_to_exe.packaging import package
+
+ROOT = r"F:\b"
+
+ape_config.temporary_directory = os.path.join(ROOT, ".build_tmp")
+os.makedirs(ape_config.temporary_directory, exist_ok=True)
+
+OUT_DIR = os.path.join(ROOT, "dist")
+os.makedirs(OUT_DIR, exist_ok=True)
+
+# 构建前用 .po 重新烘焙 i18n（无依赖；失败不影响打包）
+try:
+    subprocess.run(
+        [sys.executable, os.path.join(ROOT, "scripts", "i18n_tools.py"), "bake"],
+        check=False,
+    )
+except Exception:
+    pass
+
+# ---- Data files (SOURCE;DEST) ----
+datas = []
+for loc in glob.glob(os.path.join(ROOT, "utils", "locales_*.py")):
+    datas.append(f"{loc};utils")
+ICON = os.path.join(ROOT, "icon.ico")
+datas.append(f"{ICON};.")
+
+hidden = [
+    "PySide6",
+    "shiboken6",
+    "win10toast",
+    "pyperclip",
+    "qrcode",
+    "segno",
+    "requests",
+    # 图标体系（bili23 同款 qfluentwidgets FluentIcon）+ 编译后的 Qt 资源
+    "qfluentwidgets",
+    "res.resources_rc",
+]
+
+args = ["pyinstaller", os.path.join(ROOT, "main.py")]
+args += ["--noconsole"]  # 默认 onedir：dist/BiliDownloader/（--clean 会被沙箱删除拦截器挡住，构建前手动清 .build_tmp 即可）
+args += ["--name", "BiliDownloader"]
+if os.path.exists(ICON):
+    args += ["--icon", ICON]
+for d in datas:
+    args += ["--add-data", d]
+for h in hidden:
+    args += ["--hidden-import", h]
+args += ["--collect-data", "PySide6"]
+args += ["--collect-data", "qfluentwidgets"]
+args += ["--exclude-module", "bili23_example"]
+
+command = shlex.join(args)
+print("=== auto-py-to-exe command ===")
+print(command)
+print("===============================")
+
+options = {
+    "increaseRecursionLimit": True,
+    "outputDirectory": OUT_DIR,
+}
+
+ok = package(command, options)
+print("\n=== PACKAGING", "SUCCESS" if ok else "FAILED", "===")

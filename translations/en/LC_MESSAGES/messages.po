@@ -1,0 +1,941 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: bili23 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-26 14:04\n"
+"PO-Revision-Date: 2026-09-26 14:04\n"
+"Last-Translator: \n"
+"Language: en\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+
+msgid " / 共 {} 页"
+msgstr " / {} pages total"
+
+msgid "B站下载器"
+msgstr "Bilibili Downloader"
+
+msgid "B站下载器 Pro"
+msgstr "Bilibili Downloader Pro"
+
+msgid "Cookie 登录"
+msgstr "Cookie login"
+
+msgid "H.264（兼容性好）"
+msgstr "H.264 (better compatibility)"
+
+msgid "H.265（体积更小）"
+msgstr "H.265 (smaller size)"
+
+msgid "UP主"
+msgstr "Uploader"
+
+msgid "bilibili音乐"
+msgstr "Bilibili Music"
+
+msgid "{}/{} 已完成"
+msgstr "{}/{} completed"
+
+msgid "「{}」：{} 视频 / {} 番剧 / {} UP主"
+msgstr "{}: {} videos / {} bangumi / {} uploaders"
+
+msgid "「{}」：{} 音乐视频"
+msgstr "“{}”: {} music videos"
+
+msgid "上一页"
+msgstr "Previous"
+
+msgid "下一页"
+msgstr "Next"
+
+msgid "下载"
+msgstr "Download"
+
+msgid "下载中"
+msgstr "Downloading"
+
+msgid "下载中..."
+msgstr "Downloading..."
+
+msgid "下载完成"
+msgstr "Download Complete"
+
+msgid "下载正在进行中"
+msgstr "Download is already in progress"
+
+msgid "下载结束：完成{}，失败{}，取消{}\n保存路径: {}"
+msgstr "Download finished: {} completed, {} failed, {} cancelled\nSave path: {}"
+
+msgid "下载设置"
+msgstr "Download"
+
+msgid "下载进行中，无法清空队列"
+msgstr "Cannot clear queue while downloading"
+
+msgid "下载选项"
+msgstr "Download Options"
+
+msgid "不使用"
+msgstr "Do not use"
+
+msgid "主题强调色，应用于按钮与高亮"
+msgstr "Theme accent color, applied to buttons and highlights"
+
+msgid "二维码已失效，请点击刷新"
+msgstr "QR code expired, please click to refresh"
+
+msgid "二维码生成失败："
+msgstr "Failed to generate QR code: "
+
+msgid "二维码登录"
+msgstr "QR Code Login"
+
+msgid "你还没有创建任何收藏夹"
+msgstr "You haven't created any favorites yet"
+
+msgid "使用 Cookie 登录"
+msgstr "Log in with Cookie"
+
+msgid "停止异常：{}"
+msgstr "Stop exception: {}"
+
+msgid "停止录制"
+msgstr "Stop recording"
+
+msgid "全不选"
+msgstr "Deselect all"
+
+msgid "全站热门"
+msgstr "All Hot"
+
+msgid "全选"
+msgstr "Select All"
+
+msgid "全选全部"
+msgstr "Select all"
+
+msgid "全选已加载"
+msgstr "Select loaded"
+
+msgid "全选当前页"
+msgstr "Select current page"
+
+msgid "全部结束"
+msgstr "All Done"
+
+msgid "共 {n} 个收藏夹"
+msgstr "{n} favorites in total"
+
+msgid "共 {} 个直播间"
+msgstr "{} live rooms in total"
+
+msgid "共 {} 条结果"
+msgstr "{} results in total"
+
+msgid "共 {} 行"
+msgstr "{} lines"
+
+msgid "关于"
+msgstr "About"
+
+msgid "关注列表为空"
+msgstr "Your following list is empty"
+
+msgid "关闭"
+msgstr "Close"
+
+msgid "关闭方式"
+msgstr "Close behavior"
+
+msgid "关闭程序时："
+msgstr "When closing the program: "
+
+msgid "写入解析记录失败：{}"
+msgstr "Failed to write parse record: {}"
+
+msgid "准备中…"
+msgstr "Preparing…"
+
+msgid "出错"
+msgstr "Error"
+
+msgid "分区"
+msgstr "Category"
+
+msgid "删除"
+msgstr "Delete"
+
+msgid "删除选中"
+msgstr "Delete selected"
+
+msgid "刷新"
+msgstr "Refresh"
+
+msgid "刷新二维码"
+msgstr "Refresh QR Code"
+
+msgid "加入队列"
+msgstr "Add to queue"
+
+msgid "加载中..."
+msgstr "Loading..."
+
+msgid "加载关注列表失败：{}"
+msgstr "Failed to load following list: {}"
+
+msgid "加载失败"
+msgstr "Failed to load"
+
+msgid "加载失败：{}"
+msgstr "Failed to load: {}"
+
+msgid "加载排行榜失败：{}"
+msgstr "Failed to load ranking: {}"
+
+msgid "加载收藏夹失败：{}"
+msgstr "Failed to load favorites: {}"
+
+msgid "加载更多"
+msgstr "Load More"
+
+msgid "加载每周必看失败：{}"
+msgstr "Failed to load Weekly Picks: {}"
+
+msgid "加载热门直播中..."
+msgstr "Loading popular live..."
+
+msgid "加载直播列表失败：{}"
+msgstr "Failed to load live list: {}"
+
+msgid "加载第 {pn} 页失败：{err}"
+msgstr "Failed to load page {pn}: {err}"
+
+msgid "加载第 {} 页…"
+msgstr "Loading page {}…"
+
+msgid "加载追番列表失败：{}"
+msgstr "Failed to load anime list: {}"
+
+msgid "即将清空日志窗口，同时会清空同目录下的 download.log 文件。\n是否继续？"
+msgstr "This will clear the log window and also empty the download.log file in the same folder.\nContinue?"
+
+msgid "历史记录"
+msgstr "History"
+
+msgid "原始流（不转码）"
+msgstr "Original stream (no transcoding)"
+
+msgid "发现"
+msgstr "Discover"
+
+msgid "发生未处理的界面异常："
+msgstr "An unhandled UI exception occurred: "
+
+msgid "取消"
+msgstr "Cancel"
+
+msgid "取消中..."
+msgstr "Cancelling..."
+
+msgid "在浏览器中打开主页"
+msgstr "Open homepage in browser"
+
+msgid "基于 PySide6 重构的 B 站视频下载工具，支持视频 / 番剧 / 直播录制与批量下载、弹幕字幕元数据抓取。"
+msgstr "A Bilibili video downloader rebuilt with PySide6. Supports video / Bangumi / live recording and batch download, plus danmaku, subtitles and metadata capture."
+
+msgid "基本设置"
+msgstr "General"
+
+msgid "复制链接"
+msgstr "Copy link"
+
+msgid "失败"
+msgstr "Failed"
+
+msgid "媒体设置"
+msgstr "Media"
+
+msgid "完成"
+msgstr "Completed"
+
+msgid "已停止"
+msgstr "Stopped"
+
+msgid "已停止录制"
+msgstr "Recording stopped"
+
+msgid "已取消"
+msgstr "Cancelled"
+
+msgid "已取消录制"
+msgstr "Recording canceled"
+
+msgid "已开始录制：{}"
+msgstr "Recording started: {}"
+
+msgid "已录制"
+msgstr "Recorded"
+
+msgid "已扫码，请在手机端确认"
+msgstr "Scanned. Please confirm on your phone"
+
+msgid "已暂停"
+msgstr "Paused"
+
+msgid "已清空"
+msgstr "Cleared"
+
+msgid "已登录"
+msgstr "Logged in"
+
+msgid "已选 {n}"
+msgstr "{n} selected"
+
+msgid "已选择 {} 个视频 · 本次下载设置（确认后生效）"
+msgstr "{} videos selected · download settings (applied on confirm)"
+
+msgid "开始下载"
+msgstr "Start Download"
+
+msgid "开始录制"
+msgstr "Start Recording"
+
+msgid "开始解析"
+msgstr "Start Parsing"
+
+msgid "强调色"
+msgstr "Accent color"
+
+msgid "录制"
+msgstr "Record"
+
+msgid "录制中"
+msgstr "Recording"
+
+msgid "录制直播"
+msgstr "Record Live"
+
+msgid "录制设置"
+msgstr "Recording settings"
+
+msgid "录制选项弹窗异常，按默认设置开始：{}"
+msgstr "Recording options dialog error, starting with defaults: {}"
+
+msgid "总计 {total} 个分集"
+msgstr "Total {total} episodes"
+
+msgid "总计 {total} 个分集（匹配 {matched}）"
+msgstr "Total {total} episodes ({matched} matched)"
+
+msgid "总计 {} 个视频"
+msgstr "Total {} videos"
+
+msgid "总进度"
+msgstr "Overall Progress"
+
+msgid "恢复默认列宽"
+msgstr "Restore default column widths"
+
+msgid "我的"
+msgstr "Mine"
+
+msgid "我的关注"
+msgstr "My Following"
+
+msgid "我的关注 · 共 {total} 位UP主"
+msgstr "My Following · {total} UP hosts"
+
+msgid "我的收藏夹"
+msgstr "My Favorites"
+
+msgid "我的追番"
+msgstr "My Bangumi"
+
+msgid "房间号"
+msgstr "Room ID"
+
+msgid "打开"
+msgstr "Open"
+
+msgid "打开TA的个人空间"
+msgstr "Open Their Personal Space"
+
+msgid "打开TA的空间"
+msgstr "Open Their Space"
+
+msgid "打开下载目录"
+msgstr "Open Download Folder"
+
+msgid "打开文件位置"
+msgstr "Open file location"
+
+msgid "打开直播间"
+msgstr "Open live room"
+
+msgid "批量解析"
+msgstr "Batch Parse"
+
+msgid "批量解析（一行一个链接，自动识别类型）"
+msgstr "Batch parse (one link per line, auto-detect type)"
+
+msgid "排行榜"
+msgstr "Ranking"
+
+msgid "排行榜为空或获取失败"
+msgstr "Ranking is empty or failed to fetch"
+
+msgid "提示"
+msgstr "Notice"
+
+msgid "搜索"
+msgstr "Search"
+
+msgid "搜索 B站"
+msgstr "Search Bilibili"
+
+msgid "搜索UP主昵称 / 签名…"
+msgstr "Search uploader name / signature…"
+
+msgid "搜索中..."
+msgstr "Searching..."
+
+msgid "搜索分集标题…"
+msgstr "Search episode title…"
+
+msgid "搜索失败：{}"
+msgstr "Search failed: {}"
+
+msgid "搜索异常：{}"
+msgstr "Search error: {}"
+
+msgid "搜索标题 / UP主 / 类型…"
+msgstr "Search title / uploader / type…"
+
+msgid "搜索直播"
+msgstr "Search Live"
+
+msgid "搜索直播间关键词"
+msgstr "Search live room keywords"
+
+msgid "搜索视频 / 番剧 / UP主…"
+msgstr "Search video / bangumi / uploader…"
+
+msgid "搜索需要登录（用于签名校验），请先登录。"
+msgstr "Search requires login (for signature verification). Please log in first."
+
+msgid "搜索音乐 / MV / 歌单…"
+msgstr "Search music / MV / playlist…"
+
+msgid "播放"
+msgstr "Views"
+
+msgid "收藏"
+msgstr "Favorites"
+
+msgid "文件大小"
+msgstr "File size"
+
+msgid "无法获取该番剧的 season_id，无法解析分集"
+msgstr "Failed to get the Bangumi season_id; cannot parse episodes"
+
+msgid "无法识别直播间：{}"
+msgstr "Cannot identify live room: {}"
+
+msgid "无法通过搜索打开 UP 主空间"
+msgstr "Cannot open the uploader's space via search"
+
+msgid "日志"
+msgstr "Log"
+
+msgid "时间"
+msgstr "Time"
+
+msgid "显示窗口"
+msgstr "Show Window"
+
+msgid "暂停"
+msgstr "Pause"
+
+msgid "暂无搜索结果"
+msgstr "No search results"
+
+msgid "最小化到托盘"
+msgstr "Minimize to tray"
+
+msgid "未命名收藏夹"
+msgstr "Unnamed favorites"
+
+msgid "未开播"
+msgstr "Offline"
+
+msgid "未找到 FFmpeg，无法合并音视频（可在「设置」中指定路径，或留空使用 bin/ffmpeg.exe）"
+msgstr "FFmpeg not found, cannot merge audio/video (set its path in Settings, or leave empty to use bin/ffmpeg.exe)"
+
+msgid "未找到与「{}」相关的结果"
+msgstr "No results found for "
+
+msgid "未找到与「{}」相关的音乐视频"
+msgstr "No music videos found for “{}”"
+
+msgid "未找到直播间"
+msgstr "No live room found"
+
+msgid "未找到结果"
+msgstr "No results found"
+
+msgid "未找到音乐相关视频"
+msgstr "No music videos found"
+
+msgid "未登录"
+msgstr "Not Logged In"
+
+msgid "未知"
+msgstr "Unknown"
+
+msgid "未知UP主"
+msgstr "Unknown uploader"
+
+msgid "未知直播"
+msgstr "Unknown live"
+
+msgid "未获取到直播流地址（未开播 / 风控拦截）"
+msgstr "Failed to get live stream URL (not live / risk control)"
+
+msgid "未解析到任何分集"
+msgstr "No episodes parsed"
+
+msgid "本次录制设置（确认后生效）"
+msgstr "This recording's settings (applied after confirm)"
+
+msgid "来源"
+msgstr "Source"
+
+msgid "查看"
+msgstr "View"
+
+msgid "查看应用运行日志"
+msgstr "View app run log"
+
+msgid "查看日志"
+msgstr "View Log"
+
+msgid "标题"
+msgstr "Title"
+
+msgid "正在下载"
+msgstr "Downloading"
+
+msgid "正在加载直播列表..."
+msgstr "Loading live list..."
+
+msgid "正在加载第 1 页…"
+msgstr "Loading page 1…"
+
+msgid "正在加载第 {pn} 页..."
+msgstr "Loading page {pn}..."
+
+msgid "正在搜索：{} …"
+msgstr "Searching: {} …"
+
+msgid "正在检查分P…"
+msgstr "Checking parts (P)…"
+
+msgid "正在生成二维码…"
+msgstr "Generating QR code…"
+
+msgid "正在获取直播流地址：roomid={}"
+msgstr "Getting live stream URL: roomid={}"
+
+msgid "正在补全信息…"
+msgstr "Completing info…"
+
+msgid "正在解析并补全番剧分集…"
+msgstr "Parsing and completing Bangumi episodes…"
+
+msgid "正在验证 Cookie…"
+msgstr "Verifying Cookie…"
+
+msgid "每周必看"
+msgstr "Weekly Must-watch"
+
+msgid "每周必看为空或获取失败"
+msgstr "Weekly Picks is empty or failed to fetch"
+
+msgid "每行一个链接，支持视频 / 番剧 / 合集 / 用户空间等，自动识别类型"
+msgstr "One link per line. Supports video / Bangumi / collection / user space, etc. Type is auto-detected."
+
+msgid "没有等待中的任务，请对暂停/失败的任务点击『继续/重试』"
+msgstr "No tasks waiting. Click 'Continue/Retry' on paused or failed tasks"
+
+msgid "浅色"
+msgstr "Light"
+
+msgid "浏览"
+msgstr "Browse"
+
+msgid "深色"
+msgstr "Dark"
+
+msgid "添加"
+msgstr "Add"
+
+msgid "添加全部视频结果"
+msgstr "Add all video results"
+
+msgid "添加全部音乐结果"
+msgstr "Add all music results"
+
+msgid "添加选中到下载队列"
+msgstr "Add selected to download queue"
+
+msgid "清空"
+msgstr "Clear"
+
+msgid "清空勾选"
+msgstr "Clear selection"
+
+msgid "清空日志"
+msgstr "Clear Log"
+
+msgid "清空日志失败：{}"
+msgstr "Failed to clear log: {}"
+
+msgid "清空记录"
+msgstr "Clear records"
+
+msgid "清空队列"
+msgstr "Clear Queue"
+
+msgid "点击「打开TA的个人空间」浏览并下载该UP的视频"
+msgstr "Click "
+
+msgid "点赞"
+msgstr "Likes"
+
+msgid "热门直播"
+msgstr "Popular live"
+
+msgid "状态"
+msgstr "Status"
+
+msgid "状态: 下载中"
+msgstr "Status: Downloading"
+
+msgid "状态: 空闲"
+msgstr "Status: Idle"
+
+msgid "状态: 错误"
+msgstr "Status: Error"
+
+msgid "界面语言"
+msgstr "Language"
+
+msgid "番剧"
+msgstr "Bangumi"
+
+msgid "番剧解析失败：{}"
+msgstr "Bangumi parsing failed: {}"
+
+msgid "登出"
+msgstr "Log Out"
+
+msgid "登录"
+msgstr "Log In"
+
+msgid "登录 B站"
+msgstr "Log in to Bilibili"
+
+msgid "登录后才能查看历史记录"
+msgstr "Log in to view the watch history"
+
+msgid "登录后才能查看收藏夹"
+msgstr "Log in to view favorites"
+
+msgid "登录失败："
+msgstr "Login failed: "
+
+msgid "登录失败：Cookie 无效或已过期（需含 SESSDATA）"
+msgstr "Login failed: Cookie is invalid or expired (SESSDATA required)"
+
+msgid "登录成功，但保存 Cookie 失败："
+msgstr "Login succeeded, but saving Cookie failed: "
+
+msgid "直接退出"
+msgstr "Exit directly"
+
+msgid "直播"
+msgstr "Live"
+
+msgid "直播中"
+msgstr "Live"
+
+msgid "直播中心"
+msgstr "Live Center"
+
+msgid "直播列表为空"
+msgstr "Live list is empty"
+
+msgid "直播录制"
+msgstr "Live recording"
+
+msgid "直播录制选项"
+msgstr "Live recording options"
+
+msgid "直播间"
+msgstr "Live room"
+
+msgid "直播间：{} · 本次录制设置"
+msgstr "Live room: {} · This recording's settings"
+
+msgid "确定"
+msgstr "OK"
+
+msgid "确定清空全部解析记录？"
+msgstr "Clear all parse records?"
+
+msgid "确定要清空队列中的 {} 个任务吗？"
+msgstr "Are you sure you want to clear {} tasks from the queue?"
+
+msgid "确认"
+msgstr "Confirm"
+
+msgid "确认添加"
+msgstr "Confirm Add"
+
+msgid "确认清空"
+msgstr "Confirm Clear"
+
+msgid "程序异常"
+msgstr "Program error"
+
+msgid "稍后再看"
+msgstr "Watch Later"
+
+msgid "空闲"
+msgstr "Idle"
+
+msgid "第 1 页"
+msgstr "Page 1"
+
+msgid "第 {pn} 页"
+msgstr "Page {pn}"
+
+msgid "第 {pn} 页没有数据"
+msgstr "Page {pn} has no data"
+
+msgid "第 {pn} 页，共 {n} 条"
+msgstr "Page {pn}, {n} entries"
+
+msgid "第 {} / {} 页"
+msgstr "Page {} / {}"
+
+msgid "第 {} 页{}"
+msgstr "Page {}{}"
+
+msgid "第 {} 页加载失败：{}"
+msgstr "Failed to load page {}: {}"
+
+msgid "第 {} 页：{} 个视频"
+msgstr "Page {}: {} videos"
+
+msgid "等待"
+msgstr "Waiting"
+
+msgid "等待扫码…"
+msgstr "Waiting for scan…"
+
+msgid "粘贴"
+msgstr "Paste"
+
+msgid "粘贴B站链接（视频/合集/番剧/课程/音频/每周必看…）"
+msgstr "Paste Bilibili link (video/collection/bangumi/course/audio/weekly…)"
+
+msgid "粘贴浏览器中复制的 Cookie 字符串（支持 Netscape / 请求头 Cookie / JSON 三种格式），点击登录即可。二维码异常时可用此方式登录。"
+msgstr "Paste the Cookie string copied from the browser (Netscape / request-header Cookie / JSON formats supported). Click Log in to proceed. Use this method if the QR code is unavailable."
+
+msgid "继续"
+msgstr "Continue"
+
+msgid "自动重命名"
+msgstr "Auto rename"
+
+msgid "获取流地址中…"
+msgstr "Getting stream URL…"
+
+msgid "获取流地址失败：{}"
+msgstr "Failed to get stream URL: {}"
+
+msgid "覆盖"
+msgstr "Overwrite"
+
+msgid "视频"
+msgstr "Video"
+
+msgid "解析"
+msgstr "Parse"
+
+msgid "解析中..."
+msgstr "Parsing..."
+
+msgid "解析记录"
+msgstr "Parse History"
+
+msgid "设置"
+msgstr "Settings"
+
+msgid "该分类下无分集"
+msgstr "No episodes in this category"
+
+msgid "该分类下无视频"
+msgstr "No videos in this category"
+
+msgid "该分类下没有视频"
+msgstr "No videos in this category"
+
+msgid "该番剧没有可下载的分集"
+msgstr "This bangumi has no downloadable episodes"
+
+msgid "请使用哔哩哔哩客户端扫码登录"
+msgstr "Please scan with the Bilibili client to log in"
+
+msgid "请先登录B站账号，否则无法获取稍后再看列表。"
+msgstr "Please log in to your Bilibili account, otherwise the Watch Later list cannot be fetched."
+
+msgid "请先登录以查看关注列表"
+msgstr "Please log in to view the following list"
+
+msgid "请先登录以查看追番列表"
+msgstr "Please log in to view the anime list"
+
+msgid "请先粘贴 Cookie 字符串"
+msgstr "Please paste the Cookie string first"
+
+msgid "请先粘贴至少一个链接"
+msgstr "Please paste at least one link first"
+
+msgid "请先输入直播间链接或房间号"
+msgstr "Please enter a live room link or room ID first"
+
+msgid "请先选中一个直播间"
+msgstr "Please select a live room first"
+
+msgid "请先选中一条记录"
+msgstr "Please select a record first"
+
+msgid "请至少勾选一个视频"
+msgstr "Please select at least one video"
+
+msgid "请输入有效页码"
+msgstr "Please enter a valid page number"
+
+msgid "读取日志失败：{}"
+msgstr "Failed to read log: {}"
+
+msgid "跟随系统"
+msgstr "Follow system"
+
+msgid "跳至"
+msgstr "Go to"
+
+msgid "跳转"
+msgstr "Jump"
+
+msgid "跳转页码："
+msgstr "Go to page: "
+
+msgid "轮询失败："
+msgstr "Polling failed: "
+
+msgid "输入关键词后回车或点击搜索"
+msgstr "Press Enter or click Search after entering a keyword"
+
+msgid "输入关键词后点击搜索"
+msgstr "Enter a keyword then click Search"
+
+msgid "输入直播间链接（https://live.bilibili.com/房间号）或纯房间号"
+msgstr "Enter a live room link (https://live.bilibili.com/room-id) or a plain room ID"
+
+msgid "输出文件"
+msgstr "Output file"
+
+msgid "追番列表为空"
+msgstr "Your anime list is empty"
+
+msgid "退出"
+msgstr "Exit"
+
+msgid "选择 FFmpeg 可执行文件"
+msgstr "Select FFmpeg executable"
+
+msgid "选择下载目录"
+msgstr "Select download directory"
+
+msgid "选择下载视频"
+msgstr "Select Videos to Download"
+
+msgid "选择分集"
+msgstr "Select Episodes"
+
+msgid "选择收藏夹"
+msgstr "Select favorites"
+
+msgid "选择界面显示语言"
+msgstr "Select display language"
+
+msgid "选择番剧分集"
+msgstr "Select Bangumi Episodes"
+
+msgid "选择视频"
+msgstr "Select video"
+
+msgid "选择颜色"
+msgstr "Select color"
+
+msgid "选项"
+msgstr "Options"
+
+msgid "重试"
+msgstr "Retry"
+
+msgid "链接"
+msgstr "Link"
+
+msgid "链接解析失败，请确认输入的是有效的 B 站链接"
+msgstr "Link parsing failed, please make sure it is a valid Bilibili URL"
+
+msgid "错误"
+msgstr "Error"
+
+msgid "队列为空，请先添加视频"
+msgstr "Queue is empty, add videos first"
+
+msgid "附加文件"
+msgstr "Extra Files"
+
+msgid "隐藏窗口"
+msgstr "Hide Window"
+
+msgid "需要认证时填写"
+msgstr "Fill in when authentication is required"
+
+msgid "音乐"
+msgstr "Music"
+
+msgid "音频格式仅在「音画分离」或「仅下载音频」时生效"
+msgstr "Audio format applies only when audio/video is separated or audio-only"
+
+msgid "高级"
+msgstr "Advanced"
+
+msgid "（匹配 {matched}）"
+msgstr "({matched} matched)"
+
+msgid "（匹配 {}）"
+msgstr "(matched {})"
+
+msgid "（还有更多）"
+msgstr "(more available)"

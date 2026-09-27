@@ -1,0 +1,35 @@
+# ===== 本地敏感 / 运行态数据（切勿提交） =====
+cookies*.txt
+settings.json
+*.log
+history.txt
+tasks.json
+test.txt
+download.log
+
+# ===== 构建产物 / 二进制发行 =====
+dist/
+build/
+bin/
+.build_tmp/
+*.pyc
+__pycache__/
+
+# ===== 第三方 / 依赖副本（非本仓库源码） =====
+bili23_example/
+env/
+venv/
+.venv/
+node_modules/
+
+# ===== WorkBuddy 本地数据 =====
+.workbuddy/
+
+# ===== 临时调试脚本（_tmp_ 开头为一次性草稿） =====
+_tmp_*.py
+
+# ===== 编辑器 / 系统 =====
+.vscode/
+.idea/
+*.swp
+.DS_Store

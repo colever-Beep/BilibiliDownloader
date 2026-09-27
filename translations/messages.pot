@@ -1,0 +1,941 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: bili23 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-26 13:58\n"
+"PO-Revision-Date: 2026-09-26 13:58\n"
+"Last-Translator: \n"
+"Language: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+
+msgid " / 共 {} 页"
+msgstr ""
+
+msgid "B站下载器"
+msgstr ""
+
+msgid "B站下载器 Pro"
+msgstr ""
+
+msgid "Cookie 登录"
+msgstr ""
+
+msgid "H.264（兼容性好）"
+msgstr ""
+
+msgid "H.265（体积更小）"
+msgstr ""
+
+msgid "UP主"
+msgstr ""
+
+msgid "bilibili音乐"
+msgstr ""
+
+msgid "{}/{} 已完成"
+msgstr ""
+
+msgid "「{}」：{} 视频 / {} 番剧 / {} UP主"
+msgstr ""
+
+msgid "「{}」：{} 音乐视频"
+msgstr ""
+
+msgid "上一页"
+msgstr ""
+
+msgid "下一页"
+msgstr ""
+
+msgid "下载"
+msgstr ""
+
+msgid "下载中"
+msgstr ""
+
+msgid "下载中..."
+msgstr ""
+
+msgid "下载完成"
+msgstr ""
+
+msgid "下载正在进行中"
+msgstr ""
+
+msgid "下载结束：完成{}，失败{}，取消{}\n保存路径: {}"
+msgstr ""
+
+msgid "下载设置"
+msgstr ""
+
+msgid "下载进行中，无法清空队列"
+msgstr ""
+
+msgid "下载选项"
+msgstr ""
+
+msgid "不使用"
+msgstr ""
+
+msgid "主题强调色，应用于按钮与高亮"
+msgstr ""
+
+msgid "二维码已失效，请点击刷新"
+msgstr ""
+
+msgid "二维码生成失败："
+msgstr ""
+
+msgid "二维码登录"
+msgstr ""
+
+msgid "你还没有创建任何收藏夹"
+msgstr ""
+
+msgid "使用 Cookie 登录"
+msgstr ""
+
+msgid "停止异常：{}"
+msgstr ""
+
+msgid "停止录制"
+msgstr ""
+
+msgid "全不选"
+msgstr ""
+
+msgid "全站热门"
+msgstr ""
+
+msgid "全选"
+msgstr ""
+
+msgid "全选全部"
+msgstr ""
+
+msgid "全选已加载"
+msgstr ""
+
+msgid "全选当前页"
+msgstr ""
+
+msgid "全部结束"
+msgstr ""
+
+msgid "共 {n} 个收藏夹"
+msgstr ""
+
+msgid "共 {} 个直播间"
+msgstr ""
+
+msgid "共 {} 条结果"
+msgstr ""
+
+msgid "共 {} 行"
+msgstr ""
+
+msgid "关于"
+msgstr ""
+
+msgid "关注列表为空"
+msgstr ""
+
+msgid "关闭"
+msgstr ""
+
+msgid "关闭方式"
+msgstr ""
+
+msgid "关闭程序时："
+msgstr ""
+
+msgid "写入解析记录失败：{}"
+msgstr ""
+
+msgid "准备中…"
+msgstr ""
+
+msgid "出错"
+msgstr ""
+
+msgid "分区"
+msgstr ""
+
+msgid "删除"
+msgstr ""
+
+msgid "删除选中"
+msgstr ""
+
+msgid "刷新"
+msgstr ""
+
+msgid "刷新二维码"
+msgstr ""
+
+msgid "加入队列"
+msgstr ""
+
+msgid "加载中..."
+msgstr ""
+
+msgid "加载关注列表失败：{}"
+msgstr ""
+
+msgid "加载失败"
+msgstr ""
+
+msgid "加载失败：{}"
+msgstr ""
+
+msgid "加载排行榜失败：{}"
+msgstr ""
+
+msgid "加载收藏夹失败：{}"
+msgstr ""
+
+msgid "加载更多"
+msgstr ""
+
+msgid "加载每周必看失败：{}"
+msgstr ""
+
+msgid "加载热门直播中..."
+msgstr ""
+
+msgid "加载直播列表失败：{}"
+msgstr ""
+
+msgid "加载第 {pn} 页失败：{err}"
+msgstr ""
+
+msgid "加载第 {} 页…"
+msgstr ""
+
+msgid "加载追番列表失败：{}"
+msgstr ""
+
+msgid "即将清空日志窗口，同时会清空同目录下的 download.log 文件。\n是否继续？"
+msgstr ""
+
+msgid "历史记录"
+msgstr ""
+
+msgid "原始流（不转码）"
+msgstr ""
+
+msgid "发现"
+msgstr ""
+
+msgid "发生未处理的界面异常："
+msgstr ""
+
+msgid "取消"
+msgstr ""
+
+msgid "取消中..."
+msgstr ""
+
+msgid "在浏览器中打开主页"
+msgstr ""
+
+msgid "基于 PySide6 重构的 B 站视频下载工具，支持视频 / 番剧 / 直播录制与批量下载、弹幕字幕元数据抓取。"
+msgstr ""
+
+msgid "基本设置"
+msgstr ""
+
+msgid "复制链接"
+msgstr ""
+
+msgid "失败"
+msgstr ""
+
+msgid "媒体设置"
+msgstr ""
+
+msgid "完成"
+msgstr ""
+
+msgid "已停止"
+msgstr ""
+
+msgid "已停止录制"
+msgstr ""
+
+msgid "已取消"
+msgstr ""
+
+msgid "已取消录制"
+msgstr ""
+
+msgid "已开始录制：{}"
+msgstr ""
+
+msgid "已录制"
+msgstr ""
+
+msgid "已扫码，请在手机端确认"
+msgstr ""
+
+msgid "已暂停"
+msgstr ""
+
+msgid "已清空"
+msgstr ""
+
+msgid "已登录"
+msgstr ""
+
+msgid "已选 {n}"
+msgstr ""
+
+msgid "已选择 {} 个视频 · 本次下载设置（确认后生效）"
+msgstr ""
+
+msgid "开始下载"
+msgstr ""
+
+msgid "开始录制"
+msgstr ""
+
+msgid "开始解析"
+msgstr ""
+
+msgid "强调色"
+msgstr ""
+
+msgid "录制"
+msgstr ""
+
+msgid "录制中"
+msgstr ""
+
+msgid "录制直播"
+msgstr ""
+
+msgid "录制设置"
+msgstr ""
+
+msgid "录制选项弹窗异常，按默认设置开始：{}"
+msgstr ""
+
+msgid "总计 {total} 个分集"
+msgstr ""
+
+msgid "总计 {total} 个分集（匹配 {matched}）"
+msgstr ""
+
+msgid "总计 {} 个视频"
+msgstr ""
+
+msgid "总进度"
+msgstr ""
+
+msgid "恢复默认列宽"
+msgstr ""
+
+msgid "我的"
+msgstr ""
+
+msgid "我的关注"
+msgstr ""
+
+msgid "我的关注 · 共 {total} 位UP主"
+msgstr ""
+
+msgid "我的收藏夹"
+msgstr ""
+
+msgid "我的追番"
+msgstr ""
+
+msgid "房间号"
+msgstr ""
+
+msgid "打开"
+msgstr ""
+
+msgid "打开TA的个人空间"
+msgstr ""
+
+msgid "打开TA的空间"
+msgstr ""
+
+msgid "打开下载目录"
+msgstr ""
+
+msgid "打开文件位置"
+msgstr ""
+
+msgid "打开直播间"
+msgstr ""
+
+msgid "批量解析"
+msgstr ""
+
+msgid "批量解析（一行一个链接，自动识别类型）"
+msgstr ""
+
+msgid "排行榜"
+msgstr ""
+
+msgid "排行榜为空或获取失败"
+msgstr ""
+
+msgid "提示"
+msgstr ""
+
+msgid "搜索"
+msgstr ""
+
+msgid "搜索 B站"
+msgstr ""
+
+msgid "搜索UP主昵称 / 签名…"
+msgstr ""
+
+msgid "搜索中..."
+msgstr ""
+
+msgid "搜索分集标题…"
+msgstr ""
+
+msgid "搜索失败：{}"
+msgstr ""
+
+msgid "搜索异常：{}"
+msgstr ""
+
+msgid "搜索标题 / UP主 / 类型…"
+msgstr ""
+
+msgid "搜索直播"
+msgstr ""
+
+msgid "搜索直播间关键词"
+msgstr ""
+
+msgid "搜索视频 / 番剧 / UP主…"
+msgstr ""
+
+msgid "搜索需要登录（用于签名校验），请先登录。"
+msgstr ""
+
+msgid "搜索音乐 / MV / 歌单…"
+msgstr ""
+
+msgid "播放"
+msgstr ""
+
+msgid "收藏"
+msgstr ""
+
+msgid "文件大小"
+msgstr ""
+
+msgid "无法获取该番剧的 season_id，无法解析分集"
+msgstr ""
+
+msgid "无法识别直播间：{}"
+msgstr ""
+
+msgid "无法通过搜索打开 UP 主空间"
+msgstr ""
+
+msgid "日志"
+msgstr ""
+
+msgid "时间"
+msgstr ""
+
+msgid "显示窗口"
+msgstr ""
+
+msgid "暂停"
+msgstr ""
+
+msgid "暂无搜索结果"
+msgstr ""
+
+msgid "最小化到托盘"
+msgstr ""
+
+msgid "未命名收藏夹"
+msgstr ""
+
+msgid "未开播"
+msgstr ""
+
+msgid "未找到 FFmpeg，无法合并音视频（可在「设置」中指定路径，或留空使用 bin/ffmpeg.exe）"
+msgstr ""
+
+msgid "未找到与「{}」相关的结果"
+msgstr ""
+
+msgid "未找到与「{}」相关的音乐视频"
+msgstr ""
+
+msgid "未找到直播间"
+msgstr ""
+
+msgid "未找到结果"
+msgstr ""
+
+msgid "未找到音乐相关视频"
+msgstr ""
+
+msgid "未登录"
+msgstr ""
+
+msgid "未知"
+msgstr ""
+
+msgid "未知UP主"
+msgstr ""
+
+msgid "未知直播"
+msgstr ""
+
+msgid "未获取到直播流地址（未开播 / 风控拦截）"
+msgstr ""
+
+msgid "未解析到任何分集"
+msgstr ""
+
+msgid "本次录制设置（确认后生效）"
+msgstr ""
+
+msgid "来源"
+msgstr ""
+
+msgid "查看"
+msgstr ""
+
+msgid "查看应用运行日志"
+msgstr ""
+
+msgid "查看日志"
+msgstr ""
+
+msgid "标题"
+msgstr ""
+
+msgid "正在下载"
+msgstr ""
+
+msgid "正在加载直播列表..."
+msgstr ""
+
+msgid "正在加载第 1 页…"
+msgstr ""
+
+msgid "正在加载第 {pn} 页..."
+msgstr ""
+
+msgid "正在搜索：{} …"
+msgstr ""
+
+msgid "正在检查分P…"
+msgstr ""
+
+msgid "正在生成二维码…"
+msgstr ""
+
+msgid "正在获取直播流地址：roomid={}"
+msgstr ""
+
+msgid "正在补全信息…"
+msgstr ""
+
+msgid "正在解析并补全番剧分集…"
+msgstr ""
+
+msgid "正在验证 Cookie…"
+msgstr ""
+
+msgid "每周必看"
+msgstr ""
+
+msgid "每周必看为空或获取失败"
+msgstr ""
+
+msgid "每行一个链接，支持视频 / 番剧 / 合集 / 用户空间等，自动识别类型"
+msgstr ""
+
+msgid "没有等待中的任务，请对暂停/失败的任务点击『继续/重试』"
+msgstr ""
+
+msgid "浅色"
+msgstr ""
+
+msgid "浏览"
+msgstr ""
+
+msgid "深色"
+msgstr ""
+
+msgid "添加"
+msgstr ""
+
+msgid "添加全部视频结果"
+msgstr ""
+
+msgid "添加全部音乐结果"
+msgstr ""
+
+msgid "添加选中到下载队列"
+msgstr ""
+
+msgid "清空"
+msgstr ""
+
+msgid "清空勾选"
+msgstr ""
+
+msgid "清空日志"
+msgstr ""
+
+msgid "清空日志失败：{}"
+msgstr ""
+
+msgid "清空记录"
+msgstr ""
+
+msgid "清空队列"
+msgstr ""
+
+msgid "点击「打开TA的个人空间」浏览并下载该UP的视频"
+msgstr ""
+
+msgid "点赞"
+msgstr ""
+
+msgid "热门直播"
+msgstr ""
+
+msgid "状态"
+msgstr ""
+
+msgid "状态: 下载中"
+msgstr ""
+
+msgid "状态: 空闲"
+msgstr ""
+
+msgid "状态: 错误"
+msgstr ""
+
+msgid "界面语言"
+msgstr ""
+
+msgid "番剧"
+msgstr ""
+
+msgid "番剧解析失败：{}"
+msgstr ""
+
+msgid "登出"
+msgstr ""
+
+msgid "登录"
+msgstr ""
+
+msgid "登录 B站"
+msgstr ""
+
+msgid "登录后才能查看历史记录"
+msgstr ""
+
+msgid "登录后才能查看收藏夹"
+msgstr ""
+
+msgid "登录失败："
+msgstr ""
+
+msgid "登录失败：Cookie 无效或已过期（需含 SESSDATA）"
+msgstr ""
+
+msgid "登录成功，但保存 Cookie 失败："
+msgstr ""
+
+msgid "直接退出"
+msgstr ""
+
+msgid "直播"
+msgstr ""
+
+msgid "直播中"
+msgstr ""
+
+msgid "直播中心"
+msgstr ""
+
+msgid "直播列表为空"
+msgstr ""
+
+msgid "直播录制"
+msgstr ""
+
+msgid "直播录制选项"
+msgstr ""
+
+msgid "直播间"
+msgstr ""
+
+msgid "直播间：{} · 本次录制设置"
+msgstr ""
+
+msgid "确定"
+msgstr ""
+
+msgid "确定清空全部解析记录？"
+msgstr ""
+
+msgid "确定要清空队列中的 {} 个任务吗？"
+msgstr ""
+
+msgid "确认"
+msgstr ""
+
+msgid "确认添加"
+msgstr ""
+
+msgid "确认清空"
+msgstr ""
+
+msgid "程序异常"
+msgstr ""
+
+msgid "稍后再看"
+msgstr ""
+
+msgid "空闲"
+msgstr ""
+
+msgid "第 1 页"
+msgstr ""
+
+msgid "第 {pn} 页"
+msgstr ""
+
+msgid "第 {pn} 页没有数据"
+msgstr ""
+
+msgid "第 {pn} 页，共 {n} 条"
+msgstr ""
+
+msgid "第 {} / {} 页"
+msgstr ""
+
+msgid "第 {} 页{}"
+msgstr ""
+
+msgid "第 {} 页加载失败：{}"
+msgstr ""
+
+msgid "第 {} 页：{} 个视频"
+msgstr ""
+
+msgid "等待"
+msgstr ""
+
+msgid "等待扫码…"
+msgstr ""
+
+msgid "粘贴"
+msgstr ""
+
+msgid "粘贴B站链接（视频/合集/番剧/课程/音频/每周必看…）"
+msgstr ""
+
+msgid "粘贴浏览器中复制的 Cookie 字符串（支持 Netscape / 请求头 Cookie / JSON 三种格式），点击登录即可。二维码异常时可用此方式登录。"
+msgstr ""
+
+msgid "继续"
+msgstr ""
+
+msgid "自动重命名"
+msgstr ""
+
+msgid "获取流地址中…"
+msgstr ""
+
+msgid "获取流地址失败：{}"
+msgstr ""
+
+msgid "覆盖"
+msgstr ""
+
+msgid "视频"
+msgstr ""
+
+msgid "解析"
+msgstr ""
+
+msgid "解析中..."
+msgstr ""
+
+msgid "解析记录"
+msgstr ""
+
+msgid "设置"
+msgstr ""
+
+msgid "该分类下无分集"
+msgstr ""
+
+msgid "该分类下无视频"
+msgstr ""
+
+msgid "该分类下没有视频"
+msgstr ""
+
+msgid "该番剧没有可下载的分集"
+msgstr ""
+
+msgid "请使用哔哩哔哩客户端扫码登录"
+msgstr ""
+
+msgid "请先登录B站账号，否则无法获取稍后再看列表。"
+msgstr ""
+
+msgid "请先登录以查看关注列表"
+msgstr ""
+
+msgid "请先登录以查看追番列表"
+msgstr ""
+
+msgid "请先粘贴 Cookie 字符串"
+msgstr ""
+
+msgid "请先粘贴至少一个链接"
+msgstr ""
+
+msgid "请先输入直播间链接或房间号"
+msgstr ""
+
+msgid "请先选中一个直播间"
+msgstr ""
+
+msgid "请先选中一条记录"
+msgstr ""
+
+msgid "请至少勾选一个视频"
+msgstr ""
+
+msgid "请输入有效页码"
+msgstr ""
+
+msgid "读取日志失败：{}"
+msgstr ""
+
+msgid "跟随系统"
+msgstr ""
+
+msgid "跳至"
+msgstr ""
+
+msgid "跳转"
+msgstr ""
+
+msgid "跳转页码："
+msgstr ""
+
+msgid "轮询失败："
+msgstr ""
+
+msgid "输入关键词后回车或点击搜索"
+msgstr ""
+
+msgid "输入关键词后点击搜索"
+msgstr ""
+
+msgid "输入直播间链接（https://live.bilibili.com/房间号）或纯房间号"
+msgstr ""
+
+msgid "输出文件"
+msgstr ""
+
+msgid "追番列表为空"
+msgstr ""
+
+msgid "退出"
+msgstr ""
+
+msgid "选择 FFmpeg 可执行文件"
+msgstr ""
+
+msgid "选择下载目录"
+msgstr ""
+
+msgid "选择下载视频"
+msgstr ""
+
+msgid "选择分集"
+msgstr ""
+
+msgid "选择收藏夹"
+msgstr ""
+
+msgid "选择界面显示语言"
+msgstr ""
+
+msgid "选择番剧分集"
+msgstr ""
+
+msgid "选择视频"
+msgstr ""
+
+msgid "选择颜色"
+msgstr ""
+
+msgid "选项"
+msgstr ""
+
+msgid "重试"
+msgstr ""
+
+msgid "链接"
+msgstr ""
+
+msgid "链接解析失败，请确认输入的是有效的 B 站链接"
+msgstr ""
+
+msgid "错误"
+msgstr ""
+
+msgid "队列为空，请先添加视频"
+msgstr ""
+
+msgid "附加文件"
+msgstr ""
+
+msgid "隐藏窗口"
+msgstr ""
+
+msgid "需要认证时填写"
+msgstr ""
+
+msgid "音乐"
+msgstr ""
+
+msgid "音频格式仅在「音画分离」或「仅下载音频」时生效"
+msgstr ""
+
+msgid "高级"
+msgstr ""
+
+msgid "（匹配 {matched}）"
+msgstr ""
+
+msgid "（匹配 {}）"
+msgstr ""
+
+msgid "（还有更多）"
+msgstr ""
