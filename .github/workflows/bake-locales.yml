@@ -1,0 +1,78 @@
+# =============================================================================
+# Weblate 同步：.po -> utils/locales_weblate.py
+# -----------------------------------------------------------------------------
+# Weblate 只管理 translations/<lang>/LC_MESSAGES/messages.po；本工作流在
+# .po 变更（含 Weblate 的推送）后自动重新烘焙出运行时字典并回写，保证应用源码
+# 树中的 locales_weblate.py 始终与 .po 一致。
+#
+# 防循环：CI 仅监听 translations/、scripts/i18n_tools.py、utils/i18n.py 的变更，
+# 而回写的是 utils/locales_weblate.py（不在监听路径内），因此不会产生无限触发。
+# 另以提交信息中的 [skip weblate-bake] 标记做二次兜底。
+# =============================================================================
+name: Bake locales (Weblate sync)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'translations/**'
+      - 'scripts/i18n_tools.py'
+      - 'utils/i18n.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bake:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip weblate-bake]')"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bake .po -> utils/locales_weblate.py
+        run: python scripts/i18n_tools.py bake
+
+      - name: Commit baked locales if changed
+        env:
+          REF: ${{ github.ref_name }}
+        run: |
+          if ! git diff --quiet utils/locales_weblate.py; then
+            git pull --rebase --ff-only origin "$REF" || true
+            git config user.name "weblate-bake[bot]"
+            git config user.email "weblate-bake[bot]@users.noreply.github.com"
+            git add utils/locales_weblate.py
+            git commit -m "chore(i18n): re-bake utils/locales_weblate.py [skip weblate-bake]"
+            git push origin "HEAD:$REF"
+          else
+            echo "locales_weblate.py 已是最新，无需提交"
+          fi
+
+  # PR 校验：确保提交的 locales_weblate.py 与 .po 同步，防止漏跑 bake
+  verify:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify locales_weblate.py is up to date
+        run: |
+          python scripts/i18n_tools.py bake
+          if ! git diff --quiet utils/locales_weblate.py; then
+            echo "::error::utils/locales_weblate.py 与 .po 不同步，请运行 python scripts/i18n_tools.py bake"
+            git --no-pager diff utils/locales_weblate.py | head -40
+            exit 1
+          fi
+          echo "locales_weblate.py 与 .po 同步"
