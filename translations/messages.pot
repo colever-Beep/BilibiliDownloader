@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bili23 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 13:58\n"
-"PO-Revision-Date: 2026-09-26 13:58\n"
+"POT-Creation-Date: 2026-10-01 15:07\n"
+"PO-Revision-Date: 2026-10-01 15:07\n"
 "Last-Translator: \n"
 "Language: \n"
 "Language-Team: \n"
@@ -14,6 +14,18 @@ msgstr ""
 
 
 msgid " / 共 {} 页"
+msgstr ""
+
+msgid "0 分。今天诸事不宜，建议原地躺平。"
+msgstr ""
+
+msgid "1080p 及以下"
+msgstr ""
+
+msgid "720p 及以下"
+msgstr ""
+
+msgid "<html>欢迎使用本软件。在开始使用前，请仔细阅读以下《用户协议》。\n当您点击「同意并继续」时，即表示您已阅读、理解并同意遵守全部条款。\n\n<p><b>一、使用目的</b><br>\n本软件仅供个人学习、研究与非商业用途。通过本软件获取的任何内容，\n<b>仅限于您个人合理使用，不得用于任何商业目的、公开传播、分享、转售或非法牟利。</b></p>\n\n<p><b>二、访问权限</b><br>\n本软件基于您本人合法的账号登录状态运行，<b>不绕过任何付费内容、会员限制或技术保护措施</b>。\n您仅可访问通过正常登录所授权的内容；对无权限的内容，不得借助本软件获取。</p>\n\n<p><b>三、禁止行为</b><br>\n<b>请勿使用本软件进行批量抓取、未经授权的再分发，或任何违反目标平台服务条款的行为。</b>\n您须对自身使用行为负全部责任，包括但不限于账号封禁、版权纠纷及由此引发的法律责任。</p>\n\n<p><b>四、责任限制</b><br>\n在任何情况下，开发者均不对因使用或无法使用本软件造成的任何直接、间接、附带或后果性损害承担责任。</p>\n\n<p><b>五、协议生效</b><br>\n您继续使用本软件，即视为已阅读、理解并自愿接受上述全部条款与潜在风险。</p></html>"
 msgstr ""
 
 msgid "B站下载器"
@@ -46,6 +58,12 @@ msgstr ""
 msgid "「{}」：{} 音乐视频"
 msgstr ""
 
+msgid "「仅音频」需要 ffmpeg，请先在「高级」里配置 ffmpeg 路径。"
+msgstr ""
+
+msgid "一个不该点的按钮"
+msgstr ""
+
 msgid "上一页"
 msgstr ""
 
@@ -58,13 +76,28 @@ msgstr ""
 msgid "下载中"
 msgstr ""
 
+msgid "下载中 {}%（{}，剩余 {}）"
+msgstr ""
+
 msgid "下载中..."
+msgstr ""
+
+msgid "下载失败"
+msgstr ""
+
+msgid "下载失败：{}"
 msgstr ""
 
 msgid "下载完成"
 msgstr ""
 
+msgid "下载完成。"
+msgstr ""
+
 msgid "下载正在进行中"
+msgstr ""
+
+msgid "下载画质"
 msgstr ""
 
 msgid "下载结束：完成{}，失败{}，取消{}\n保存路径: {}"
@@ -82,6 +115,12 @@ msgstr ""
 msgid "不使用"
 msgstr ""
 
+msgid "不同意并退出"
+msgstr ""
+
+msgid "中规中矩，一切照旧。"
+msgstr ""
+
 msgid "主题强调色，应用于按钮与高亮"
 msgstr ""
 
@@ -94,10 +133,31 @@ msgstr ""
 msgid "二维码登录"
 msgstr ""
 
+msgid "仅音频（m4a）"
+msgstr ""
+
+msgid "今日人品"
+msgstr ""
+
+msgid "任务开始：{}"
+msgstr ""
+
+msgid "你怎么还在点？"
+msgstr ""
+
+msgid "你的耐心让我有点害怕。"
+msgstr ""
+
 msgid "你还没有创建任何收藏夹"
 msgstr ""
 
 msgid "使用 Cookie 登录"
+msgstr ""
+
+msgid "保存到"
+msgstr ""
+
+msgid "停止"
 msgstr ""
 
 msgid "停止异常：{}"
@@ -154,16 +214,25 @@ msgstr ""
 msgid "关闭程序时："
 msgstr ""
 
+msgid "再点下去要出事了……"
+msgstr ""
+
 msgid "写入解析记录失败：{}"
 msgstr ""
 
 msgid "准备中…"
 msgstr ""
 
+msgid "准备就绪"
+msgstr ""
+
 msgid "出错"
 msgstr ""
 
 msgid "分区"
+msgstr ""
+
+msgid "创建保存目录失败：{}"
 msgstr ""
 
 msgid "删除"
@@ -220,6 +289,12 @@ msgstr ""
 msgid "加载追番列表失败：{}"
 msgstr ""
 
+msgid "千万别点"
+msgstr ""
+
+msgid "占卜中……"
+msgstr ""
+
 msgid "即将清空日志窗口，同时会清空同目录下的 download.log 文件。\n是否继续？"
 msgstr ""
 
@@ -239,6 +314,15 @@ msgid "取消"
 msgstr ""
 
 msgid "取消中..."
+msgstr ""
+
+msgid "同一名字同一天的结果固定，每天 0 点刷新。"
+msgstr ""
+
+msgid "同意并继续"
+msgstr ""
+
+msgid "名字"
 msgstr ""
 
 msgid "在浏览器中打开主页"
@@ -262,6 +346,9 @@ msgstr ""
 msgid "完成"
 msgstr ""
 
+msgid "已下载：{}"
+msgstr ""
+
 msgid "已停止"
 msgstr ""
 
@@ -269,6 +356,9 @@ msgid "已停止录制"
 msgstr ""
 
 msgid "已取消"
+msgstr ""
+
+msgid "已取消。"
 msgstr ""
 
 msgid "已取消录制"
@@ -292,13 +382,25 @@ msgstr ""
 msgid "已登录"
 msgstr ""
 
+msgid "已累计点击 {} 次。"
+msgstr ""
+
 msgid "已选 {n}"
 msgstr ""
 
 msgid "已选择 {} 个视频 · 本次下载设置（确认后生效）"
 msgstr ""
 
+msgid "平平淡淡，适合摸鱼。"
+msgstr ""
+
 msgid "开始下载"
+msgstr ""
+
+msgid "开始下载：{}"
+msgstr ""
+
+msgid "开始占卜"
 msgstr ""
 
 msgid "开始录制"
@@ -323,6 +425,15 @@ msgid "录制设置"
 msgstr ""
 
 msgid "录制选项弹窗异常，按默认设置开始：{}"
+msgstr ""
+
+msgid "彩蛋"
+msgstr ""
+
+msgid "彩蛋到手：今日人品 +5，去「今日人品」那页看看吧。"
+msgstr ""
+
+msgid "彩蛋触发成功：今日人品 +5（当前加成 +{}）。"
 msgstr ""
 
 msgid "总计 {total} 个分集"
@@ -355,6 +466,9 @@ msgstr ""
 msgid "我的追番"
 msgstr ""
 
+msgid "我认真的，别点了。"
+msgstr ""
+
 msgid "房间号"
 msgstr ""
 
@@ -373,6 +487,9 @@ msgstr ""
 msgid "打开文件位置"
 msgstr ""
 
+msgid "打开目录"
+msgstr ""
+
 msgid "打开直播间"
 msgstr ""
 
@@ -380,6 +497,9 @@ msgid "批量解析"
 msgstr ""
 
 msgid "批量解析（一行一个链接，自动识别类型）"
+msgstr ""
+
+msgid "换个名字会有不同结果"
 msgstr ""
 
 msgid "排行榜"
@@ -463,6 +583,12 @@ msgstr ""
 msgid "暂无搜索结果"
 msgstr ""
 
+msgid "最佳画质（自动合并）"
+msgstr ""
+
+msgid "最后一次警告：再点一下有彩蛋（大概）。"
+msgstr ""
+
 msgid "最小化到托盘"
 msgstr ""
 
@@ -490,6 +616,9 @@ msgstr ""
 msgid "未找到音乐相关视频"
 msgstr ""
 
+msgid "未检测到 ffmpeg：本次按最佳单文件下载（不合并、不转码）。"
+msgstr ""
+
 msgid "未登录"
 msgstr ""
 
@@ -508,10 +637,16 @@ msgstr ""
 msgid "未解析到任何分集"
 msgstr ""
 
+msgid "本次含彩蛋加成 +{}。"
+msgstr ""
+
 msgid "本次录制设置（确认后生效）"
 msgstr ""
 
 msgid "来源"
+msgstr ""
+
+msgid "来都来了，点一下吧。"
 msgstr ""
 
 msgid "查看"
@@ -526,7 +661,13 @@ msgstr ""
 msgid "标题"
 msgstr ""
 
+msgid "欧气满满，今天宜抽卡、宜投稿。"
+msgstr ""
+
 msgid "正在下载"
+msgstr ""
+
+msgid "正在停止……"
 msgstr ""
 
 msgid "正在加载直播列表..."
@@ -536,6 +677,9 @@ msgid "正在加载第 1 页…"
 msgstr ""
 
 msgid "正在加载第 {pn} 页..."
+msgstr ""
+
+msgid "正在处理文件……"
 msgstr ""
 
 msgid "正在搜索：{} …"
@@ -556,6 +700,9 @@ msgstr ""
 msgid "正在解析并补全番剧分集…"
 msgstr ""
 
+msgid "正在解析链接……"
+msgstr ""
+
 msgid "正在验证 Cookie…"
 msgstr ""
 
@@ -572,6 +719,9 @@ msgid "没有等待中的任务，请对暂停/失败的任务点击『继续/�
 msgstr ""
 
 msgid "浅色"
+msgstr ""
+
+msgid "测一测今天的手气（纯娱乐）"
 msgstr ""
 
 msgid "浏览"
@@ -610,6 +760,15 @@ msgstr ""
 msgid "清空队列"
 msgstr ""
 
+msgid "温馨提示"
+msgstr ""
+
+msgid "满分！欧皇附体，今天做什么都顺。"
+msgstr ""
+
+msgid "点下面的按钮，看看今天的手气。"
+msgstr ""
+
 msgid "点击「打开TA的个人空间」浏览并下载该UP的视频"
 msgstr ""
 
@@ -629,6 +788,15 @@ msgid "状态: 空闲"
 msgstr ""
 
 msgid "状态: 错误"
+msgstr ""
+
+msgid "玩家"
+msgstr ""
+
+msgid "用 yt-dlp 下载任意链接（支持非 B 站站点）"
+msgstr ""
+
+msgid "用户协议"
 msgstr ""
 
 msgid "界面语言"
@@ -659,6 +827,9 @@ msgid "登录失败："
 msgstr ""
 
 msgid "登录失败：Cookie 无效或已过期（需含 SESSDATA）"
+msgstr ""
+
+msgid "登录成功！温馨提示：B 站接口存在频率限制，短时间内大量解析或请求可能触发风控，导致接口失败甚至 IP 封禁。请适度使用，避免频繁批量操作。"
 msgstr ""
 
 msgid "登录成功，但保存 Cookie 失败："
@@ -721,6 +892,9 @@ msgstr ""
 msgid "第 1 页"
 msgstr ""
 
+msgid "第 6 次了，我已经开始怀疑人生。"
+msgstr ""
+
 msgid "第 {pn} 页"
 msgstr ""
 
@@ -757,10 +931,19 @@ msgstr ""
 msgid "粘贴浏览器中复制的 Cookie 字符串（支持 Netscape / 请求头 Cookie / JSON 三种格式），点击登录即可。二维码异常时可用此方式登录。"
 msgstr ""
 
+msgid "粘贴视频 / 播放列表 / 用户主页链接，支持 yt-dlp 可解析的任意站点"
+msgstr ""
+
+msgid "精简布局"
+msgstr ""
+
 msgid "继续"
 msgstr ""
 
 msgid "自动重命名"
+msgstr ""
+
+msgid "自定义链接下载"
 msgstr ""
 
 msgid "获取流地址中…"
@@ -799,6 +982,9 @@ msgstr ""
 msgid "该番剧没有可下载的分集"
 msgstr ""
 
+msgid "详细布局"
+msgstr ""
+
 msgid "请使用哔哩哔哩客户端扫码登录"
 msgstr ""
 
@@ -817,6 +1003,9 @@ msgstr ""
 msgid "请先粘贴至少一个链接"
 msgstr ""
 
+msgid "请先粘贴要下载的链接。"
+msgstr ""
+
 msgid "请先输入直播间链接或房间号"
 msgstr ""
 
@@ -824,6 +1013,12 @@ msgid "请先选中一个直播间"
 msgstr ""
 
 msgid "请先选中一条记录"
+msgstr ""
+
+msgid "请先选择保存目录。"
+msgstr ""
+
+msgid "请滚动阅读至底部后，方可同意"
 msgstr ""
 
 msgid "请至少勾选一个视频"
@@ -862,6 +1057,15 @@ msgstr ""
 msgid "输出文件"
 msgstr ""
 
+msgid "运气不错，适合做点正事。"
+msgstr ""
+
+msgid "运气有点差，出门先看看黄历。"
+msgstr ""
+
+msgid "这个按钮没有任何用途。真的。"
+msgstr ""
+
 msgid "追番列表为空"
 msgstr ""
 
@@ -895,7 +1099,13 @@ msgstr ""
 msgid "选择颜色"
 msgstr ""
 
-msgid "选项"
+msgid "速度未知"
+msgstr ""
+
+msgid "都说了千万别点！"
+msgstr ""
+
+msgid "重置"
 msgstr ""
 
 msgid "重试"

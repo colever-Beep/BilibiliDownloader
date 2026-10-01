@@ -34,6 +34,65 @@ from qfluentwidgets import (
 from utils.i18n import tr
 from utils.resources import get_app_icon_path
 
+# --------------------------------------------------------------------------- #
+# qframelesswindow 兼容性补丁
+# --------------------------------------------------------------------------- #
+# PySide6 6.11.x 下，FluentWidget（及其子类：主窗口 / 各种 Fluent 弹窗）在
+# __init__ 阶段调用 WindowsFramelessWindowBase._initFrameless 时，偶发
+# `self.windowHandle()` 返回非 QWindow 对象（表现为 PySide6.QtWidgets.QWidgetItem），
+# 导致 `self.windowHandle().screenChanged.connect(...)` 抛出
+#   AttributeError: '...QWidgetItem' object has no attribute 'screenChanged'
+# 使所有 Fluent 弹窗（如「自定义链接下载」）一构造就崩。
+#
+# 根因：`updateFrameless()` 刚调用 `winId()` 创建原生句柄后，`windowHandle()`
+# 取到的句柄包装类型尚未稳定。兜底方案：捕获这一次连接失败，补完剩余初始化
+# （resize / titleBar.raise_），并把 screenChanged 连接延迟到事件循环首帧
+# （届时句柄已稳定），功能与表现不受影响。正常路径（不崩）走原版，零副作用。
+try:
+    from qframelesswindow.windows import WindowsFramelessWindowBase as _FWBase
+    _orig_init_frameless = _FWBase._initFrameless
+
+    def _retry_screen_connect(w):
+        wh = w.windowHandle()
+        if wh is None:
+            return
+        slot = getattr(w, "_WindowsFramelessWindowBase__onScreenChanged", None)
+        if slot is None or not hasattr(wh, "screenChanged"):
+            return
+        try:
+            wh.screenChanged.connect(slot)
+        except Exception:
+            pass
+
+    def _patched_init_frameless(self):
+        try:
+            _orig_init_frameless(self)
+            return
+        except AttributeError as _e:
+            # 仅拦截 windowHandle 错类型这一种已知异常，其余 AttributeError 照常抛出
+            if "screenChanged" not in str(_e) and "QWidgetItem" not in str(_e):
+                raise
+        # —— 兜底：原版在 windowHandle().screenChanged.connect 处崩了 ——
+        # 前序步骤（windowEffect / titleBar / updateFrameless）已执行，仅缺末尾
+        # 的 resize(500,500) / titleBar.raise_ 与 screenChanged 连接，这里补齐。
+        try:
+            self.resize(500, 500)
+        except Exception:
+            pass
+        try:
+            self.titleBar.raise_()
+        except Exception:
+            pass
+        try:
+            from PySide6.QtCore import QTimer
+            QTimer.singleShot(0, lambda: _retry_screen_connect(self))
+        except Exception:
+            pass
+
+    _FWBase._init_frameless = _patched_init_frameless
+except Exception:
+    pass
+
 _message_dialog_active = False
 
 

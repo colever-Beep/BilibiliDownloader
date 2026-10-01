@@ -14,12 +14,15 @@ import re
 import sys
 import threading
 
-from PySide6.QtCore import Qt, QTimer, QEvent
+from PySide6.QtCore import Qt, QTimer, QEvent, QSize
 from PySide6.QtGui import QIcon
 from utils.main_thread import init_main_thread_bridge, run_on_main
 from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-    QPushButton, QProgressBar, QMenu, QFrame,
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QMenu, QFrame,
+)
+from qfluentwidgets import (
+    FluentIcon, LineEdit, PrimaryPushButton, ProgressBar, PushButton,
 )
 
 from ui.sidebar import NavigationBar
@@ -37,7 +40,7 @@ from ui.dialogs import (AboutDialog, LoginDialog, SearchDialog,
 from ui.live_record_window import LiveRecordWindow
 from ui.theme import (
     set_accent, get_accent, apply_appearance, DEFAULT_ACCENT,
-    register_accent_widget, set_root_window,
+    set_root_window,
 )
 from ui.list_layout import LayoutModeToggle
 from download_engine import DownloadEngine
@@ -129,10 +132,11 @@ class MainWindow:
     # ---------- 构建 UI ----------
     def build_ui(self):
         central = QWidget()
+        central.setObjectName("mainCentral")
         self.window.setCentralWidget(central)
         root = QHBoxLayout(central)
-        root.setContentsMargins(10, 10, 10, 10)
-        root.setSpacing(8)
+        root.setContentsMargins(14, 14, 14, 14)
+        root.setSpacing(12)
 
         self.sidebar = NavigationBar(central, self.api, self.on_nav_click,
                                      config=self.config, on_language_change=self.on_language_change,
@@ -141,9 +145,10 @@ class MainWindow:
         root.addWidget(self.sidebar)
 
         self.main_panel = QWidget()
+        self.main_panel.setObjectName("mainContent")
         mp = QVBoxLayout(self.main_panel)
         mp.setContentsMargins(0, 0, 0, 0)
-        mp.setSpacing(8)
+        mp.setSpacing(10)
         root.addWidget(self.main_panel, 1)
 
         # ---- 顶部操作区：链接解析 + 常用工具 ----
@@ -154,33 +159,41 @@ class MainWindow:
         toolbar_layout.setSpacing(8)
 
         url_frame = QWidget()
+        url_frame.setObjectName("toolbarUrlRow")
         uf = QHBoxLayout(url_frame)
         uf.setContentsMargins(0, 0, 0, 0)
-        uf.setSpacing(8)
-        self.url_entry = QLineEdit()
+        uf.setSpacing(10)
+        self.url_entry = LineEdit(self.main_panel)
         self.url_entry.setPlaceholderText(tr("粘贴B站链接（视频/合集/番剧/课程/音频/每周必看…）"))
-        self.url_entry.setFixedHeight(35)
+        self.url_entry.setFixedHeight(38)
         uf.addWidget(self.url_entry, 1)
         register(self.url_entry, "粘贴B站链接（视频/合集/番剧/课程/音频/每周必看…）", attr="placeholder_text")
 
-        self.clip_btn = self._ghost_button(tr("粘贴"), self.paste_from_clipboard)
+        self.clip_btn = self._secondary_button(tr("粘贴"), self.paste_from_clipboard)
+        self.clip_btn.setIcon(FluentIcon.PASTE.icon())
+        self.clip_btn.setIconSize(QSize(16, 16))
+        self.clip_btn.setFixedHeight(38)
         uf.addWidget(self.clip_btn)
         register(self.clip_btn, "粘贴")
 
         parse_frame = QFrame()
+        parse_frame.setObjectName("parseButtonGroup")
         pf = QHBoxLayout(parse_frame)
         pf.setContentsMargins(0, 0, 0, 0)
         pf.setSpacing(0)
-        self.add_btn = QPushButton(tr("解析"))
-        self.add_btn.setFixedWidth(80)
+        self.add_btn = PrimaryPushButton(self.main_panel)
+        self.add_btn.setText(tr("解析"))
+        self.add_btn.setIcon(FluentIcon.SEARCH.icon())
+        self.add_btn.setIconSize(QSize(16, 16))
+        self.add_btn.setFixedSize(88, 38)
         self.add_btn.clicked.connect(self.add_from_entry)
-        register_accent_widget(self.add_btn)
         pf.addWidget(self.add_btn)
         register(self.add_btn, "解析")
-        self.parse_dropdown = QPushButton("▾")
-        self.parse_dropdown.setFixedWidth(26)
+        self.parse_dropdown = PushButton(self.main_panel)
+        self.parse_dropdown.setIcon(FluentIcon.CHEVRON_DOWN_MED.icon())
+        self.parse_dropdown.setIconSize(QSize(12, 12))
+        self.parse_dropdown.setFixedSize(36, 38)
         self.parse_dropdown.clicked.connect(self._open_parse_menu)
-        register_accent_widget(self.parse_dropdown)
         pf.addWidget(self.parse_dropdown)
         uf.addWidget(parse_frame)
 
@@ -188,16 +201,20 @@ class MainWindow:
 
         # 次级操作集中放置；搜索和设置由侧边栏提供唯一入口。
         extra_frame = QFrame()
+        extra_frame.setObjectName("toolbarActionsRow")
         ef = QHBoxLayout(extra_frame)
         ef.setContentsMargins(0, 0, 0, 0)
         ef.setSpacing(8)
-        self.history_btn = self._ghost_button(tr("解析记录"), self.show_history)
+        self.history_btn = self._secondary_button(tr("解析记录"), self.show_history)
+        self.history_btn.setIcon(FluentIcon.HISTORY.icon())
         ef.addWidget(self.history_btn)
         register(self.history_btn, "解析记录")
-        self.open_dir_btn = self._ghost_button(tr("打开下载目录"), self.open_download_dir)
+        self.open_dir_btn = self._secondary_button(tr("打开下载目录"), self.open_download_dir)
+        self.open_dir_btn.setIcon(FluentIcon.FOLDER.icon())
         ef.addWidget(self.open_dir_btn)
         register(self.open_dir_btn, "打开下载目录")
-        self.record_btn = self._ghost_button(tr("录制直播"), self.open_live_recorder)
+        self.record_btn = self._secondary_button(tr("录制直播"), self.open_live_recorder)
+        self.record_btn.setIcon(FluentIcon.VIDEO.icon())
         ef.addWidget(self.record_btn)
         register(self.record_btn, "录制直播")
         # 与「解析记录」等同行的右侧：详细 / 精简 列表布局切换（仅图标），避免底部单独成行突兀
@@ -209,13 +226,16 @@ class MainWindow:
 
         # ---- 队列视图 ----
         self.queue_view = QueueView(self.main_panel, self.engine, self.config)
+        self.queue_view.setObjectName("queueCard")
+        self.queue_view.setAttribute(Qt.WA_StyledBackground, True)
         mp.addWidget(self.queue_view, 1)
 
         # ---- 总进度 ----
         overall_frame = QFrame()
+        overall_frame.setObjectName("progressCard")
         ov = QVBoxLayout(overall_frame)
-        ov.setContentsMargins(0, 0, 0, 0)
-        ov.setSpacing(2)
+        ov.setContentsMargins(14, 10, 14, 10)
+        ov.setSpacing(6)
         head_row = QHBoxLayout()
         self.overall_title_label = QLabel(tr("总进度"))
         self.overall_title_label.setStyleSheet("font-weight:bold;")
@@ -226,8 +246,8 @@ class MainWindow:
         head_row.addWidget(self.overall_percent_label)
         ov.addLayout(head_row)
 
-        self.overall_bar = QProgressBar()
-        self.overall_bar.setFixedHeight(14)
+        self.overall_bar = ProgressBar()
+        self.overall_bar.setFixedHeight(8)
         self.overall_bar.setValue(0)
         ov.addWidget(self.overall_bar)
 
@@ -242,22 +262,30 @@ class MainWindow:
 
         # ---- 控制按钮 ----
         ctrl_frame = QFrame()
+        ctrl_frame.setObjectName("actionCard")
         cf = QHBoxLayout(ctrl_frame)
-        cf.setContentsMargins(0, 0, 0, 0)
-        self.start_btn = QPushButton(tr("开始下载"))
-        self.start_btn.setFixedHeight(35)
+        cf.setContentsMargins(12, 8, 12, 8)
+        cf.setSpacing(8)
+        self.start_btn = PrimaryPushButton(self.main_panel)
+        self.start_btn.setText(tr("开始下载"))
+        self.start_btn.setIcon(FluentIcon.DOWNLOAD.icon())
+        self.start_btn.setIconSize(QSize(16, 16))
+        self.start_btn.setFixedHeight(38)
         self.start_btn.clicked.connect(self.start_download)
-        register_accent_widget(self.start_btn)
         register(self.start_btn, "开始下载")
-        self.cancel_btn = QPushButton(tr("取消"))
-        self.cancel_btn.setFixedHeight(35)
-        self.cancel_btn.setObjectName("cancelBtn")
+        self.cancel_btn = PushButton(self.main_panel)
+        self.cancel_btn.setText(tr("取消"))
+        self.cancel_btn.setIcon(FluentIcon.CANCEL.icon())
+        self.cancel_btn.setIconSize(QSize(16, 16))
+        self.cancel_btn.setFixedHeight(38)
         self.cancel_btn.clicked.connect(self.cancel_download)
         self.cancel_btn.setEnabled(False)
         register(self.cancel_btn, "取消")
-        self.clear_btn = QPushButton(tr("清空队列"))
-        self.clear_btn.setFixedHeight(35)
-        self.clear_btn.setObjectName("clearBtn")
+        self.clear_btn = PushButton(self.main_panel)
+        self.clear_btn.setText(tr("清空队列"))
+        self.clear_btn.setIcon(FluentIcon.DELETE.icon())
+        self.clear_btn.setIconSize(QSize(16, 16))
+        self.clear_btn.setFixedHeight(38)
         self.clear_btn.clicked.connect(self.clear_queue)
         register(self.clear_btn, "清空队列")
         for b in (self.start_btn, self.cancel_btn, self.clear_btn):
@@ -266,15 +294,10 @@ class MainWindow:
 
         self.apply_theme_from_config()
 
-    def _ghost_button(self, text, command):
-        """次要操作按钮：透明底 + 细边框，弱化视觉权重。
-
-        颜色直接取自主题调色板（palette()），不使用 QSS 的 palette() 函数——
-        后者在不同 Qt 构建下兼容性不稳定，可能触发 "Could not parse stylesheet"。
-        """
-        from ui.theme import palette
-        b = QPushButton(text)
-        b.setObjectName("ghostBtn")
+    def _secondary_button(self, text, command):
+        """创建 Fluent 次要操作按钮。"""
+        b = PushButton(self.main_panel)
+        b.setText(text)
         b.clicked.connect(command)
         return b
 
@@ -1308,10 +1331,12 @@ class MainWindow:
         if not selected:
             self.logger.log("未勾选任何结果")
             return
-        videos, users = [], []
+        videos, users, seasons = [], [], []
         for s in selected:
             if s.get("type") == "user":
                 users.append(s)
+            elif s.get("type") == "bangumi":
+                seasons.append(s)
             else:
                 videos.append(s)
         # UP主结果 → 展开其空间视频再勾选
@@ -1319,7 +1344,9 @@ class MainWindow:
             mid = u.get("mid")
             if mid:
                 self.load_uploader_videos(mid)
-        # 视频 / 番剧结果 → 直接入队
+        if seasons:
+            self._expand_seasons_to_episodes(seasons)
+        # 视频结果直接进入下载设置；番剧结果已展开为可选分集。
         if videos:
             self._add_selected_to_queue(videos)
 

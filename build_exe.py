@@ -14,7 +14,7 @@ import subprocess
 import auto_py_to_exe.config as ape_config
 from auto_py_to_exe.packaging import package
 
-ROOT = r"F:\b"
+ROOT = r"D:\VScode\b"
 
 # Where PyInstaller does its temp work (build/spec/dist staging)
 ape_config.temporary_directory = os.path.join(ROOT, ".build_tmp")
@@ -35,15 +35,18 @@ except Exception:
 
 # ---- Data files (SOURCE;DEST) ----
 datas = []
-# 注意：ffmpeg 不再打包进 exe（缩小体积），首次使用时由 utils/ffmpeg_provider
-# 后台从官方构建下载并解压到 exe 同目录 bin/；用户也可手动放入 bin/ 回退。
+# 注意：ffmpeg 不打包进 exe（缩小体积），运行时由 utils/ffmpeg_provider
+# 优先从 exe 同目录 bin/ 读取，缺失则后台从官方构建下载解压到 bin/；
+# 开发态则读 项目根/bin/。用户也可手动把 ffmpeg.exe 放进 bin/ 回退。
 # i18n locale fragments -> bundle root utils/ (i18n.py globs locales_*.py here)
 for loc in glob.glob(os.path.join(ROOT, "utils", "locales_*.py")):
     datas.append(f"{loc};utils")
-# 应用图标：打包进 exe 资源（--icon）使其显示为文件/任务栏图标，
-# 同时作为 --add-data 随包分发，运行时用 resource_path("icon.ico") 取窗口标题栏图标。
+# 应用图标 icon.ico：源文件保留在根目录（D:\VScode\b\icon.ico）不随包作为松散文件分发，
+# 但需随包进入 _MEIPASS 临时目录，供运行时 resource_path("icon.ico") 取到 -> 窗口标题栏图标生效。
+# 同时用 --icon 把图标嵌入 exe（任务栏 / 资源管理器图标）。dist 根目录不出现松散 icon.ico。
 ICON = os.path.join(ROOT, "icon.ico")
-datas.append(f"{ICON};.")
+if os.path.exists(ICON):
+    datas.append(f"{ICON};.")
 
 # ---- Hidden imports that may be missed by the static finder ----
 hidden = [

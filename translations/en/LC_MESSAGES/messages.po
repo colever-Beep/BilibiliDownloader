@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bili23 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 14:04\n"
-"PO-Revision-Date: 2026-09-26 14:04\n"
+"POT-Creation-Date: 2026-10-01 15:09\n"
+"PO-Revision-Date: 2026-10-01 15:09\n"
 "Last-Translator: \n"
 "Language: en\n"
 "Language-Team: \n"
@@ -15,6 +15,18 @@ msgstr ""
 
 msgid " / 共 {} 页"
 msgstr " / {} pages total"
+
+msgid "0 分。今天诸事不宜，建议原地躺平。"
+msgstr "Zero. Nothing will go your way today - just stay in bed."
+
+msgid "1080p 及以下"
+msgstr "1080p or lower"
+
+msgid "720p 及以下"
+msgstr "720p or lower"
+
+msgid "<html>欢迎使用本软件。在开始使用前，请仔细阅读以下《用户协议》。\n当您点击「同意并继续」时，即表示您已阅读、理解并同意遵守全部条款。\n\n<p><b>一、使用目的</b><br>\n本软件仅供个人学习、研究与非商业用途。通过本软件获取的任何内容，\n<b>仅限于您个人合理使用，不得用于任何商业目的、公开传播、分享、转售或非法牟利。</b></p>\n\n<p><b>二、访问权限</b><br>\n本软件基于您本人合法的账号登录状态运行，<b>不绕过任何付费内容、会员限制或技术保护措施</b>。\n您仅可访问通过正常登录所授权的内容；对无权限的内容，不得借助本软件获取。</p>\n\n<p><b>三、禁止行为</b><br>\n<b>请勿使用本软件进行批量抓取、未经授权的再分发，或任何违反目标平台服务条款的行为。</b>\n您须对自身使用行为负全部责任，包括但不限于账号封禁、版权纠纷及由此引发的法律责任。</p>\n\n<p><b>四、责任限制</b><br>\n在任何情况下，开发者均不对因使用或无法使用本软件造成的任何直接、间接、附带或后果性损害承担责任。</p>\n\n<p><b>五、协议生效</b><br>\n您继续使用本软件，即视为已阅读、理解并自愿接受上述全部条款与潜在风险。</p></html>"
+msgstr ""
 
 msgid "B站下载器"
 msgstr "Bilibili Downloader"
@@ -46,6 +58,12 @@ msgstr "{}: {} videos / {} bangumi / {} uploaders"
 msgid "「{}」：{} 音乐视频"
 msgstr "“{}”: {} music videos"
 
+msgid "「仅音频」需要 ffmpeg，请先在「高级」里配置 ffmpeg 路径。"
+msgstr "Audio-only mode requires ffmpeg. Configure the ffmpeg path under Advanced first."
+
+msgid "一个不该点的按钮"
+msgstr "A button you should not click"
+
 msgid "上一页"
 msgstr "Previous"
 
@@ -58,14 +76,29 @@ msgstr "Download"
 msgid "下载中"
 msgstr "Downloading"
 
+msgid "下载中 {}%（{}，剩余 {}）"
+msgstr "Downloading {}% ({}, ETA {})"
+
 msgid "下载中..."
 msgstr "Downloading..."
+
+msgid "下载失败"
+msgstr "Download failed"
+
+msgid "下载失败：{}"
+msgstr "Download failed: {}"
 
 msgid "下载完成"
 msgstr "Download Complete"
 
+msgid "下载完成。"
+msgstr "Download complete."
+
 msgid "下载正在进行中"
 msgstr "Download is already in progress"
+
+msgid "下载画质"
+msgstr "Quality"
 
 msgid "下载结束：完成{}，失败{}，取消{}\n保存路径: {}"
 msgstr "Download finished: {} completed, {} failed, {} cancelled\nSave path: {}"
@@ -82,6 +115,12 @@ msgstr "Download Options"
 msgid "不使用"
 msgstr "Do not use"
 
+msgid "不同意并退出"
+msgstr ""
+
+msgid "中规中矩，一切照旧。"
+msgstr "Nothing special. Business as usual."
+
 msgid "主题强调色，应用于按钮与高亮"
 msgstr "Theme accent color, applied to buttons and highlights"
 
@@ -94,11 +133,32 @@ msgstr "Failed to generate QR code: "
 msgid "二维码登录"
 msgstr "QR Code Login"
 
+msgid "仅音频（m4a）"
+msgstr "Audio only (m4a)"
+
+msgid "今日人品"
+msgstr "Today's Luck"
+
+msgid "任务开始：{}"
+msgstr "Task started: {}"
+
+msgid "你怎么还在点？"
+msgstr "Still clicking?"
+
+msgid "你的耐心让我有点害怕。"
+msgstr "Your patience is starting to scare me."
+
 msgid "你还没有创建任何收藏夹"
 msgstr "You haven't created any favorites yet"
 
 msgid "使用 Cookie 登录"
 msgstr "Log in with Cookie"
+
+msgid "保存到"
+msgstr "Save to"
+
+msgid "停止"
+msgstr "Stop"
 
 msgid "停止异常：{}"
 msgstr "Stop exception: {}"
@@ -154,17 +214,26 @@ msgstr "Close behavior"
 msgid "关闭程序时："
 msgstr "When closing the program: "
 
+msgid "再点下去要出事了……"
+msgstr "Something bad will happen if you keep going..."
+
 msgid "写入解析记录失败：{}"
 msgstr "Failed to write parse record: {}"
 
 msgid "准备中…"
 msgstr "Preparing…"
 
+msgid "准备就绪"
+msgstr "Ready"
+
 msgid "出错"
 msgstr "Error"
 
 msgid "分区"
 msgstr "Category"
+
+msgid "创建保存目录失败：{}"
+msgstr "Failed to create the save folder: {}"
 
 msgid "删除"
 msgstr "Delete"
@@ -220,6 +289,12 @@ msgstr "Loading page {}…"
 msgid "加载追番列表失败：{}"
 msgstr "Failed to load anime list: {}"
 
+msgid "千万别点"
+msgstr "Do Not Click"
+
+msgid "占卜中……"
+msgstr "Divining..."
+
 msgid "即将清空日志窗口，同时会清空同目录下的 download.log 文件。\n是否继续？"
 msgstr "This will clear the log window and also empty the download.log file in the same folder.\nContinue?"
 
@@ -240,6 +315,15 @@ msgstr "Cancel"
 
 msgid "取消中..."
 msgstr "Cancelling..."
+
+msgid "同一名字同一天的结果固定，每天 0 点刷新。"
+msgstr "The same name gives the same result on the same day; it resets at midnight."
+
+msgid "同意并继续"
+msgstr ""
+
+msgid "名字"
+msgstr "Name"
 
 msgid "在浏览器中打开主页"
 msgstr "Open homepage in browser"
@@ -262,6 +346,9 @@ msgstr "Media"
 msgid "完成"
 msgstr "Completed"
 
+msgid "已下载：{}"
+msgstr "Downloaded: {}"
+
 msgid "已停止"
 msgstr "Stopped"
 
@@ -270,6 +357,9 @@ msgstr "Recording stopped"
 
 msgid "已取消"
 msgstr "Cancelled"
+
+msgid "已取消。"
+msgstr "Cancelled."
 
 msgid "已取消录制"
 msgstr "Recording canceled"
@@ -292,14 +382,26 @@ msgstr "Cleared"
 msgid "已登录"
 msgstr "Logged in"
 
+msgid "已累计点击 {} 次。"
+msgstr "Clicked {} times in total."
+
 msgid "已选 {n}"
 msgstr "{n} selected"
 
 msgid "已选择 {} 个视频 · 本次下载设置（确认后生效）"
 msgstr "{} videos selected · download settings (applied on confirm)"
 
+msgid "平平淡淡，适合摸鱼。"
+msgstr "Just an ordinary day, perfect for slacking off."
+
 msgid "开始下载"
 msgstr "Start Download"
+
+msgid "开始下载：{}"
+msgstr "Starting download: {}"
+
+msgid "开始占卜"
+msgstr "Roll the dice"
 
 msgid "开始录制"
 msgstr "Start Recording"
@@ -324,6 +426,15 @@ msgstr "Recording settings"
 
 msgid "录制选项弹窗异常，按默认设置开始：{}"
 msgstr "Recording options dialog error, starting with defaults: {}"
+
+msgid "彩蛋"
+msgstr "Easter Egg"
+
+msgid "彩蛋到手：今日人品 +5，去「今日人品」那页看看吧。"
+msgstr "Easter egg unlocked: today's luck +5. Check the Today's Luck page to see it."
+
+msgid "彩蛋触发成功：今日人品 +5（当前加成 +{}）。"
+msgstr "Easter egg triggered: today's luck +5 (current bonus +{})."
 
 msgid "总计 {total} 个分集"
 msgstr "Total {total} episodes"
@@ -355,6 +466,9 @@ msgstr "My Favorites"
 msgid "我的追番"
 msgstr "My Bangumi"
 
+msgid "我认真的，别点了。"
+msgstr "I am serious. Stop clicking."
+
 msgid "房间号"
 msgstr "Room ID"
 
@@ -373,6 +487,9 @@ msgstr "Open Download Folder"
 msgid "打开文件位置"
 msgstr "Open file location"
 
+msgid "打开目录"
+msgstr "Open folder"
+
 msgid "打开直播间"
 msgstr "Open live room"
 
@@ -381,6 +498,9 @@ msgstr "Batch Parse"
 
 msgid "批量解析（一行一个链接，自动识别类型）"
 msgstr "Batch parse (one link per line, auto-detect type)"
+
+msgid "换个名字会有不同结果"
+msgstr "A different name gives a different result"
 
 msgid "排行榜"
 msgstr "Ranking"
@@ -463,6 +583,12 @@ msgstr "Pause"
 msgid "暂无搜索结果"
 msgstr "No search results"
 
+msgid "最佳画质（自动合并）"
+msgstr "Best quality (auto merge)"
+
+msgid "最后一次警告：再点一下有彩蛋（大概）。"
+msgstr "Final warning: one more click and you get an easter egg (probably)."
+
 msgid "最小化到托盘"
 msgstr "Minimize to tray"
 
@@ -490,6 +616,9 @@ msgstr "No results found"
 msgid "未找到音乐相关视频"
 msgstr "No music videos found"
 
+msgid "未检测到 ffmpeg：本次按最佳单文件下载（不合并、不转码）。"
+msgstr "ffmpeg not found: downloading the best single file instead (no merging or transcoding)."
+
 msgid "未登录"
 msgstr "Not Logged In"
 
@@ -508,11 +637,17 @@ msgstr "Failed to get live stream URL (not live / risk control)"
 msgid "未解析到任何分集"
 msgstr "No episodes parsed"
 
+msgid "本次含彩蛋加成 +{}。"
+msgstr "Includes an easter-egg bonus of +{}."
+
 msgid "本次录制设置（确认后生效）"
 msgstr "This recording's settings (applied after confirm)"
 
 msgid "来源"
 msgstr "Source"
+
+msgid "来都来了，点一下吧。"
+msgstr "You are here anyway. Give it a click."
 
 msgid "查看"
 msgstr "View"
@@ -526,8 +661,14 @@ msgstr "View Log"
 msgid "标题"
 msgstr "Title"
 
+msgid "欧气满满，今天宜抽卡、宜投稿。"
+msgstr "Fortune is with you today - great day for gacha and uploads."
+
 msgid "正在下载"
 msgstr "Downloading"
+
+msgid "正在停止……"
+msgstr "Stopping..."
 
 msgid "正在加载直播列表..."
 msgstr "Loading live list..."
@@ -537,6 +678,9 @@ msgstr "Loading page 1…"
 
 msgid "正在加载第 {pn} 页..."
 msgstr "Loading page {pn}..."
+
+msgid "正在处理文件……"
+msgstr "Processing files..."
 
 msgid "正在搜索：{} …"
 msgstr "Searching: {} …"
@@ -556,6 +700,9 @@ msgstr "Completing info…"
 msgid "正在解析并补全番剧分集…"
 msgstr "Parsing and completing Bangumi episodes…"
 
+msgid "正在解析链接……"
+msgstr "Parsing the link..."
+
 msgid "正在验证 Cookie…"
 msgstr "Verifying Cookie…"
 
@@ -573,6 +720,9 @@ msgstr "No tasks waiting. Click 'Continue/Retry' on paused or failed tasks"
 
 msgid "浅色"
 msgstr "Light"
+
+msgid "测一测今天的手气（纯娱乐）"
+msgstr "Test today's luck (just for fun)"
 
 msgid "浏览"
 msgstr "Browse"
@@ -610,6 +760,15 @@ msgstr "Clear records"
 msgid "清空队列"
 msgstr "Clear Queue"
 
+msgid "温馨提示"
+msgstr ""
+
+msgid "满分！欧皇附体，今天做什么都顺。"
+msgstr "Perfect score! You are blessed today - everything goes your way."
+
+msgid "点下面的按钮，看看今天的手气。"
+msgstr "Click the button below to see today's luck."
+
 msgid "点击「打开TA的个人空间」浏览并下载该UP的视频"
 msgstr "Click "
 
@@ -630,6 +789,15 @@ msgstr "Status: Idle"
 
 msgid "状态: 错误"
 msgstr "Status: Error"
+
+msgid "玩家"
+msgstr "Player"
+
+msgid "用 yt-dlp 下载任意链接（支持非 B 站站点）"
+msgstr "Download any link with yt-dlp (non-Bilibili sites supported)"
+
+msgid "用户协议"
+msgstr ""
 
 msgid "界面语言"
 msgstr "Language"
@@ -660,6 +828,9 @@ msgstr "Login failed: "
 
 msgid "登录失败：Cookie 无效或已过期（需含 SESSDATA）"
 msgstr "Login failed: Cookie is invalid or expired (SESSDATA required)"
+
+msgid "登录成功！温馨提示：B 站接口存在频率限制，短时间内大量解析或请求可能触发风控，导致接口失败甚至 IP 封禁。请适度使用，避免频繁批量操作。"
+msgstr ""
 
 msgid "登录成功，但保存 Cookie 失败："
 msgstr "Login succeeded, but saving Cookie failed: "
@@ -721,6 +892,9 @@ msgstr "Idle"
 msgid "第 1 页"
 msgstr "Page 1"
 
+msgid "第 6 次了，我已经开始怀疑人生。"
+msgstr "Click number 6. I am starting to question my existence."
+
 msgid "第 {pn} 页"
 msgstr "Page {pn}"
 
@@ -757,11 +931,20 @@ msgstr "Paste Bilibili link (video/collection/bangumi/course/audio/weekly…)"
 msgid "粘贴浏览器中复制的 Cookie 字符串（支持 Netscape / 请求头 Cookie / JSON 三种格式），点击登录即可。二维码异常时可用此方式登录。"
 msgstr "Paste the Cookie string copied from the browser (Netscape / request-header Cookie / JSON formats supported). Click Log in to proceed. Use this method if the QR code is unavailable."
 
+msgid "粘贴视频 / 播放列表 / 用户主页链接，支持 yt-dlp 可解析的任意站点"
+msgstr "Paste a video / playlist / user page link; any site yt-dlp supports"
+
+msgid "精简布局"
+msgstr ""
+
 msgid "继续"
 msgstr "Continue"
 
 msgid "自动重命名"
 msgstr "Auto rename"
+
+msgid "自定义链接下载"
+msgstr "Custom Link Download"
 
 msgid "获取流地址中…"
 msgstr "Getting stream URL…"
@@ -799,6 +982,9 @@ msgstr "No videos in this category"
 msgid "该番剧没有可下载的分集"
 msgstr "This bangumi has no downloadable episodes"
 
+msgid "详细布局"
+msgstr ""
+
 msgid "请使用哔哩哔哩客户端扫码登录"
 msgstr "Please scan with the Bilibili client to log in"
 
@@ -817,6 +1003,9 @@ msgstr "Please paste the Cookie string first"
 msgid "请先粘贴至少一个链接"
 msgstr "Please paste at least one link first"
 
+msgid "请先粘贴要下载的链接。"
+msgstr "Please paste a link first."
+
 msgid "请先输入直播间链接或房间号"
 msgstr "Please enter a live room link or room ID first"
 
@@ -825,6 +1014,12 @@ msgstr "Please select a live room first"
 
 msgid "请先选中一条记录"
 msgstr "Please select a record first"
+
+msgid "请先选择保存目录。"
+msgstr "Please choose a save folder first."
+
+msgid "请滚动阅读至底部后，方可同意"
+msgstr ""
 
 msgid "请至少勾选一个视频"
 msgstr "Please select at least one video"
@@ -862,6 +1057,15 @@ msgstr "Enter a live room link (https://live.bilibili.com/room-id) or a plain ro
 msgid "输出文件"
 msgstr "Output file"
 
+msgid "运气不错，适合做点正事。"
+msgstr "Decent luck. A good day to get things done."
+
+msgid "运气有点差，出门先看看黄历。"
+msgstr "Slightly bad luck. Check the almanac before heading out."
+
+msgid "这个按钮没有任何用途。真的。"
+msgstr "This button serves no purpose. Really."
+
 msgid "追番列表为空"
 msgstr "Your anime list is empty"
 
@@ -895,8 +1099,14 @@ msgstr "Select video"
 msgid "选择颜色"
 msgstr "Select color"
 
-msgid "选项"
-msgstr "Options"
+msgid "速度未知"
+msgstr "unknown speed"
+
+msgid "都说了千万别点！"
+msgstr "I told you not to click it!"
+
+msgid "重置"
+msgstr "Reset"
 
 msgid "重试"
 msgstr "Retry"

@@ -258,23 +258,40 @@ def duration_to_seconds(value):
 
 
 def send_windows_notification(title, message, duration=5):
-    """
-    发送 Windows 原生通知（仅标题、内容、时长）
-    """
+    """通过应用的可见托盘图标发送系统通知。"""
     try:
-        from win10toast import ToastNotifier
-        toaster = ToastNotifier()
-        toaster.show_toast(
-            title,
-            message,
-            duration=duration,
-            threaded=True
-        )
+        from PySide6.QtCore import QThread
+        from PySide6.QtWidgets import QApplication, QSystemTrayIcon
+
+        app = QApplication.instance()
+        if app is None:
+            print("[Notification] No active Qt application; system notification was not sent.")
+            return False
+
+        def show_from_tray():
+            tray_icon = next(
+                (icon for widget in app.allWidgets()
+                 for icon in widget.findChildren(QSystemTrayIcon)
+                 if icon.isVisible() and icon.supportsMessages()),
+                None,
+            )
+            if tray_icon is None:
+                print("[Notification] No visible tray icon supports system messages.")
+                return False
+            tray_icon.showMessage(
+                title,
+                message,
+                QSystemTrayIcon.MessageIcon.Information,
+                max(0, int(duration * 1000)),
+            )
+            return True
+
+        if QThread.currentThread() == app.thread():
+            return show_from_tray()
+
+        from utils.main_thread import run_on_main
+        run_on_main(show_from_tray)
         return True
-    except ImportError:
-        # win10toast 未安装，打印到控制台
-        print(f"[通知] {title}: {message}")
-        return False
     except Exception as e:
-        print(f"发送通知失败: {e}")
+        print(f"[Notification] Failed to send system notification: {e}")
         return False

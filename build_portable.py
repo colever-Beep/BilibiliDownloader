@@ -15,7 +15,7 @@ import subprocess
 import auto_py_to_exe.config as ape_config
 from auto_py_to_exe.packaging import package
 
-ROOT = r"F:\b"
+ROOT = r"D:\VScode\b"
 
 ape_config.temporary_directory = os.path.join(ROOT, ".build_tmp")
 os.makedirs(ape_config.temporary_directory, exist_ok=True)
@@ -36,8 +36,12 @@ except Exception:
 datas = []
 for loc in glob.glob(os.path.join(ROOT, "utils", "locales_*.py")):
     datas.append(f"{loc};utils")
+# 应用图标 icon.ico：源文件保留在根目录（D:\VScode\b\icon.ico）不随包作为松散文件分发，
+# 但需随包进入 _MEIPASS 临时目录，供运行时 resource_path("icon.ico") 取到 -> 窗口标题栏图标生效。
+# 同时用 --icon 把图标嵌入 exe（任务栏 / 资源管理器图标）。dist 根目录不出现松散 icon.ico。
 ICON = os.path.join(ROOT, "icon.ico")
-datas.append(f"{ICON};.")
+if os.path.exists(ICON):
+    datas.append(f"{ICON};.")
 
 hidden = [
     "PySide6",

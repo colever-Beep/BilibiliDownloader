@@ -107,8 +107,7 @@ def _base_qss(palette, accent):
     # 会拒绝 `background:` 简写属性，必须用 `background-color:`，否则整条规则解析
     # 失败并批量报 "Could not parse stylesheet"。故此处一律用 background-color。
     # 另：widget 局部样式表里的 `:hover` / `QPushButton:hover` 在 windowsvista 下
-    # 也会被拒（只接受全局 QSS 里的类型选择器）。因此强调色/幽灵按钮的样式与悬停
-    # 全部改由全局 QSS 的 object-name 选择器驱动（见下方 #accentBtn / #ghostBtn）。
+    # 也会被拒（只接受全局 QSS 里的类型选择器），因此悬停样式统一放在全局 QSS。
     return f"""
     QWidget {{
         background-color:{palette['bg']};
@@ -121,29 +120,20 @@ def _base_qss(palette, accent):
     QLineEdit {{
         background-color:{palette['input_bg']};
         border:1px solid {palette['border']};
-        border-radius:6px; padding:6px 10px; color:{palette['fg']};
+        border-radius:8px; padding:6px 10px; color:{palette['fg']};
     }}
     QPushButton {{
         background-color:{palette['panel2']};
         border:1px solid {palette['border']};
-        border-radius:6px; padding:6px 12px; color:{palette['fg']};
+        border-radius:8px; padding:7px 14px; color:{palette['fg']};
     }}
     QPushButton:hover {{ background-color:{palette['border']}; }}
     QPushButton:disabled {{ color:{palette['sub']}; background-color:{palette['panel2']}; }}
     QPushButton#accentBtn {{
-        background-color:{accent}; border:none; border-radius:6px; color:#ffffff;
+        background-color:{accent}; border:none; border-radius:8px; color:#ffffff;
     }}
     QPushButton#accentBtn:hover {{ background-color:{accent_hover}; }}
     QPushButton#accentBtn:disabled {{ background-color:{accent}; color:#999999; }}
-    QPushButton#ghostBtn {{
-        background-color:transparent; border:1px solid {palette['border']};
-        border-radius:6px; color:{palette['fg']};
-    }}
-    QPushButton#ghostBtn:hover {{ background-color:{palette['border']}; }}
-    QPushButton#cancelBtn {{ background-color:#b02c2c; border:none; border-radius:6px; color:#ffffff; }}
-    QPushButton#cancelBtn:hover {{ background-color:#c53a3a; }}
-    QPushButton#clearBtn {{ background-color:#6b2a2a; border:none; border-radius:6px; color:#ffffff; }}
-    QPushButton#clearBtn:hover {{ background-color:#833434; }}
     QListView {{ background-color:{palette['panel']}; border:none; outline:0; }}
     QScrollBar:vertical {{ background-color:{palette['bg']}; width:10px; }}
     QScrollBar::handle:vertical {{ background-color:{scroll}; border-radius:5px; }}
@@ -172,10 +162,16 @@ def _base_qss(palette, accent):
     QWidget#navContent {{
         background:transparent;
     }}
-    QFrame#mainToolbar {{
+    QFrame#mainToolbar, QFrame#progressCard, QFrame#actionCard,
+    QWidget#queueCard {{
         background-color:{palette['panel']};
         border:1px solid {palette['border']};
-        border-radius:12px;
+        border-radius:14px;
+    }}
+    QWidget#toolbarUrlRow, QFrame#toolbarActionsRow,
+    QFrame#parseButtonGroup {{
+        background-color:transparent;
+        border:none;
     }}
     QFrame#navProfile {{
         background-color:{palette['panel2']};

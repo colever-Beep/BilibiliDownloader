@@ -148,12 +148,21 @@ class SelectItemDelegate(QStyledItemDelegate):
 
         has_thumb = bool(item.get("thumbnail"))
         if has_thumb:
-            cover = QRect(x, rect.y() + (rect.height() - 56) // 2, 100, 56)
+            is_user = item.get("type") == "user"
+            cover_size = 56
+            cover_width = cover_size if is_user else 100
+            cover = QRect(x, rect.y() + (rect.height() - cover_size) // 2,
+                          cover_width, cover_size)
             pm = self._view.thumbnail_for(item)
             painter.save()
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
             painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-            painter.setClipPath(QPainterPath_rrect(cover, 6))
+            if is_user:
+                path = QPainterPath()
+                path.addEllipse(cover)
+                painter.setClipPath(path)
+            else:
+                painter.setClipPath(QPainterPath_rrect(cover, 6))
             if pm is not None:
                 painter.drawPixmap(cover, pm)
             else:
@@ -162,7 +171,10 @@ class SelectItemDelegate(QStyledItemDelegate):
             painter.save()
             painter.setPen(QPen(QColor(pal["border"]), 1))
             painter.setBrush(Qt.NoBrush)
-            painter.drawRoundedRect(cover, 6, 6)
+            if is_user:
+                painter.drawEllipse(cover)
+            else:
+                painter.drawRoundedRect(cover, 6, 6)
             painter.restore()
             x = cover.right() + 12
         else:

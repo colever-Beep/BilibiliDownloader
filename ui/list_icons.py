@@ -101,7 +101,7 @@ def category_badge_color(category):
         "每周必看": "#e67e22", "动态": "#16a085", "搜索": "#2980b9",
         "番剧": "#c0392b", "影视": "#c0392b",
     }
-    return cat[:4], table.get(cat, "#607d8b")
+    return cat, table.get(cat, "#607d8b")
 
 
 def paint_option_background(painter, option, index, hover_row):

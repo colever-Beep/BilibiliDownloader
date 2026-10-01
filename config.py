@@ -148,6 +148,13 @@ DEFAULT_CONFIG = {
     "accent_color": "#1f8a4c",       # 强调色（主题色）；"system" 表示跟随 Windows 系统强调色
     "accent_color_custom": "#1f8a4c",  # 上一次自定义强调色（跟随系统开关关闭时恢复用）
 
+    # ---- 百宝箱（设置 → 高级）娱乐功能，与下载主流程无关 ----
+    "toolbox_download_dir": "",           # 自定义链接下载的保存目录（空 = 跟随 download_path）
+    "toolbox_download_quality": "best",   # best / 1080p / 720p / audio
+    "toolbox_luck_seed": "",              # 今日人品的名字 / 种子（空 = 当前系统用户名）
+    "toolbox_luck_bonus": 0,              # 今日人品彩蛋加成（「千万别点」每次 +5，上限 20）
+    "toolbox_dnc_clicks": 0,              # 「千万别点」累计点击次数
+
     "quality_rules": {
         "8K":  "bestvideo[height<=4320][vcodec^=avc]+bestaudio[acodec^=mp4a]/best[height<=4320]",
         "4K":  "bestvideo[height<=2160][vcodec^=avc]+bestaudio[acodec^=mp4a]/best[height<=2160]",

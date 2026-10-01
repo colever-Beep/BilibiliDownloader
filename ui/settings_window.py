@@ -53,36 +53,54 @@ class _ExpandCard(ExpandGroupSettingCard):
         return g
 
     def retranslate(self):
-        try:
-            self.setTitle(tr(self._title_key))
-        except Exception:
-            try:
-                self.card.setTitle(tr(self._title_key))
-            except Exception:
-                pass
+        _set_title(self, tr(self._title_key))
         if self._content_key:
-            try:
-                self.setContent(tr(self._content_key))
-            except Exception:
-                try:
-                    self.card.contentLabel.setText(tr(self._content_key))
-                except Exception:
-                    pass
+            _set_content(self, tr(self._content_key))
         for g, tk, ck in self._rows:
-            try:
-                g.titleLabel.setText(tr(tk))
-            except Exception:
-                pass
+            _set_title(g, tr(tk))
             if ck:
-                try:
-                    g.contentLabel.setText(tr(ck))
-                except Exception:
-                    pass
+                _set_content(g, tr(ck))
 
 
 def _icon(name):
     """取 FluentIcon 成员，缺失时回退到 SETTING，保证导航/卡片都有图标。"""
     return getattr(FluentIcon, name, FluentIcon.SETTING)
+
+
+def _set_title(obj, text):
+    """按「接口兜底链」设置标题。
+
+    qfluentwidgets 同类部件的接口并不一致：``SettingCard`` 只有 ``setTitle``，
+    ``SettingCardGroup`` 只有 ``titleLabel``，``ExpandGroupSettingCard`` 的标题在
+    内层 ``card`` 上，``GroupWidget`` 又只有 ``setTitle``。只写其中一种，语言切换
+    后就会有一部分标题停留在旧语言（且异常被 try/except 吞掉，表面看不出问题）。
+    """
+    for attempt in (
+        lambda: obj.setTitle(text),
+        lambda: obj.titleLabel.setText(text),
+        lambda: obj.card.setTitle(text),
+    ):
+        try:
+            attempt()
+            return True
+        except Exception:
+            continue
+    return False
+
+
+def _set_content(obj, text):
+    """内容副标题的兜底链（同上：setContent -> contentLabel -> card.contentLabel）。"""
+    for attempt in (
+        lambda: obj.setContent(text),
+        lambda: obj.contentLabel.setText(text),
+        lambda: obj.card.contentLabel.setText(text),
+    ):
+        try:
+            attempt()
+            return True
+        except Exception:
+            continue
+    return False
 
 
 class _SubInterface(QScrollArea):
@@ -151,14 +169,14 @@ class SettingsWindow(MSFluentWindow):
                              position=NavigationItemPosition.SCROLL)
         self.addSubInterface(self._download, _icon("DOWNLOAD"), tr("下载"),
                              position=NavigationItemPosition.SCROLL)
-        self.addSubInterface(self._options, _icon("BRUSH"), tr("选项"),
+        self.addSubInterface(self._options, _icon("DOCUMENT"), tr("附加文件"),
                              position=NavigationItemPosition.SCROLL)
         self.addSubInterface(self._advanced, _icon("DEVELOPER_TOOLS"), tr("高级"),
                              position=NavigationItemPosition.SCROLL)
 
         self._nav.extend([
             ("basic", "基本设置"), ("download", "下载"),
-            ("options", "选项"), ("advanced", "高级"),
+            ("options", "附加文件"), ("advanced", "高级"),
         ])
 
         try:
@@ -486,7 +504,47 @@ class SettingsWindow(MSFluentWindow):
         log_card.clicked.connect(self._on_open_logs)
         g.addSettingCard(log_card)
         self._register_card(log_card, "日志", "查看应用运行日志")
+
+        # ---- 百宝箱：娱乐功能，与下载主流程无关（懒加载弹窗，避免拖慢设置窗口）----
+        g2 = self._group("百宝箱")
+        w.add_group(g2)
+
+        dl_card = PushSettingCard(
+            tr("打开"), _icon("DOWNLOAD"), tr("自定义链接下载"),
+            tr("用 yt-dlp 下载任意链接（支持非 B 站站点）"), self)
+        dl_card.clicked.connect(self._open_custom_download)
+        g2.addSettingCard(dl_card)
+        self._register_card(dl_card, "自定义链接下载", "用 yt-dlp 下载任意链接（支持非 B 站站点）")
+
+        luck_card = PushSettingCard(
+            tr("打开"), _icon("HEART"), tr("今日人品"),
+            tr("测一测今天的手气（纯娱乐）"), self)
+        luck_card.clicked.connect(self._open_luck)
+        g2.addSettingCard(luck_card)
+        self._register_card(luck_card, "今日人品", "测一测今天的手气（纯娱乐）")
+
+        dnc_card = PushSettingCard(
+            tr("打开"), _icon("FINGERPRINT"), tr("千万别点"),
+            tr("一个不该点的按钮"), self)
+        dnc_card.clicked.connect(self._open_dnc)
+        g2.addSettingCard(dnc_card)
+        self._register_card(dnc_card, "千万别点", "一个不该点的按钮")
         return w
+
+    # ------------------------------------------------------------------ #
+    # 百宝箱（娱乐功能）入口：全部懒加载，未使用时零开销
+    # ------------------------------------------------------------------ #
+    def _open_custom_download(self):
+        from ui.toolbox import CustomDownloadDialog
+        CustomDownloadDialog(self, self.config).exec()
+
+    def _open_luck(self):
+        from ui.toolbox import LuckDialog
+        LuckDialog(self, self.config).exec()
+
+    def _open_dnc(self):
+        from ui.toolbox import DoNotClickDialog
+        DoNotClickDialog(self, self.config).exec()
 
     def _build_proxy_expand(self):
         """代理设置展开卡：类型 / 地址 / 端口 / 用户名 / 密码 收进一张卡片。"""
@@ -647,10 +705,9 @@ class SettingsWindow(MSFluentWindow):
                 self._set_card_content(card, tr(ck))
         for g, tk in self._groups:
             if tk:
-                try:
-                    g.setTitle(tr(tk))
-                except Exception:
-                    pass
+                # SettingCardGroup 没有 setTitle（标题只在 titleLabel 上），
+                # 走 _set_title 的兜底链，否则语言切换后分组标题不刷新。
+                _set_title(g, tr(tk))
         for ec in self._expand_cards:
             try:
                 ec.retranslate()

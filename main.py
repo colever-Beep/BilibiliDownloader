@@ -105,7 +105,10 @@ def main():
     win = MainWindow(config, logger, bili_api, engine)
     # 登记根窗口，使切换强调色时能重上色已注册的强调色按钮
     set_root_window(win.window)
-    # 设置窗口标题栏图标（打包内从 _MEIPASS 取，开发态从项目根取；缺失则跳过）
+    # 设置窗口标题栏图标。
+    # 打包后 icon.ico 通过 --add-data 进入 _MEIPASS 临时目录，resource_path 可直接取到；
+    # 开发态从项目根目录 icon.ico 取；另用 --icon 把图标嵌入 exe（任务栏/资源管理器图标）。
+    # 二者皆缺失则跳过（标题栏不显示图标）。
     _icon = get_app_icon_path()
     if os.path.exists(_icon):
         try:

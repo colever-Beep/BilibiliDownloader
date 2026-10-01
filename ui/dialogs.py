@@ -29,12 +29,11 @@ from PySide6.QtWidgets import (
 )
 
 from qfluentwidgets import (
-    BodyLabel, CaptionLabel, CheckBox, FluentIcon, FlowLayout, ImageLabel,
+    BodyLabel, CaptionLabel, FluentIcon, FlowLayout, ImageLabel,
     LargeTitleLabel, LineEdit, ListWidget, PrimaryPushButton, PushButton,
     SearchLineEdit, TableWidget, TextEdit,
 )
 
-from utils.helpers import format_duration
 from utils.i18n import tr, register
 from utils.main_thread import run_on_main
 from utils.cookie_manager import load_cookie_string
@@ -48,6 +47,7 @@ from ui.fluent_dialog import (
     msg_info, msg_warn, msg_error, msg_confirm,
 )
 from ui.list_layout import LayoutModeToggle, manager, is_compact
+from ui.select_list_view import SelectListView, _key_of
 from ui.icons import icon_pixmap
 from ui.theme import palette, get_accent
 
@@ -64,23 +64,6 @@ def _page():
     lay.setContentsMargins(0, 0, 0, 0)
     lay.setSpacing(14)
     return w, lay
-
-
-def _check_row(text, checked=False, parent=None):
-    """构造一个「复选框行」控件，返回 (行控件, 复选框)。
-
-    qfluentwidgets 的 ListWidget 对 QListWidgetItem 自带勾选框的渲染不理想，
-    这里用 itemWidget + 原生 Fluent CheckBox，视觉与交互都统一。
-    """
-    row = QWidget(parent)
-    h = QHBoxLayout(row)
-    h.setContentsMargins(12, 6, 12, 6)
-    cb = CheckBox(text, row)
-    cb.setChecked(checked)
-    h.addWidget(cb)
-    h.addStretch(1)
-    row._cb = cb          # 便于外部读写勾选态
-    return row, cb
 
 
 # --------------------------------------------------------------------------- #
@@ -333,8 +316,8 @@ class SearchDialog(FluentContentDialog):
     """B 站综合搜索 / 音乐搜索窗口（Fluent 版）。
 
     顶部内联搜索框，回车或点「搜索」即在后台线程调用 search_fn(keyword)，
-    结果以可勾选列表展示（标题 + 类型 + 分类 + 时长）。确认后把勾选项经
-    on_confirm(selected) 回调交给主窗口路由（视频/番剧入队、UP主展开空间）。
+    结果复用 SelectListView，以显示视频封面 / UP 主头像，并响应全局详细 / 精简
+    布局。确认后把勾选项经 on_confirm(selected) 回调交给主窗口路由。
 
     search_fn 由调用方注入：
       - 综合搜索：api.get_search_results
@@ -347,6 +330,8 @@ class SearchDialog(FluentContentDialog):
         self.search_fn = search_fn
         self.on_confirm = on_confirm
         self._items = []
+        self._checked_keys = set()
+        self._selected = {}
 
         top = QHBoxLayout()
         top.setSpacing(10)
@@ -365,8 +350,8 @@ class SearchDialog(FluentContentDialog):
         self.status_lbl = CaptionLabel("", self)
         self.add_widget(self.status_lbl)
 
-        self.list = ListWidget(self)
-        self.list.setSpacing(2)
+        self.list = SelectListView(self._checked_keys, self)
+        self.list.rowClicked.connect(self._on_row_clicked)
         self.add_widget(self.list, 1)
 
         self.btn_all = self.add_button(tr("全选"), right=False, min_width=88,
@@ -385,7 +370,6 @@ class SearchDialog(FluentContentDialog):
 
         self._closed = False
         self._leftBtns.insertWidget(0, LayoutModeToggle(self))
-        self._unsub = manager.connect(lambda _m: self._rerender())
 
         self.input.setFocus()
 
@@ -395,7 +379,9 @@ class SearchDialog(FluentContentDialog):
             return
         self.search_btn.setEnabled(False)
         self.status_lbl.setText(tr("搜索中..."))
-        self.list.clear()
+        self._checked_keys.clear()
+        self._selected.clear()
+        self.list.set_items([])
         threading.Thread(target=self._search_thread, args=(kw,), daemon=True).start()
 
     def _search_thread(self, kw):
@@ -410,64 +396,51 @@ class SearchDialog(FluentContentDialog):
     def _finish_search(self, results):
         self._items = list(results)
         self.search_btn.setEnabled(True)
-        self.list.clear()
-        if not results:
+        self.list.set_items(self._items)
+        self._selected = {
+            _key_of(item): item for item in self._items
+            if _key_of(item) in self._checked_keys
+        }
+        if not self._items:
             self.status_lbl.setText(tr("未找到结果"))
             return
-        self.status_lbl.setText(tr("共 {} 条结果").format(len(results)))
-        for it in results:
-            label = self._row_text(it)
-            row, _cb = _check_row(label, parent=self.list)
-            li = QListWidgetItem()
-            li.setSizeHint(row.sizeHint())
-            li.setData(Qt.UserRole, it)
-            self.list.addItem(li)
-            self.list.setItemWidget(li, row)
+        self.status_lbl.setText(tr("共 {} 条结果").format(len(self._items)))
 
-    def _row_text(self, it):
-        """单行文本：详细含 类型/标题/分类/时长；精简仅 标题 + 时长（统一布局）。"""
-        title = it.get("title", tr("未知"))
-        dur = format_duration(it.get("duration", 0))
-        if is_compact():
-            return f"{title}  [{dur}]"
-        t = it.get("type", "video")
-        cat = it.get("category", "")
-        label = f"[{t}] {title}"
-        if cat:
-            label += f"  {cat}"
-        label += f"  [{dur}]"
-        return label
-
-    def _rerender(self):
-        if getattr(self, "_closed", False):
+    def _on_row_clicked(self, index):
+        item = self.list.model().item_at(index.row())
+        key = _key_of(item)
+        if key is None:
             return
-        self._finish_search(self._items)
+        if key in self._checked_keys:
+            self._checked_keys.discard(key)
+            self._selected.pop(key, None)
+        else:
+            self._checked_keys.add(key)
+            self._selected[key] = item
+        self.list.refresh_row(index)
 
     def _set_all(self, checked):
-        for i in range(self.list.count()):
-            row = self.list.itemWidget(self.list.item(i))
-            cb = getattr(row, "_cb", None)
-            if cb is not None:
-                cb.setChecked(checked)
+        for item in self.list.items():
+            key = _key_of(item)
+            if key is None:
+                continue
+            if checked:
+                self._checked_keys.add(key)
+                self._selected[key] = item
+            else:
+                self._checked_keys.discard(key)
+                self._selected.pop(key, None)
+        self.list.viewport().update()
 
     def _on_accept(self):
-        selected = []
-        for i in range(self.list.count()):
-            li = self.list.item(i)
-            row = self.list.itemWidget(li)
-            cb = getattr(row, "_cb", None)
-            if cb is not None and cb.isChecked():
-                selected.append(li.data(Qt.UserRole))
+        selected = list(self._selected.values())
         if self.on_confirm is not None:
             self.on_confirm(selected)
         self.accept()
 
     def closeEvent(self, ev):
         self._closed = True
-        try:
-            self._unsub()
-        except Exception:
-            pass
+        self.list.close()
         super().closeEvent(ev)
 
 

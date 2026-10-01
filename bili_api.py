@@ -791,13 +791,15 @@ class BiliAPI:
                 cover = ep.get("cover", "")
                 if cover and cover.startswith("//"):
                     cover = "https:" + cover
+                # PGC season durations are milliseconds; the app stores seconds.
+                duration_ms = ep.get("duration") or 0
                 result.append({
                     "url": f"https://www.bilibili.com/bangumi/play/ep{ep.get('ep_id')}",
                     # 番剧 ep.title 多为集号字符串（如 "1"），long_title 才是真正的集名，优先用 long_title
                     "title": ep.get("long_title") or ep.get("title") or f"第{ep.get('index', '')}集",
                     "bvid": bvid,
                     "cid": cid,
-                    "duration": ep.get("duration") or 0,
+                    "duration": int(duration_ms) // 1000,
                     "thumbnail": cover,
                     "view_count": 0,
                     "like_count": 0,
@@ -1387,6 +1389,9 @@ class BiliAPI:
                             "url": f"https://space.bilibili.com/{it.get('mid')}",
                             "category": "搜索·UP主",
                         })
+            video_results = [item for item in results if item.get("type") == "video"]
+            if video_results:
+                self.enrich_videos(video_results)
             print(f"[搜索] {keyword!r} 共 {len(results)} 条")
             return results
         except Exception as e:
@@ -1446,6 +1451,8 @@ class BiliAPI:
                         "url": f"https://www.bilibili.com/video/{it.get('bvid')}",
                         "category": "音乐",
                     })
+            if results:
+                self.enrich_videos(results)
             print(f"[音乐搜索] {keyword!r} 共 {len(results)} 条")
             return results
         except Exception as e:

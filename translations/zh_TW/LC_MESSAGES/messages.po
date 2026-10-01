@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bili23 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 14:04\n"
-"PO-Revision-Date: 2026-09-26 14:04\n"
+"POT-Creation-Date: 2026-10-01 15:09\n"
+"PO-Revision-Date: 2026-10-01 15:09\n"
 "Last-Translator: \n"
 "Language: zh_TW\n"
 "Language-Team: \n"
@@ -15,6 +15,18 @@ msgstr ""
 
 msgid " / 共 {} 页"
 msgstr " / 共 {} 頁"
+
+msgid "0 分。今天诸事不宜，建议原地躺平。"
+msgstr "0 分。今天諸事不宜，建議原地躺平。"
+
+msgid "1080p 及以下"
+msgstr "1080p 及以下"
+
+msgid "720p 及以下"
+msgstr "720p 及以下"
+
+msgid "<html>欢迎使用本软件。在开始使用前，请仔细阅读以下《用户协议》。\n当您点击「同意并继续」时，即表示您已阅读、理解并同意遵守全部条款。\n\n<p><b>一、使用目的</b><br>\n本软件仅供个人学习、研究与非商业用途。通过本软件获取的任何内容，\n<b>仅限于您个人合理使用，不得用于任何商业目的、公开传播、分享、转售或非法牟利。</b></p>\n\n<p><b>二、访问权限</b><br>\n本软件基于您本人合法的账号登录状态运行，<b>不绕过任何付费内容、会员限制或技术保护措施</b>。\n您仅可访问通过正常登录所授权的内容；对无权限的内容，不得借助本软件获取。</p>\n\n<p><b>三、禁止行为</b><br>\n<b>请勿使用本软件进行批量抓取、未经授权的再分发，或任何违反目标平台服务条款的行为。</b>\n您须对自身使用行为负全部责任，包括但不限于账号封禁、版权纠纷及由此引发的法律责任。</p>\n\n<p><b>四、责任限制</b><br>\n在任何情况下，开发者均不对因使用或无法使用本软件造成的任何直接、间接、附带或后果性损害承担责任。</p>\n\n<p><b>五、协议生效</b><br>\n您继续使用本软件，即视为已阅读、理解并自愿接受上述全部条款与潜在风险。</p></html>"
+msgstr ""
 
 msgid "B站下载器"
 msgstr "B站下載器"
@@ -46,6 +58,12 @@ msgstr "「{}」：{} 影片 / {} 番劇 / {} UP主"
 msgid "「{}」：{} 音乐视频"
 msgstr "「{}」：{} 音樂影片"
 
+msgid "「仅音频」需要 ffmpeg，请先在「高级」里配置 ffmpeg 路径。"
+msgstr "「僅音訊」需要 ffmpeg，請先在「高級」裡設定 ffmpeg 路徑。"
+
+msgid "一个不该点的按钮"
+msgstr "一個不該點的按鈕"
+
 msgid "上一页"
 msgstr "上一頁"
 
@@ -58,14 +76,29 @@ msgstr "下載"
 msgid "下载中"
 msgstr "下載中"
 
+msgid "下载中 {}%（{}，剩余 {}）"
+msgstr "下載中 {}%（{}，剩餘 {}）"
+
 msgid "下载中..."
 msgstr "下載中..."
+
+msgid "下载失败"
+msgstr "下載失敗"
+
+msgid "下载失败：{}"
+msgstr "下載失敗：{}"
 
 msgid "下载完成"
 msgstr "下載完成"
 
+msgid "下载完成。"
+msgstr "下載完成。"
+
 msgid "下载正在进行中"
 msgstr "下載正在進行中"
+
+msgid "下载画质"
+msgstr "下載畫質"
 
 msgid "下载结束：完成{}，失败{}，取消{}\n保存路径: {}"
 msgstr "下載結束：完成{}，失敗{}，取消{}\n儲存路徑: {}"
@@ -82,6 +115,12 @@ msgstr "下載選項"
 msgid "不使用"
 msgstr "不使用"
 
+msgid "不同意并退出"
+msgstr ""
+
+msgid "中规中矩，一切照旧。"
+msgstr "中規中矩，一切照舊。"
+
 msgid "主题强调色，应用于按钮与高亮"
 msgstr "主題強調色，應用於按鈕與高亮"
 
@@ -94,11 +133,32 @@ msgstr "二維碼生成失敗："
 msgid "二维码登录"
 msgstr "二維碼登錄"
 
+msgid "仅音频（m4a）"
+msgstr "僅音訊（m4a）"
+
+msgid "今日人品"
+msgstr "今日人品"
+
+msgid "任务开始：{}"
+msgstr "任務開始：{}"
+
+msgid "你怎么还在点？"
+msgstr "你怎麼還在點？"
+
+msgid "你的耐心让我有点害怕。"
+msgstr "你的耐心讓我有點害怕。"
+
 msgid "你还没有创建任何收藏夹"
 msgstr "你還沒有建立任何收藏夾"
 
 msgid "使用 Cookie 登录"
 msgstr "使用 Cookie 登入"
+
+msgid "保存到"
+msgstr "儲存至"
+
+msgid "停止"
+msgstr "停止"
 
 msgid "停止异常：{}"
 msgstr "停止異常：{}"
@@ -154,17 +214,26 @@ msgstr "關閉方式"
 msgid "关闭程序时："
 msgstr "關閉程式時："
 
+msgid "再点下去要出事了……"
+msgstr "再點下去要出事了……"
+
 msgid "写入解析记录失败：{}"
 msgstr "寫入解析記錄失敗：{}"
 
 msgid "准备中…"
 msgstr "準備中…"
 
+msgid "准备就绪"
+msgstr "準備就緒"
+
 msgid "出错"
 msgstr "出錯"
 
 msgid "分区"
 msgstr "分區"
+
+msgid "创建保存目录失败：{}"
+msgstr "建立儲存目錄失敗：{}"
 
 msgid "删除"
 msgstr "刪除"
@@ -220,6 +289,12 @@ msgstr "載入第 {} 頁…"
 msgid "加载追番列表失败：{}"
 msgstr "載入追番列表失敗：{}"
 
+msgid "千万别点"
+msgstr "千萬別點"
+
+msgid "占卜中……"
+msgstr "占卜中……"
+
 msgid "即将清空日志窗口，同时会清空同目录下的 download.log 文件。\n是否继续？"
 msgstr "即將清空日誌視窗，同時會清空同目錄下的 download.log 檔案。\n是否繼續？"
 
@@ -240,6 +315,15 @@ msgstr "取消"
 
 msgid "取消中..."
 msgstr "取消中..."
+
+msgid "同一名字同一天的结果固定，每天 0 点刷新。"
+msgstr "同一名字同一天的結果固定，每天 0 點更新。"
+
+msgid "同意并继续"
+msgstr ""
+
+msgid "名字"
+msgstr "名字"
 
 msgid "在浏览器中打开主页"
 msgstr "在瀏覽器中開啟主頁"
@@ -262,6 +346,9 @@ msgstr "媒體設定"
 msgid "完成"
 msgstr "完成"
 
+msgid "已下载：{}"
+msgstr "已下載：{}"
+
 msgid "已停止"
 msgstr "已停止"
 
@@ -270,6 +357,9 @@ msgstr "已停止錄製"
 
 msgid "已取消"
 msgstr "已取消"
+
+msgid "已取消。"
+msgstr "已取消。"
 
 msgid "已取消录制"
 msgstr "已取消錄製"
@@ -292,14 +382,26 @@ msgstr "已清空"
 msgid "已登录"
 msgstr "已登入"
 
+msgid "已累计点击 {} 次。"
+msgstr "已累計點擊 {} 次。"
+
 msgid "已选 {n}"
 msgstr "已選 {n}"
 
 msgid "已选择 {} 个视频 · 本次下载设置（确认后生效）"
 msgstr "已選擇 {} 個影片 · 本次下載設定（確認後生效）"
 
+msgid "平平淡淡，适合摸鱼。"
+msgstr "平平淡淡，適合摸魚。"
+
 msgid "开始下载"
 msgstr "開始下載"
+
+msgid "开始下载：{}"
+msgstr "開始下載：{}"
+
+msgid "开始占卜"
+msgstr "開始占卜"
 
 msgid "开始录制"
 msgstr "開始錄製"
@@ -324,6 +426,15 @@ msgstr "錄製設定"
 
 msgid "录制选项弹窗异常，按默认设置开始：{}"
 msgstr "錄製選項彈窗異常，按預設設定開始：{}"
+
+msgid "彩蛋"
+msgstr "彩蛋"
+
+msgid "彩蛋到手：今日人品 +5，去「今日人品」那页看看吧。"
+msgstr "彩蛋到手：今日人品 +5，去「今日人品」那頁看看吧。"
+
+msgid "彩蛋触发成功：今日人品 +5（当前加成 +{}）。"
+msgstr "彩蛋觸發成功：今日人品 +5（目前加成 +{}）。"
 
 msgid "总计 {total} 个分集"
 msgstr "總計 {total} 個分集"
@@ -355,6 +466,9 @@ msgstr "我的收藏夾"
 msgid "我的追番"
 msgstr "我的追番"
 
+msgid "我认真的，别点了。"
+msgstr "我認真的，別點了。"
+
 msgid "房间号"
 msgstr "房間號"
 
@@ -373,6 +487,9 @@ msgstr "開啟下載目錄"
 msgid "打开文件位置"
 msgstr "開啟檔案位置"
 
+msgid "打开目录"
+msgstr "開啟目錄"
+
 msgid "打开直播间"
 msgstr "開啟直播間"
 
@@ -381,6 +498,9 @@ msgstr "批次解析"
 
 msgid "批量解析（一行一个链接，自动识别类型）"
 msgstr "批次解析（一行一個連結，自動識別類型）"
+
+msgid "换个名字会有不同结果"
+msgstr "換個名字會有不同結果"
 
 msgid "排行榜"
 msgstr "排行榜"
@@ -463,6 +583,12 @@ msgstr "暫停"
 msgid "暂无搜索结果"
 msgstr "暫無搜尋結果"
 
+msgid "最佳画质（自动合并）"
+msgstr "最佳畫質（自動合併）"
+
+msgid "最后一次警告：再点一下有彩蛋（大概）。"
+msgstr "最後一次警告：再點一下有彩蛋（大概）。"
+
 msgid "最小化到托盘"
 msgstr "最小化到托盤"
 
@@ -490,6 +616,9 @@ msgstr "未找到結果"
 msgid "未找到音乐相关视频"
 msgstr "未找到音樂相關影片"
 
+msgid "未检测到 ffmpeg：本次按最佳单文件下载（不合并、不转码）。"
+msgstr "未偵測到 ffmpeg：本次以最佳單一檔案下載（不合併、不轉碼）。"
+
 msgid "未登录"
 msgstr "未登入"
 
@@ -508,11 +637,17 @@ msgstr "未獲取直播流位址（未開播 / 風控攔截）"
 msgid "未解析到任何分集"
 msgstr "未解析到任何分集"
 
+msgid "本次含彩蛋加成 +{}。"
+msgstr "本次含彩蛋加成 +{}。"
+
 msgid "本次录制设置（确认后生效）"
 msgstr "本次錄製設定（確認後生效）"
 
 msgid "来源"
 msgstr "來源"
+
+msgid "来都来了，点一下吧。"
+msgstr "來都來了，點一下吧。"
 
 msgid "查看"
 msgstr "檢視"
@@ -526,8 +661,14 @@ msgstr "查看日誌"
 msgid "标题"
 msgstr "標題"
 
+msgid "欧气满满，今天宜抽卡、宜投稿。"
+msgstr "歐氣滿滿，今天宜抽卡、宜投稿。"
+
 msgid "正在下载"
 msgstr "正在下載"
+
+msgid "正在停止……"
+msgstr "正在停止……"
 
 msgid "正在加载直播列表..."
 msgstr "正在載入直播清單..."
@@ -537,6 +678,9 @@ msgstr "正在載入第 1 頁…"
 
 msgid "正在加载第 {pn} 页..."
 msgstr "正在載入第 {pn} 頁..."
+
+msgid "正在处理文件……"
+msgstr "正在處理檔案……"
 
 msgid "正在搜索：{} …"
 msgstr "正在搜尋：{} …"
@@ -556,6 +700,9 @@ msgstr "正在補全資訊…"
 msgid "正在解析并补全番剧分集…"
 msgstr "正在解析並補全番劇分集…"
 
+msgid "正在解析链接……"
+msgstr "正在解析連結……"
+
 msgid "正在验证 Cookie…"
 msgstr "正在驗證 Cookie…"
 
@@ -573,6 +720,9 @@ msgstr "沒有等待中的任務，請對暫停/失敗的任務點擊『繼續/�
 
 msgid "浅色"
 msgstr "淺色"
+
+msgid "测一测今天的手气（纯娱乐）"
+msgstr "測一測今天的手氣（純娛樂）"
 
 msgid "浏览"
 msgstr "瀏覽"
@@ -610,6 +760,15 @@ msgstr "清空記錄"
 msgid "清空队列"
 msgstr "清空佇列"
 
+msgid "温馨提示"
+msgstr ""
+
+msgid "满分！欧皇附体，今天做什么都顺。"
+msgstr "滿分！歐皇附體，今天做什麼都順。"
+
+msgid "点下面的按钮，看看今天的手气。"
+msgstr "點下面的按鈕，看看今天的手氣。"
+
 msgid "点击「打开TA的个人空间」浏览并下载该UP的视频"
 msgstr "點擊「打開TA的個人空間」瀏覽並下載該UP的影片"
 
@@ -630,6 +789,15 @@ msgstr "狀態: 閒置"
 
 msgid "状态: 错误"
 msgstr "狀態: 錯誤"
+
+msgid "玩家"
+msgstr "玩家"
+
+msgid "用 yt-dlp 下载任意链接（支持非 B 站站点）"
+msgstr "用 yt-dlp 下載任意連結（支援非 B 站站點）"
+
+msgid "用户协议"
+msgstr ""
 
 msgid "界面语言"
 msgstr "介面語言"
@@ -660,6 +828,9 @@ msgstr "登入失敗："
 
 msgid "登录失败：Cookie 无效或已过期（需含 SESSDATA）"
 msgstr "登入失敗：Cookie 無效或已過期（需含 SESSDATA）"
+
+msgid "登录成功！温馨提示：B 站接口存在频率限制，短时间内大量解析或请求可能触发风控，导致接口失败甚至 IP 封禁。请适度使用，避免频繁批量操作。"
+msgstr ""
 
 msgid "登录成功，但保存 Cookie 失败："
 msgstr "登入成功，但儲存 Cookie 失敗："
@@ -721,6 +892,9 @@ msgstr "閒置"
 msgid "第 1 页"
 msgstr "第 1 頁"
 
+msgid "第 6 次了，我已经开始怀疑人生。"
+msgstr "第 6 次了，我已經開始懷疑人生。"
+
 msgid "第 {pn} 页"
 msgstr "第 {pn} 頁"
 
@@ -757,11 +931,20 @@ msgstr "粘貼B站連結（影片/合集/番劇/課程/音訊/每週必看…）
 msgid "粘贴浏览器中复制的 Cookie 字符串（支持 Netscape / 请求头 Cookie / JSON 三种格式），点击登录即可。二维码异常时可用此方式登录。"
 msgstr "粘貼瀏覽器中複製的 Cookie 字串（支援 Netscape / 請求頭 Cookie / JSON 三種格式），點擊登入即可。二維碼異常時可用此方式登入。"
 
+msgid "粘贴视频 / 播放列表 / 用户主页链接，支持 yt-dlp 可解析的任意站点"
+msgstr "貼上影片 / 播放清單 / 使用者主頁連結，支援 yt-dlp 可解析的任意站點"
+
+msgid "精简布局"
+msgstr ""
+
 msgid "继续"
 msgstr "繼續"
 
 msgid "自动重命名"
 msgstr "自動重新命名"
+
+msgid "自定义链接下载"
+msgstr "自訂連結下載"
 
 msgid "获取流地址中…"
 msgstr "獲取流地址中…"
@@ -799,6 +982,9 @@ msgstr "該分類下沒有影片"
 msgid "该番剧没有可下载的分集"
 msgstr "該番劇沒有可下載的分集"
 
+msgid "详细布局"
+msgstr ""
+
 msgid "请使用哔哩哔哩客户端扫码登录"
 msgstr "請使用嗶哩嗶哩客戶端掃碼登入"
 
@@ -817,6 +1003,9 @@ msgstr "請先貼上 Cookie 字串"
 msgid "请先粘贴至少一个链接"
 msgstr "請先貼上至少一個連結"
 
+msgid "请先粘贴要下载的链接。"
+msgstr "請先貼上要下載的連結。"
+
 msgid "请先输入直播间链接或房间号"
 msgstr "請先輸入直播間連結或房間號"
 
@@ -825,6 +1014,12 @@ msgstr "請先選中一個直播間"
 
 msgid "请先选中一条记录"
 msgstr "請先選中一條記錄"
+
+msgid "请先选择保存目录。"
+msgstr "請先選擇儲存目錄。"
+
+msgid "请滚动阅读至底部后，方可同意"
+msgstr ""
 
 msgid "请至少勾选一个视频"
 msgstr "請至少勾選一個影片"
@@ -862,6 +1057,15 @@ msgstr "輸入直播間連結（https://live.bilibili.com/房間號）或純房�
 msgid "输出文件"
 msgstr "輸出檔案"
 
+msgid "运气不错，适合做点正事。"
+msgstr "運氣不錯，適合做點正事。"
+
+msgid "运气有点差，出门先看看黄历。"
+msgstr "運氣有點差，出門先看看黃曆。"
+
+msgid "这个按钮没有任何用途。真的。"
+msgstr "這個按鈕沒有任何用途。真的。"
+
 msgid "追番列表为空"
 msgstr "追番列表為空"
 
@@ -895,8 +1099,14 @@ msgstr "選擇影片"
 msgid "选择颜色"
 msgstr "選擇顏色"
 
-msgid "选项"
-msgstr "選項"
+msgid "速度未知"
+msgstr "速度未知"
+
+msgid "都说了千万别点！"
+msgstr "都說了千萬別點！"
+
+msgid "重置"
+msgstr "重設"
 
 msgid "重试"
 msgstr "重試"
