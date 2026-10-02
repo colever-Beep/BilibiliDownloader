@@ -80,10 +80,10 @@ FRAGMENT = {
         "en": "Browse",
         "ja": "参照",
     },
-    "FFmpeg 路径（留空则使用 bin/ffmpeg.exe）:": {
-        "zh_TW": "FFmpeg 路徑（留空則使用 bin/ffmpeg.exe）:",
-        "en": "FFmpeg path (leave empty to use bin/ffmpeg.exe):",
-        "ja": "FFmpeg のパス（空欄で bin/ffmpeg.exe を使用）:",
+    "FFmpeg 路径（留空则使用 bin/ffmpeg）:": {
+        "zh_TW": "FFmpeg 路徑（留空則使用 bin/ffmpeg）:",
+        "en": "FFmpeg path (leave empty to use bin/ffmpeg):",
+        "ja": "FFmpeg のパス（空欄で bin/ffmpeg を使用）:",
     },
     "并行下载数:": {
         "zh_TW": "平行下載數:",

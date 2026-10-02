@@ -9,6 +9,7 @@
 """
 import colorsys
 import weakref
+import sys
 
 from PySide6.QtGui import QColor
 from PySide6.QtCore import QTimer
@@ -335,6 +336,8 @@ def get_accent():
 # --------------------------------------------------------------------------- #
 def _system_appearance():
     """读取 Windows「应用模式」深浅设置；非 Windows / 读取失败返回 None。"""
+    if sys.platform != "win32":
+        return None
     try:
         import winreg
         with winreg.OpenKey(
@@ -351,6 +354,8 @@ def _system_accent():
 
     失败（非 Windows / 键不存在）返回 None，由调用方回退默认强调色。
     """
+    if sys.platform != "win32":
+        return None
     try:
         import winreg
         with winreg.OpenKey(

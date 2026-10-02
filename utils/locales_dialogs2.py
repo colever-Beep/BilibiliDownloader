@@ -198,10 +198,10 @@ FRAGMENT = {
         "en": "Cannot clear queue while downloading",
         "ja": "ダウンロード中はキューをクリアできません",
     },
-    "未找到 FFmpeg，无法合并音视频（可在「设置」中指定路径，或留空使用 bin/ffmpeg.exe）": {
-        "zh_TW": "未找到 FFmpeg，無法合併音視頻（可在「設定」中指定路徑，或留空使用 bin/ffmpeg.exe）",
-        "en": "FFmpeg not found, cannot merge audio/video (set its path in Settings, or leave empty to use bin/ffmpeg.exe)",
-        "ja": "FFmpeg が見つかりません。音声/映像を結合できません（「設定」でパスを指定するか、空欄にして bin/ffmpeg.exe を使用）",
+    "未找到 FFmpeg，无法合并音视频（可在「设置」中指定路径，或留空使用 bin/ffmpeg）": {
+        "zh_TW": "未找到 FFmpeg，無法合併音視頻（可在「設定」中指定路徑，或留空使用 bin/ffmpeg）",
+        "en": "FFmpeg not found, cannot merge audio/video (set its path in Settings, or leave empty to use bin/ffmpeg)",
+        "ja": "FFmpeg が見つかりません。音声/映像を結合できません（「設定」でパスを指定するか、空欄にして bin/ffmpeg を使用）",
     },
     "链接解析失败，请确认输入的是有效的 B 站链接": {
         "zh_TW": "連結解析失敗，請確認輸入的是有效的 B 站連結",

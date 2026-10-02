@@ -60,7 +60,7 @@ FRAGMENT = {
     "画质": {"zh_TW": "畫質", "en": "Quality", "ja": "画質"},
     "百宝箱": {"zh_TW": "百寶箱", "en": "Toolbox", "ja": "ツールボックス"},
     "网络 / 代理 / FFmpeg": {"zh_TW": "網路 / 代理 / FFmpeg", "en": "Network / Proxy / FFmpeg", "ja": "ネットワーク / プロキシ / FFmpeg"},
-    "自定义 ffmpeg.exe（留空用内置）": {"zh_TW": "自訂 ffmpeg.exe（留空用內建）", "en": "Custom ffmpeg.exe (leave empty to use built-in)", "ja": "カスタム ffmpeg.exe（空欄で内蔵を使用）"},
+    "自定义 ffmpeg（留空用内置）": {"zh_TW": "自訂 ffmpeg（留空用內建）", "en": "Custom ffmpeg (leave empty to use built-in)", "ja": "カスタム ffmpeg（空欄で内蔵を使用）"},
     "视频与音频的保存目录": {"zh_TW": "影片與音訊的儲存目錄", "en": "Save directory for video and audio", "ja": "動画と音声の保存ディレクトリ"},
     "视频流编码格式": {"zh_TW": "視頻流編碼格式", "en": "Video stream codec", "ja": "ビデオストリームのコーデック"},
     "视频编码": {"zh_TW": "視頻編碼", "en": "Video codec", "ja": "ビデオコーデック"},

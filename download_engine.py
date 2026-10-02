@@ -213,7 +213,7 @@ class DownloadEngine:
         return added
 
     def _get_ffmpeg_path(self):
-        """返回配置的FFmpeg路径；留空时优先使用同目录 bin/ffmpeg.exe，否则在 PATH 中查找。
+        """返回配置的FFmpeg路径；留空时优先使用同目录 bin/ffmpeg，否则在 PATH 中查找。
 
         本地 bin/ 缺失时由 utils.ffmpeg_provider 后台下载（首次使用），下载期间返回 None。
         """
@@ -222,7 +222,7 @@ class DownloadEngine:
         # 1) 用户明确填写了有效路径 -> 直接使用（最高优先级）
         if config_path and os.path.isfile(config_path) and os.access(config_path, os.X_OK):
             return os.path.abspath(config_path)
-        # 2) 留空 -> 优先本地 bin/ffmpeg.exe；缺失则触发运行时下载
+        # 2) 留空 -> 优先本地 bin/ffmpeg；缺失则触发运行时下载
         from utils.ffmpeg_provider import ensure_ffmpeg
         local = ensure_ffmpeg(self.logger)
         if local:

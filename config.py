@@ -1,51 +1,54 @@
 import json
 import os
+import sys
 
 
 def get_bundled_ffmpeg_path():
-    """返回同目录（程序根目录）下 bin/ffmpeg.exe 的绝对路径。
+    """返回同目录（程序根目录）下 bin/<ffmpeg> 的绝对路径（含平台相关扩展名）。
 
     仅在「FFmpeg 路径」设置留空时使用，作为内置 ffmpeg 的回退来源；
     返回的路径不保证一定存在，调用方需自行判断文件是否存在。
     """
     base = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(base, "bin", "ffmpeg.exe")
+    from utils.ffmpeg_provider import ffmpeg_exe_name
+    return os.path.join(base, "bin", ffmpeg_exe_name())
 
 
 def _default_videos_path():
     """自动寻找用户电脑中的视频文件夹：Windows 用 Known Folder ID（兼容中文系统
     的「视频」文件夹），其他系统回退到 ~/Videos，并确保目录存在。"""
-    try:
-        import ctypes
-        from ctypes import wintypes
-        # FOLDERID_Videos = {18989B1D-99B5-455B-841C-AB7C74E4DDFC}
-        fid = ctypes.create_unicode_buffer("{18989B1D-99B5-455B-841C-AB7C74E4DDFC}")
-        shell32 = ctypes.windll.shell32
-        ole32 = ctypes.windll.ole32
-        SHGetKnownFolderPath = shell32.SHGetKnownFolderPath
-        SHGetKnownFolderPath.argtypes = [
-            ctypes.c_wchar_p, wintypes.DWORD, wintypes.HANDLE,
-            ctypes.POINTER(ctypes.c_wchar_p)
-        ]
-        SHGetKnownFolderPath.restype = ctypes.HRESULT
-        p_path = ctypes.c_wchar_p()
-        hr = SHGetKnownFolderPath(fid, 0, None, ctypes.byref(p_path))
-        if hr == 0 and p_path.value:
-            path = p_path.value
-            try:
-                ole32.CoTaskMemFree(p_path)
-            except Exception:
-                pass
-            if path:
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            from ctypes import wintypes
+            # FOLDERID_Videos = {18989B1D-99B5-455B-841C-AB7C74E4DDFC}
+            fid = ctypes.create_unicode_buffer("{18989B1D-99B5-455B-841C-AB7C74E4DDFC}")
+            shell32 = ctypes.windll.shell32
+            ole32 = ctypes.windll.ole32
+            SHGetKnownFolderPath = shell32.SHGetKnownFolderPath
+            SHGetKnownFolderPath.argtypes = [
+                ctypes.c_wchar_p, wintypes.DWORD, wintypes.HANDLE,
+                ctypes.POINTER(ctypes.c_wchar_p)
+            ]
+            SHGetKnownFolderPath.restype = ctypes.HRESULT
+            p_path = ctypes.c_wchar_p()
+            hr = SHGetKnownFolderPath(fid, 0, None, ctypes.byref(p_path))
+            if hr == 0 and p_path.value:
+                path = p_path.value
                 try:
-                    os.makedirs(path, exist_ok=True)
+                    ole32.CoTaskMemFree(p_path)
                 except Exception:
                     pass
-                if os.path.isdir(path):
-                    return path
-    except Exception:
-        pass
-    # 回退：~/Videos
+                if path:
+                    try:
+                        os.makedirs(path, exist_ok=True)
+                    except Exception:
+                        pass
+                    if os.path.isdir(path):
+                        return path
+        except Exception:
+            pass
+    # 回退：~/Videos（非 Windows 直接走这里）
     fallback = os.path.join(os.path.expanduser("~"), "Videos")
     try:
         os.makedirs(fallback, exist_ok=True)

@@ -493,9 +493,10 @@ class SettingsWindow(MSFluentWindow):
         # ---- 代理设置（聚合为一张可展开卡片，参照 bili23 ProxySettingCard）----
         g.addSettingCard(self._build_proxy_expand())
 
-        # FFmpeg 路径
-        self._path_card(g, "APPLICATION", "FFmpeg 路径", "自定义 ffmpeg.exe（留空用内置）",
-                        "ffmpeg_path", file_mode=True, filter_text="ffmpeg.exe")
+        # FFmpeg 路径（过滤器按平台自适应：Windows 用 *.exe，Linux/macOS 无扩展名则不限）
+        from utils.ffmpeg_provider import ffmpeg_exe_name
+        self._path_card(g, "APPLICATION", "FFmpeg 路径", "自定义 ffmpeg（留空用内置）",
+                        "ffmpeg_path", file_mode=True, filter_text=ffmpeg_exe_name())
 
         # 查看日志（参照 bili23 的 log_card：PushSettingCard 直接打开日志窗口）
         log_card = PushSettingCard(tr("查看"), _icon("HISTORY"), tr("日志"),
@@ -655,9 +656,11 @@ class SettingsWindow(MSFluentWindow):
 
     def _browse(self, btn, le, config_key, file_mode, filter_text):
         if file_mode:
+            # Windows 下 ffmpeg 带 .exe 扩展名，可用 (*.exe) 过滤；其它平台无扩展名则不过滤
+            ff_filter = f"FFmpeg (*.{filter_text})" if filter_text.endswith(".exe") else ""
             path, _ = QFileDialog.getOpenFileName(self, tr("选择 FFmpeg 可执行文件"),
                                                   le.text() or os.path.expanduser("~"),
-                                                  f"FFmpeg (*{filter_text})" if filter_text else "")
+                                                  ff_filter)
         else:
             path = QFileDialog.getExistingDirectory(self, tr("选择下载目录"),
                                                     le.text() or os.path.expanduser("~"))

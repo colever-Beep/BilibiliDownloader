@@ -532,7 +532,7 @@ class MainWindow:
             return
         if not self.engine._get_ffmpeg_path():
             self._alert(tr("错误"),
-                       tr("未找到 FFmpeg，无法合并音视频（可在「设置」中指定路径，或留空使用 bin/ffmpeg.exe）"),
+                       tr("未找到 FFmpeg，无法合并音视频（可在「设置」中指定路径，或留空使用 bin/ffmpeg）"),
                        "error")
             return
         self.tray.set_downloading()

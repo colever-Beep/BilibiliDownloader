@@ -31,12 +31,13 @@ patch_qfw_style_watchers()
 
 
 def main():
-    # 设置 DPI 感知（Windows），让高分屏下 UI 不糊
-    try:
-        from ctypes import windll
-        windll.shcore.SetProcessDpiAwareness(1)
-    except Exception:
-        pass
+    # 设置 DPI 感知（仅 Windows），让高分屏下 UI 不糊
+    if sys.platform == "win32":
+        try:
+            from ctypes import windll
+            windll.shcore.SetProcessDpiAwareness(1)
+        except Exception:
+            pass
 
     # 初始化配置
     config = ConfigManager()
