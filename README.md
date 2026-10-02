@@ -150,13 +150,6 @@ BilibiliDownloader/
 
 ## 常见问题
 
-**Q：提示「git / python 命令不存在」？**
-本机若使用 WorkBuddy 自带的 PortableGit，它可能未加入系统 PATH。在命令提示符中临时追加即可：
-```bat
-set "PATH=%PATH%;C:\Users\<你的用户>\.workbuddy\binaries\PortableGit\versions\1.2.0\mingw64\bin"
-```
-或在 Git Bash / 项目终端中执行命令。
-
 **Q：下载失败 / 清晰度只有 360p？**
 多为未登录或登录态失效。放入有效的 `cookies.txt` 后重试。部分内容（如番剧）需大会员才能获取高清晰度。
 
@@ -174,3 +167,15 @@ set "PATH=%PATH%;C:\Users\<你的用户>\.workbuddy\binaries\PortableGit\version
 ## 免责声明
 
 本项目为开源学习工具，所有下载内容版权归原作者与 B 站所有。使用者应自行承担因使用本工具产生的一切法律责任与风险。
+
+---
+
+## 许可证
+
+本项目是 GitHub 开源项目 **[Bili23-Downloader](https://github.com/ScottSloan/Bili23-Downloader)**（作者 Scott Sloan，GPL-3.0）的衍生 / 二次开发版本。**作为 GPL-3.0 的衍生作品，本项目同样以 GPL-3.0 许可证发布**，完整文本见仓库根目录的 [`LICENSE`](LICENSE) 文件。
+
+- 上游原作者版权：Copyright (C) Scott Sloan
+- 本修改版版权：Copyright (C) 2026 colever-Beep
+- 署名与原作者声明见 [`NOTICE`](NOTICE)
+
+> **GPL-3.0 是强 copyleft 许可证**：任何公开分发（含公开源码）都必须保留原作者版权与许可声明、提供完整源码（已满足），且**不得改用更宽松的许可证（如 MIT / Apache）重新发布衍生作品**。若上游后续变更许可证，本衍生版仍需遵循 GPL-3.0 的兼容性约束。
