@@ -30,10 +30,14 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
 
+      # 用 npm ci 严格按 package-lock.json 做干净安装。lockfile 已包含各平台
+      # rollup/esbuild 可选二进制实体条目，npm ci 可确保装到本 runner 对应变体
+      # （旧 lockfile 缺失实体条目会触发 npm bug #4828 -> "Cannot find module
+      # @rollup/rollup-linux-x64-gnu"）。
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build
         run: npm run build
