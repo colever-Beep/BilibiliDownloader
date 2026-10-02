@@ -14,8 +14,8 @@ jobs:
     name: AppImage (Linux)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: pip
@@ -27,7 +27,7 @@ jobs:
           pip install -r requirements.txt
       - name: Build AppImage
         run: python build_linux_appimage.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: BilibiliDownloader-AppImage
           path: dist/*.AppImage
@@ -37,8 +37,8 @@ jobs:
     name: DMG (macOS)
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: pip
@@ -50,7 +50,7 @@ jobs:
           pip install -r requirements.txt
       - name: Build DMG
         run: python build_macos_dmg.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: BilibiliDownloader-macOS
           path: |
