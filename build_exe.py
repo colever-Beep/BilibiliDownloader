@@ -69,7 +69,7 @@ hidden = [
 
 args = ["pyinstaller", os.path.join(ROOT, "main.py")]
 args += ["--onefile", "--noconsole", "--clean"]
-args += ["--name", "BiliDownloader"]
+args += ["--name", "BilibiliDownloader"]
 if os.path.exists(ICON):
     args += ["--icon", ICON]
 for d in datas:

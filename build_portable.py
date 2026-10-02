@@ -1,7 +1,7 @@
 """便携版打包驱动（onedir 模式）。
 
 与 build_exe.py 使用同一 auto-py-to-exe 引擎，区别：
-- 不加 --onefile → 产物为 dist/BiliDownloader/ 文件夹（exe + _internal），
+- 不加 --onefile → 产物为 dist/BilibiliDownloader/ 文件夹（exe + _internal），
   启动无需解压临时目录，双击即用，适合压缩成 zip 分发的便携版。
 - ffmpeg 仍不打包（体积考虑），首次使用时由 utils/ffmpeg_provider 自动
   下载到 exe 同目录 bin/；离线用户可手动放入。
@@ -62,8 +62,8 @@ hidden = [
 ]
 
 args = ["pyinstaller", os.path.join(ROOT, "main.py")]
-args += ["--noconsole"]  # 默认 onedir：dist/BiliDownloader/（--clean 会被沙箱删除拦截器挡住，构建前手动清 .build_tmp 即可）
-args += ["--name", "BiliDownloader"]
+args += ["--noconsole"]  # 默认 onedir：dist/BilibiliDownloader/（--clean 会被沙箱删除拦截器挡住，构建前手动清 .build_tmp 即可）
+args += ["--name", "BilibiliDownloader"]
 if os.path.exists(ICON):
     args += ["--icon", ICON]
 for d in datas:
