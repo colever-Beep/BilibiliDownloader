@@ -132,9 +132,19 @@ def main():
         def _validate_login_bg():
             ok = bili_api._refresh_user_info()
             if ok:
+                # 打印到终端（logger 只写文件+通知 UI，终端看不到，故此处单独 print）
+                print(f"[登录成功] UID:{bili_api.uid} 昵称:{bili_api.nickname}")
                 logger.log(f"已登录用户：{bili_api.nickname}")
-                run_on_main(win._maybe_show_login_api_warning)
+                def _after():
+                    # 刷新侧边栏用户卡（头像/昵称/状态）与登录提示态。
+                    # 注意：必须用 run_on_main 回到主线程，否则 Qt 控件操作在工作线程会崩。
+                    win.update_login_hint()
+                    # 首次登录成功展示一次接口频率限制提醒（持久化，之后不再弹）。
+                    # 自动校验登录态时同样只在「从未弹过」时弹一次，不会反复打扰。
+                    win._maybe_show_login_api_warning()
+                run_on_main(_after)
             else:
+                print("[登录校验失败] Cookie 文件存在但验证未通过，可能已过期或触发风控")
                 logger.log("Cookie文件存在但验证失败，可能已过期")
 
         threading.Thread(target=_validate_login_bg, daemon=True).start()

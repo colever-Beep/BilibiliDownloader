@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bili23 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-02 19:16\n"
-"PO-Revision-Date: 2026-10-02 19:16\n"
+"POT-Creation-Date: 2026-10-03 00:26\n"
+"PO-Revision-Date: 2026-10-03 00:26\n"
 "Last-Translator: \n"
 "Language: ja\n"
 "Language-Team: \n"
@@ -30,9 +30,6 @@ msgstr ""
 
 msgid "B站下载器"
 msgstr "Bilibiliダウンローダー"
-
-msgid "BilibiliDownloader"
-msgstr "Bilibiliダウンローダー Pro"
 
 msgid "Cookie 登录"
 msgstr "Cookie ログイン"
@@ -166,9 +163,6 @@ msgstr "停止例外：{}"
 msgid "停止录制"
 msgstr "録画を停止"
 
-msgid "全不选"
-msgstr "すべて解除"
-
 msgid "全站热门"
 msgstr "全体人気"
 
@@ -192,9 +186,6 @@ msgstr "全 {n} のお気に入り"
 
 msgid "共 {} 个直播间"
 msgstr "全 {} のライブルーム"
-
-msgid "共 {} 条结果"
-msgstr "全 {} 件の結果"
 
 msgid "共 {} 行"
 msgstr "{} 行"
@@ -250,6 +241,9 @@ msgstr "QRコードを更新"
 msgid "加入队列"
 msgstr "キューに追加"
 
+msgid "加载{title}失败：{err}"
+msgstr ""
+
 msgid "加载中..."
 msgstr "読み込み中..."
 
@@ -301,6 +295,9 @@ msgstr "ログウィンドウをクリアすると、同じフォルダの downl
 msgid "历史记录"
 msgstr "履歴"
 
+msgid "历史记录为空，没有可下载的视频"
+msgstr ""
+
 msgid "原始流（不转码）"
 msgstr "元ストリーム（変換なし）"
 
@@ -324,6 +321,9 @@ msgstr ""
 
 msgid "名字"
 msgstr "名前"
+
+msgid "在浏览器中打开"
+msgstr ""
 
 msgid "在浏览器中打开主页"
 msgstr "ブラウザでホームページを開く"
@@ -555,6 +555,9 @@ msgstr "再生数"
 
 msgid "收藏"
 msgstr "お気に入り"
+
+msgid "收藏夹为空，没有可下载的视频"
+msgstr ""
 
 msgid "文件大小"
 msgstr "ファイルサイズ"
@@ -808,14 +811,11 @@ msgstr "アニメ"
 msgid "番剧解析失败：{}"
 msgstr "アニメの解析に失敗: {}"
 
-msgid "登出"
-msgstr "ログアウト"
-
-msgid "登录"
-msgstr "ログイン"
-
 msgid "登录 B站"
 msgstr "Bilibili にログイン"
+
+msgid "登录以使用更多功能"
+msgstr ""
 
 msgid "登录后才能查看历史记录"
 msgstr "視聴履歴を見るにはログインが必要です"
@@ -886,6 +886,9 @@ msgstr "プログラム異常"
 msgid "稍后再看"
 msgstr "後で見る"
 
+msgid "稍后再看列表为空，没有可下载的视频"
+msgstr ""
+
 msgid "空闲"
 msgstr "待機中"
 
@@ -895,6 +898,15 @@ msgstr "ページ1"
 msgid "第 6 次了，我已经开始怀疑人生。"
 msgstr "6 回目です。もう人生について考え始めました。"
 
+msgid "第 {pn} / {total} 页"
+msgstr ""
+
+msgid "第 {pn} / {total} 页，共 {n} 条"
+msgstr ""
+
+msgid "第 {pn} / {total} 页，共 {n} 条结果"
+msgstr ""
+
 msgid "第 {pn} 页"
 msgstr "ページ{pn}"
 
@@ -903,6 +915,9 @@ msgstr "ページ{pn}にデータがありません"
 
 msgid "第 {pn} 页，共 {n} 条"
 msgstr "ページ{pn}、全{n}件"
+
+msgid "第 {pn} 页，共 {n} 条结果"
+msgstr ""
 
 msgid "第 {} / {} 页"
 msgstr "{} / {} ページ"
@@ -1019,6 +1034,9 @@ msgid "请先选择保存目录。"
 msgstr "保存先フォルダを選択してください。"
 
 msgid "请滚动阅读至底部后，方可同意"
+msgstr ""
+
+msgid "请登录以使用更多功能"
 msgstr ""
 
 msgid "请至少勾选一个视频"
@@ -1149,9 +1167,3 @@ msgstr "（一致: {}）"
 
 msgid "（还有更多）"
 msgstr "（さらにあり）"
-
-msgid "FFmpeg 路径（留空则使用 bin/ffmpeg）:"
-msgstr "FFmpeg のパス（空欄で bin/ffmpeg を使用）:"
-
-msgid "自定义 ffmpeg（留空用内置）"
-msgstr "カスタム ffmpeg（空欄で内蔵を使用）"

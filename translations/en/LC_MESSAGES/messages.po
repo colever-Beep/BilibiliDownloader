@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bili23 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-02 19:16\n"
-"PO-Revision-Date: 2026-10-02 19:16\n"
+"POT-Creation-Date: 2026-10-03 00:26\n"
+"PO-Revision-Date: 2026-10-03 00:26\n"
 "Last-Translator: \n"
 "Language: en\n"
 "Language-Team: \n"
@@ -30,9 +30,6 @@ msgstr ""
 
 msgid "B站下载器"
 msgstr "Bilibili Downloader"
-
-msgid "BilibiliDownloader"
-msgstr "Bilibili Downloader Pro"
 
 msgid "Cookie 登录"
 msgstr "Cookie login"
@@ -166,9 +163,6 @@ msgstr "Stop exception: {}"
 msgid "停止录制"
 msgstr "Stop recording"
 
-msgid "全不选"
-msgstr "Deselect all"
-
 msgid "全站热门"
 msgstr "All Hot"
 
@@ -192,9 +186,6 @@ msgstr "{n} favorites in total"
 
 msgid "共 {} 个直播间"
 msgstr "{} live rooms in total"
-
-msgid "共 {} 条结果"
-msgstr "{} results in total"
 
 msgid "共 {} 行"
 msgstr "{} lines"
@@ -250,6 +241,9 @@ msgstr "Refresh QR Code"
 msgid "加入队列"
 msgstr "Add to queue"
 
+msgid "加载{title}失败：{err}"
+msgstr ""
+
 msgid "加载中..."
 msgstr "Loading..."
 
@@ -301,6 +295,9 @@ msgstr "This will clear the log window and also empty the download.log file in t
 msgid "历史记录"
 msgstr "History"
 
+msgid "历史记录为空，没有可下载的视频"
+msgstr ""
+
 msgid "原始流（不转码）"
 msgstr "Original stream (no transcoding)"
 
@@ -324,6 +321,9 @@ msgstr ""
 
 msgid "名字"
 msgstr "Name"
+
+msgid "在浏览器中打开"
+msgstr ""
 
 msgid "在浏览器中打开主页"
 msgstr "Open homepage in browser"
@@ -555,6 +555,9 @@ msgstr "Views"
 
 msgid "收藏"
 msgstr "Favorites"
+
+msgid "收藏夹为空，没有可下载的视频"
+msgstr ""
 
 msgid "文件大小"
 msgstr "File size"
@@ -808,14 +811,11 @@ msgstr "Bangumi"
 msgid "番剧解析失败：{}"
 msgstr "Bangumi parsing failed: {}"
 
-msgid "登出"
-msgstr "Log Out"
-
-msgid "登录"
-msgstr "Log In"
-
 msgid "登录 B站"
 msgstr "Log in to Bilibili"
+
+msgid "登录以使用更多功能"
+msgstr ""
 
 msgid "登录后才能查看历史记录"
 msgstr "Log in to view the watch history"
@@ -886,6 +886,9 @@ msgstr "Program error"
 msgid "稍后再看"
 msgstr "Watch Later"
 
+msgid "稍后再看列表为空，没有可下载的视频"
+msgstr ""
+
 msgid "空闲"
 msgstr "Idle"
 
@@ -895,6 +898,15 @@ msgstr "Page 1"
 msgid "第 6 次了，我已经开始怀疑人生。"
 msgstr "Click number 6. I am starting to question my existence."
 
+msgid "第 {pn} / {total} 页"
+msgstr ""
+
+msgid "第 {pn} / {total} 页，共 {n} 条"
+msgstr ""
+
+msgid "第 {pn} / {total} 页，共 {n} 条结果"
+msgstr ""
+
 msgid "第 {pn} 页"
 msgstr "Page {pn}"
 
@@ -903,6 +915,9 @@ msgstr "Page {pn} has no data"
 
 msgid "第 {pn} 页，共 {n} 条"
 msgstr "Page {pn}, {n} entries"
+
+msgid "第 {pn} 页，共 {n} 条结果"
+msgstr ""
 
 msgid "第 {} / {} 页"
 msgstr "Page {} / {}"
@@ -1019,6 +1034,9 @@ msgid "请先选择保存目录。"
 msgstr "Please choose a save folder first."
 
 msgid "请滚动阅读至底部后，方可同意"
+msgstr ""
+
+msgid "请登录以使用更多功能"
 msgstr ""
 
 msgid "请至少勾选一个视频"
@@ -1149,9 +1167,3 @@ msgstr "(matched {})"
 
 msgid "（还有更多）"
 msgstr "(more available)"
-
-msgid "FFmpeg 路径（留空则使用 bin/ffmpeg）:"
-msgstr "FFmpeg path (leave empty to use bin/ffmpeg):"
-
-msgid "自定义 ffmpeg（留空用内置）"
-msgstr "Custom ffmpeg (leave empty to use built-in)"

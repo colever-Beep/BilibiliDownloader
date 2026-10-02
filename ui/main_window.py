@@ -19,7 +19,7 @@ from PySide6.QtGui import QIcon
 from utils.main_thread import init_main_thread_bridge, run_on_main
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QMenu, QFrame,
+    QMenu, QFrame, QApplication,
 )
 from qfluentwidgets import (
     FluentIcon, LineEdit, PrimaryPushButton, ProgressBar, PushButton,
@@ -1125,13 +1125,36 @@ class MainWindow:
             total = res.get("total", 0)
             total_pages = (total + ps - 1) // ps if total else None
             return items, res.get("has_more", False), total_pages
-        self._pull_all_and_show("收藏夹", fetch, ps=20)
+        self._pull_all_and_show("收藏夹", fetch, ps=20,
+                                skip_if_empty_msg=tr("收藏夹为空，没有可下载的视频"))
 
     def _select_favorite_folder(self):
         if not getattr(self.api, 'uid', None):
             msg_warn(self.window, tr("登录后才能查看收藏夹"), tr("未登录"))
             return
         self.logger.log("加载收藏夹列表...")
+        # 空预检：若用户一个收藏夹都没有，直接提示，不弹选择窗。
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        def _work():
+            try:
+                folders = self.api.get_favorite_folders() or []
+            except Exception as e:
+                run_on_main(lambda err=str(e): self._favfolder_precheck_fail(err))
+                return
+            run_on_main(lambda: self._favfolder_precheck_done(folders))
+        threading.Thread(target=_work, daemon=True).start()
+
+    def _favfolder_precheck_fail(self, err):
+        QApplication.restoreOverrideCursor()
+        self.logger.log(f"收藏夹列表加载失败：{err}")
+        msg_error(self.window, tr("加载收藏夹失败：{}").format(err))
+
+    def _favfolder_precheck_done(self, folders):
+        QApplication.restoreOverrideCursor()
+        if not folders:
+            self.logger.log("无收藏夹，不弹选择窗")
+            msg_info(self.window, tr("你还没有创建任何收藏夹"), tr("提示"))
+            return
         FavFolderDialog(
             self.window, self.api,
             on_select=lambda mid, t: self.load_folder_videos(mid),
@@ -1168,7 +1191,8 @@ class MainWindow:
             total = res.get("total", 0)
             total_pages = (total + ps - 1) // ps if total else None
             return items, res.get("has_more", False), total_pages
-        self._pull_all_and_show("历史记录", fetch, ps=20)
+        self._pull_all_and_show("历史记录", fetch, ps=20,
+                                skip_if_empty_msg=tr("历史记录为空，没有可下载的视频"))
 
     def _map_history_items(self, raw):
         video_list = []
@@ -1283,7 +1307,8 @@ class MainWindow:
             total = res.get("total", 0)
             total_pages = (total + ps - 1) // ps if total else None
             return items, res.get("has_more", False), total_pages
-        self._pull_all_and_show("稍后再看", fetch, ps=20)
+        self._pull_all_and_show("稍后再看", fetch, ps=20,
+                                skip_if_empty_msg=tr("稍后再看列表为空，没有可下载的视频"))
 
     def _map_toview_items(self, raw):
         video_list = []
@@ -1409,13 +1434,56 @@ class MainWindow:
         self._on_videos_selected(video_list)
 
     # ========== 选择对话框 ==========
-    def _pull_all_and_show(self, title, fetch, ps=30):
+    def _pull_all_and_show(self, title, fetch, ps=30, skip_if_empty_msg=None):
         """打开分页选择对话框：立即弹窗，仅先拉第 1 页，后续按需翻页拉取。
 
         原先是「拉完全部再弹窗」，数据多时弹窗空白很久、体验差；现改为
         PaginatedSelectDialog，构造即显示，上/下一页或跳转时才拉对应页。
         fetch 回调返回 (items, has_more)，已在各调用点内部完成 enrich_videos。
+
+        skip_if_empty_msg: 非空时做「空预检」——先拉第 1 页，若为空则**不弹列表窗**，
+        直接提示 skip_if_empty_msg 并结束；仅非空时才打开分页选择框。
+        用于收藏夹/稍后再看/历史记录：列表为空时没必要弹出一个空窗口。
         """
+        if skip_if_empty_msg is None:
+            self.logger.log(f"打开「{title}」分页选择（每页 {ps} 条，按需拉取）")
+            dlg = PaginatedSelectDialog(
+                self.window, fetch, ps,
+                on_confirm=self._on_videos_selected,
+                title=title,
+            )
+            dlg.exec()
+            return
+
+        # 空预检：先拉第 1 页，空则不弹列表窗
+        self.logger.log(f"预检「{title}」是否为空...")
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        def _work():
+            try:
+                res = fetch(1, ps)
+            except Exception as e:
+                run_on_main(lambda err=str(e): self._precheck_fail(title, err))
+                return
+            if res is None:
+                items = []
+            elif isinstance(res, tuple):
+                items = (res[0] or []) if len(res) >= 1 else []
+            else:
+                items = res or []
+            run_on_main(lambda: self._precheck_done(title, fetch, ps, items, skip_if_empty_msg))
+        threading.Thread(target=_work, daemon=True).start()
+
+    def _precheck_fail(self, title, err):
+        QApplication.restoreOverrideCursor()
+        self.logger.log(f"预检「{title}」失败：{err}")
+        msg_error(self.window, tr("加载{title}失败：{err}").format(title=title, err=err))
+
+    def _precheck_done(self, title, fetch, ps, items, empty_msg):
+        QApplication.restoreOverrideCursor()
+        if not items:
+            self.logger.log(f"「{title}」为空，不弹列表窗")
+            msg_info(self.window, empty_msg, tr("提示"))
+            return
         self.logger.log(f"打开「{title}」分页选择（每页 {ps} 条，按需拉取）")
         dlg = PaginatedSelectDialog(
             self.window, fetch, ps,

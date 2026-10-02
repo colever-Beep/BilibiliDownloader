@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bili23 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-02 19:16\n"
-"PO-Revision-Date: 2026-10-02 19:16\n"
+"POT-Creation-Date: 2026-10-03 00:26\n"
+"PO-Revision-Date: 2026-10-03 00:26\n"
 "Last-Translator: \n"
 "Language: zh_TW\n"
 "Language-Team: \n"
@@ -30,9 +30,6 @@ msgstr ""
 
 msgid "B站下载器"
 msgstr "B站下載器"
-
-msgid "BilibiliDownloader"
-msgstr "B站下載器 Pro"
 
 msgid "Cookie 登录"
 msgstr "Cookie 登入"
@@ -166,9 +163,6 @@ msgstr "停止異常：{}"
 msgid "停止录制"
 msgstr "停止錄製"
 
-msgid "全不选"
-msgstr "全不選"
-
 msgid "全站热门"
 msgstr "全站熱門"
 
@@ -192,9 +186,6 @@ msgstr "共 {n} 個收藏夾"
 
 msgid "共 {} 个直播间"
 msgstr "共 {} 個直播間"
-
-msgid "共 {} 条结果"
-msgstr "共 {} 條結果"
 
 msgid "共 {} 行"
 msgstr "共 {} 行"
@@ -250,6 +241,9 @@ msgstr "重新整理二維碼"
 msgid "加入队列"
 msgstr "加入佇列"
 
+msgid "加载{title}失败：{err}"
+msgstr ""
+
 msgid "加载中..."
 msgstr "載入中..."
 
@@ -301,6 +295,9 @@ msgstr "即將清空日誌視窗，同時會清空同目錄下的 download.log �
 msgid "历史记录"
 msgstr "歷史記錄"
 
+msgid "历史记录为空，没有可下载的视频"
+msgstr ""
+
 msgid "原始流（不转码）"
 msgstr "原始流（不轉碼）"
 
@@ -324,6 +321,9 @@ msgstr ""
 
 msgid "名字"
 msgstr "名字"
+
+msgid "在浏览器中打开"
+msgstr ""
 
 msgid "在浏览器中打开主页"
 msgstr "在瀏覽器中開啟主頁"
@@ -555,6 +555,9 @@ msgstr "播放"
 
 msgid "收藏"
 msgstr "收藏"
+
+msgid "收藏夹为空，没有可下载的视频"
+msgstr ""
 
 msgid "文件大小"
 msgstr "檔案大小"
@@ -808,14 +811,11 @@ msgstr "番劇"
 msgid "番剧解析失败：{}"
 msgstr "番劇解析失敗：{}"
 
-msgid "登出"
-msgstr "登出"
-
-msgid "登录"
-msgstr "登入"
-
 msgid "登录 B站"
 msgstr "登入 B站"
+
+msgid "登录以使用更多功能"
+msgstr ""
 
 msgid "登录后才能查看历史记录"
 msgstr "登入後才能查看歷史記錄"
@@ -886,6 +886,9 @@ msgstr "程式異常"
 msgid "稍后再看"
 msgstr "稍後再看"
 
+msgid "稍后再看列表为空，没有可下载的视频"
+msgstr ""
+
 msgid "空闲"
 msgstr "閒置"
 
@@ -895,6 +898,15 @@ msgstr "第 1 頁"
 msgid "第 6 次了，我已经开始怀疑人生。"
 msgstr "第 6 次了，我已經開始懷疑人生。"
 
+msgid "第 {pn} / {total} 页"
+msgstr ""
+
+msgid "第 {pn} / {total} 页，共 {n} 条"
+msgstr ""
+
+msgid "第 {pn} / {total} 页，共 {n} 条结果"
+msgstr ""
+
 msgid "第 {pn} 页"
 msgstr "第 {pn} 頁"
 
@@ -903,6 +915,9 @@ msgstr "第 {pn} 頁沒有資料"
 
 msgid "第 {pn} 页，共 {n} 条"
 msgstr "第 {pn} 頁，共 {n} 條"
+
+msgid "第 {pn} 页，共 {n} 条结果"
+msgstr ""
 
 msgid "第 {} / {} 页"
 msgstr "第 {} / {} 頁"
@@ -1019,6 +1034,9 @@ msgid "请先选择保存目录。"
 msgstr "請先選擇儲存目錄。"
 
 msgid "请滚动阅读至底部后，方可同意"
+msgstr ""
+
+msgid "请登录以使用更多功能"
 msgstr ""
 
 msgid "请至少勾选一个视频"
@@ -1149,9 +1167,3 @@ msgstr "（匹配 {}）"
 
 msgid "（还有更多）"
 msgstr "（還有更多）"
-
-msgid "FFmpeg 路径（留空则使用 bin/ffmpeg）:"
-msgstr "FFmpeg 路徑（留空則使用 bin/ffmpeg）:"
-
-msgid "自定义 ffmpeg（留空用内置）"
-msgstr "自訂 ffmpeg（留空用內建）"
