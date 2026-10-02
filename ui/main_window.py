@@ -546,7 +546,8 @@ class MainWindow:
         if self.is_downloading:
             self._alert(tr("提示"), tr("下载正在进行中"), "info")
             return
-        if not self.engine.queue:
+        pending = self.engine.pending_tasks
+        if not pending:
             self._alert(tr("提示"), tr("队列为空，请先添加视频"), "warning")
             return
         if not self.engine._get_ffmpeg_path():
@@ -556,7 +557,7 @@ class MainWindow:
             return
         self.tray.set_downloading()
         self.tray.update_menu()
-        task_count = len(self.engine.queue)
+        task_count = len(pending)
         send_windows_notification(
             tr("B站下载器"),
             "开始下载 {} 个视频\n{}".format(task_count, self.config.get('download_path')),

@@ -38,7 +38,9 @@ class DownloadEngine:
     def add_task(self, url, title, duration=0, publish_time="", view_count=0, like_count=0, favorite_count=0, thumbnail="", uploader="", category=""):
         with self._lock:
             for item in self.queue:
-                if item["url"] == url:
+                # 已完成/已取消的任务仍留在队列里（供「下载完成」分组展示），
+                # 但它们不应阻止用户重新添加同一个视频。
+                if item["url"] == url and item.get("status") not in ("completed", "cancelled"):
                     return False
             task = {
                 "id": str(uuid.uuid4()),
@@ -58,6 +60,18 @@ class DownloadEngine:
             self.queue.append(task)
         self._notify_status()
         return True
+
+    @property
+    def pending_tasks(self):
+        """未进入终态的任务（completed / cancelled 不算）。
+
+        已完成任务会保留在 self.queue 里供「下载完成」分组展示与「打开文件位置」，
+        因此判断「还有没有活要干」时必须用本属性，不能直接看 len(self.queue)。
+        """
+        with self._lock:
+            return [t for t in self.queue
+                    if t.get("status") not in ("completed", "cancelled")]
+
     def start(self, max_workers=None):
         """启动 worker 池处理所有『等待中』的任务。
 
@@ -189,7 +203,9 @@ class DownloadEngine:
             added = 0
             for task_data in tasks:
                 url = task_data[0]
-                exists = any(item["url"] == url for item in self.queue)
+                exists = any(item["url"] == url
+                            and item.get("status") not in ("completed", "cancelled")
+                            for item in self.queue)
                 if not exists:
                     task = {
                         "id": str(uuid.uuid4()),
@@ -588,12 +604,12 @@ class DownloadEngine:
                     self.logger.log(f"附加内容处理失败：{str(e)}")
                 # 内嵌封面后，按设置删除原封面文件
                 self._delete_embedded_cover(-1, out_dir, safe_title, separate)
-                # ✅ 下载完成：从队列中移除任务
-                with self._lock:
-                    for i, item in enumerate(self.queue):
-                        if item["url"] == task["url"]:
-                            del self.queue[i]
-                            break
+                # ✅ 下载完成：仅标记状态，不从队列移除。
+                # queue_view 依赖本条留在队列里才能归入「下载完成」分组
+                # （_group_for_status 按 status 归类），且其右键菜单支持
+                # 「打开文件位置 / 删除」。若此处 del self.queue[i]，UI 永远
+                # 收不到该任务 —— 切到「下载完成」标签时列表为空。
+                # 清理交给 UI 的删除动作（do_action 'del'）或新批次开始时进行。
                 task["status"] = "completed"
                 result = "completed"
             self._notify_status()  # 通知 UI 更新
@@ -700,11 +716,18 @@ class DownloadEngine:
 
     # ---------- 任务持久化 ----------
     def save_tasks(self):
-        """将队列（剥离瞬态字段）原子写入 tasks.json，供下次启动恢复。"""
+        """将队列（剥离瞬态字段）原子写入 tasks.json，供下次启动恢复。
+
+        不持久化终态任务（completed / cancelled）：它们只在本次会话的
+        「下载完成 / 已取消」分组里展示；若写入 tasks.json，下次启动会被
+        load_tasks 恢复进队列，造成已完成任务跨启动堆积、越积越多。
+        """
         try:
             data = []
             with self._lock:
                 for t in self.queue:
+                    if t.get("status") in ("completed", "cancelled"):
+                        continue
                     item = {k: v for k, v in t.items()
                             if not k.startswith("_") and k not in self._transient_keys}
                     if item:
@@ -729,6 +752,10 @@ class DownloadEngine:
                 self.queue = []
                 for t in data:
                     if not isinstance(t, dict) or not t.get("url"):
+                        continue
+                    # 跳过终态条目：旧版 save_tasks 可能已把 completed/cancelled
+                    # 写进 tasks.json，恢复它们只会让「下载完成」组跨启动堆积。
+                    if t.get("status") in ("completed", "cancelled"):
                         continue
                     t.setdefault("status", "waiting")
                     t.setdefault("progress", 0)
