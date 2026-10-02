@@ -423,6 +423,15 @@ class DownloadEngine:
             except OSError as e:
                 self.logger.log(f"[{idx+1}] 删除原封面文件失败：{e}")
 
+    def _classify_folder(self, task):
+        """根据链接 / 来源标签推断应归属的『视频种类』子目录名。
+
+        返回空串表示不分文件夹（平铺到下载根目录）。
+        """
+        from utils.bili_classify import classify_bili_kind, safe_kind
+        kind = classify_bili_kind(task.get("url", ""), task.get("category", ""))
+        return safe_kind(kind)
+
     def _download_one(self, task):
         """下载单个任务（worker 池调用）。
 
@@ -453,15 +462,28 @@ class DownloadEngine:
             separate = self.config.get("audio_video_separate", False)
             audio_only = self.config.get("audio_only", False)
             quality_rule = self._build_format(quality)
-            out_dir = self.config.get("download_path")
+            base_dir = self.config.get("download_path")
             # 兜底：归一到当前用户可用、可写的目录，避免跨电脑/跨用户时
             # settings.json 残留的旧用户名路径导致下载失败。
-            out_dir = normalize_download_path(out_dir)
-            self.config.config["download_path"] = out_dir
+            base_dir = normalize_download_path(base_dir)
+            self.config.config["download_path"] = base_dir
+
+            # ---- 按视频种类自动分文件夹 ----
+            # create_folder（默认开）：在下载根目录下建 <种类>/ 子目录，
+            # 例如 视频/ 番剧/ 直播/ 音频/ 等。关闭则全部平铺到根目录（旧行为）。
+            folder = ""
+            if self.config.get("create_folder", True):
+                folder = self._classify_folder(task)
+            out_dir = os.path.join(base_dir, folder) if folder else base_dir
             try:
                 os.makedirs(out_dir, exist_ok=True)
             except Exception:
                 pass
+            # 记录实际落盘目录，供『打开文件夹』等功能定位
+            # （queue_view._open_location 已支持 task["folder"] / task["download_path"]）
+            task["download_path"] = out_dir
+            task["folder"] = folder
+
             safe_title = self._resolve_conflict_title(
                 out_dir, safe_filename(task["title"]))
             out_template = os.path.join(out_dir, f"{safe_title}.%(ext)s")

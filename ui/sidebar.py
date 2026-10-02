@@ -1,23 +1,23 @@
-"""导航栏（PySide6 版，参照 bili23 导航栏风格重构）。
+"""可折叠导航栏（qfluentwidgets NavigationInterface 原生实现）。
 
-结构（自上而下）：
-  1. 用户区：头像 / 昵称 / 登录·登出（未登录时）
-  2. 导航区（可滚动）：分组「我的」「发现」，每项 = 图标 + 文字，
-     选中态有左侧强调色指示条 + 强调色文字/图标，hover 有底色高亮。
-     每个导航项带 routeKey，通过 setCurrentItem(key) 反映当前选中。
-  3. 底部：界面语言切换 + 设置 + 关于。
+直接继承 ``NavigationInterface``，因此天然具备：
+  - 左上角菜单按钮：点击在「紧凑（48px 纯图标）↔ 展开（220px 含文字）」间平滑切换；
+  - 紧凑模式下导航项仅显示图标，并自动弹出 tooltip；
+  - 强调色 / 明暗主题由 qfluentwidgets 全局主题驱动，与设置窗口（MSFluentWindow）完全一致；
+  - 折叠状态持久化到 config 的 ``sidebar_collapsed``。
 
-导航项完全自绘（paintEvent 读取 ui.theme 的调色板/强调色），因此：
-  - 不依赖任何外部图标资源；
-  - 跨 Qt 风格安全（不写 widget 局部 :hover 样式表）；
-  - 随明暗模式 / 强调色切换自动重绘。
+结构：
+  - 用户卡片（addUserCard）：头像 + 昵称 / 状态，点击触发登录 / 登出；
+  - 分组标题（addItemHeader）：我的 / 发现；
+  - 导航项（addItem，可点击选中）；
+  - 底部分组（BOTTOM）：界面语言（点击弹 RoundMenu）/ 设置 / 关于。
 
 对外契约（与旧 Sidebar 兼容，main_window 无需大改）：
   __init__(master, api, on_nav_click, config=, on_language_change=,
            on_login=, on_about=, on_settings=)
-  .refresh()              —— 登录状态/语言变化后重建
-  .lang_combo             —— QComboBox 属性，外部可直接 setCurrentText
+  .refresh()              —— 登录状态 / 语言变化后重建用户卡片
   .setCurrentItem(key)    —— 高亮当前导航项
+  .retranslate()          —— 刷新所有可翻译文案
 """
 import threading
 from io import BytesIO
@@ -25,23 +25,22 @@ from io import BytesIO
 import requests
 from PIL import Image, ImageDraw
 
-from PySide6.QtCore import Qt, QByteArray, Signal, QRect
-from PySide6.QtGui import QPixmap, QPainter, QColor, QFont
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QComboBox,
-    QFrame, QSizePolicy,
+from PySide6.QtCore import Qt, QByteArray, QPoint
+from PySide6.QtGui import QPixmap, QImage
+
+from qfluentwidgets import (
+    NavigationInterface, NavigationItemPosition, FluentIcon, RoundMenu, Action,
+)
+from qfluentwidgets.components.navigation.navigation_panel import NavigationDisplayMode
+from qfluentwidgets.components.navigation.navigation_widget import (
+    NavigationItemHeader, NavigationWidget,
 )
 
 from utils.i18n import tr, get_language, LANGUAGES
-from ui.theme import palette, get_accent
-from ui.icons import draw_nav_icon, FluentIcon
-
-# 侧边栏导航项改用 qfluentwidgets 的 NavigationPushButton（Fluent 风格），
-# 与设置窗口的 MSFluentWindow 同一套视觉语言（选中竖条/圆角背景/hover 全由库驱动）。
-from qfluentwidgets import NavigationPushButton
+from utils.resources import resource_path
 
 
-# 导航结构定义（routeKey, 显示名, 图标名）
+# 导航结构定义（routeKey, 显示名函数, 图标名）
 _NAV_GROUPS = [
     (lambda: tr("我的"), [
         ("folder", lambda: tr("我的收藏夹"), "folder"),
@@ -61,67 +60,30 @@ _NAV_GROUPS = [
 
 
 def _nav_fluent_icon(name):
-    """侧边栏语义名 -> FluentIcon 成员。
+    """导航语义名 -> FluentIcon 成员。
 
     qfluentwidgets 1.11.2 的 FluentIcon 没有 STAR/FIRE/TROPHY 等，缺失项用存在的
-    近似成员替代（season->LIBRARY / popular->TAG / ranking->PEOPLE），保证每一项都用
-    FluentIconBase 以随明暗与选中态自动着色，与设置窗口的 MSFluentWindow 同一套视觉。
+    近似成员替代（season->LIBRARY / popular->TAG / ranking->PEOPLE），保证每一项都随
+    明暗与选中态自动着色，与设置窗口的 MSFluentWindow 同一套视觉。
     """
     mapping = {
         "folder": "FOLDER", "toview": "CALENDAR", "history": "HISTORY",
         "following": "HEART", "season": "LIBRARY", "popular": "TAG",
         "ranking": "PEOPLE", "search": "SEARCH", "music": "MUSIC",
         "live_center": "VIDEO", "settings": "SETTING", "about": "INFO",
+        "language": "LANGUAGE",
     }
     member = mapping.get(name, "TAG")
     return getattr(FluentIcon, member, FluentIcon.TAG)
 
 
-class NavItem(NavigationPushButton):
-    """单个导航项：基于 qfluentwidgets 的 NavigationPushButton（Fluent 风格）。
+class NavigationBar(NavigationInterface):
+    """Fluent 风格的可折叠导航栏（NavigationInterface 子类）。"""
 
-    选中态（左侧强调色竖条 + 圆角背景）、hover 底色、明暗与强调色全部由
-    qfluentwidgets 主题驱动，与设置窗口的 MSFluentWindow 导航项完全一致。
-    routeKey 用于外部高亮（setCurrentItem）。
-    """
-
-    def __init__(self, route_key, text, icon_name, selectable=True, parent=None):
-        super().__init__(_nav_fluent_icon(icon_name), text,
-                         isSelectable=selectable, parent=parent)
-        self._route = route_key
-        self._selectable = selectable
-        self._selected = False
-        # ⚠️ 关键：qfluentwidgets 的 NavigationWidget 默认 isCompacted=True
-        #    （只画图标、固定 40x36），且其 paintEvent 在 compacted 时直接 return，
-        #    「文字」整段不执行。平时是 NavigationInterface 内部帮它 setCompacted(False)，
-        #    我们独立使用没人管，所以必须手动展开，否则导航项就退化成图 1 那种小方块。
-        self.setCompacted(False)
-        # setCompacted 会施加 setFixedSize(EXPAND_WIDTH=312, 36)——312 是 320px 宽标准
-        # Fluent 导航的宽度，对 220px 侧边栏太宽。这里解除宽度限制交给布局拉伸，
-        # 只固定行高（图标绘制在 y=10 处，40 高时视觉居中）。
-        self.setMinimumWidth(0)
-        self.setMaximumWidth(16777215)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.setFixedHeight(40)
-
-    def route_key(self):
-        return self._route
-
-    def is_selectable(self):
-        return self._selectable
-
-    def set_selected(self, v):
-        self._selected = bool(v) and self._selectable
-        self.setSelected(self._selected)
-
-    def set_text(self, t):
-        self.setText(t)
-
-
-class NavigationBar(QWidget):
     def __init__(self, master, api, on_nav_click, config=None, on_language_change=None,
                  on_login=None, on_about=None, on_settings=None):
-        super().__init__(master)
+        super().__init__(master, showMenuButton=True, showReturnButton=False, collapsible=True)
+
         self.api = api
         self.on_nav_click = on_nav_click
         self.config = config
@@ -129,184 +91,204 @@ class NavigationBar(QWidget):
         self.on_login = on_login
         self.on_about = on_about
         self.on_settings = on_settings
-        self.setObjectName("navShell")
-        self.setAttribute(Qt.WA_StyledBackground, True)
-        self.setFixedWidth(220)
-        self._avatar_token = 0
+
         self._current_route = None
-        self._items = {}          # routeKey -> NavItem
+        self._avatar_token = 0
+        self._items = {}  # routeKey -> NavigationTreeWidget
+
+        # 展开宽度（面板宽度）；minimumExpandWidth=0 保证始终「停靠」而非浮动浮层。
+        # ⚠️ 不调用 setExpandWidth()：它会改写全局类属性 NavigationWidget.EXPAND_WIDTH，
+        # 连带破坏设置窗口 MSFluentWindow 的导航项宽度（其依赖默认 322）。
+        # 这里只改实例属性：面板 expandWidth=220，各导航项 EXPAND_WIDTH=210（见 _build 之后）。
+        self.panel.expandWidth = 220
+        self.setMinimumExpandWidth(0)
+        self.setAcrylicEnabled(False)
+
+        # 折叠（紧凑）模式：点击导航项不自动收起，避免误关
+        self.setUpdateIndicatorPosOnCollapseFinished(False)
+
         self._build()
+
+        # 导航项宽度按实例设置（210 = 面板 220 - 10），不触碰全局类属性
+        for w in self.findChildren(NavigationWidget):
+            w.EXPAND_WIDTH = 210
+
+        # 未登录占位头像（根目录 not_logged_in.jpeg，随包走 _MEIPASS）
+        self._set_placeholder_avatar()
+
+        # 依据配置决定初始展开 / 折叠
+        self._collapsed = bool(config.get("sidebar_collapsed", False)) if config else False
+        if not self._collapsed:
+            # 窗口已存在（central 已设为中央部件），直接停靠展开，无动画
+            self.expand(False)
+            # 立即固定宽度，避免首帧从 48 闪到 220（expand 的几何更新需事件循环派发）
+            self.setFixedWidth(self.panel.expandWidth)
+            # 分组标题立即到位（不依赖高度动画时序，避免启动瞬间标题缺失）
+            for h in self.findChildren(NavigationItemHeader):
+                h.setCompacted(False)
+                h.heightAni.stop()
+                h.setFixedHeight(h._targetHeight)
+
+        # 折叠状态持久化
+        self.displayModeChanged.connect(self._on_display_mode_changed)
 
     # ---------- 构建 ----------
     def _build(self):
-        root = QVBoxLayout(self)
-        root.setContentsMargins(8, 10, 8, 10)
-        root.setSpacing(6)
+        # 用户卡片（头像 + 昵称 + 点击登录 / 登出）
+        self.user_card = self.addUserCard(
+            "user", avatar=None, title=tr("未登录"), subtitle=tr("登录以使用更多功能"),
+            onClick=self._on_user_card_click,
+            position=NavigationItemPosition.TOP, aboveMenuButton=False,
+        )
 
-        # 用户区
-        self._build_profile(root)
+        # 分组：我的
+        self._header_my = self.addItemHeader(tr("我的"))
+        for route_key, text_fn, icon in _NAV_GROUPS[0][1]:
+            self._add_nav_item(route_key, text_fn, icon)
 
-        # 导航滚动区
-        self.scroll = QScrollArea()
-        self.scroll.setObjectName("navScroll")
-        self.scroll.setWidgetResizable(True)
-        self.scroll.setFrameShape(QFrame.NoFrame)
-        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.nav = QWidget()
-        self.nav.setObjectName("navContent")
-        self.nav_lay = QVBoxLayout(self.nav)
-        self.nav_lay.setContentsMargins(8, 0, 8, 0)
-        self.nav_lay.setSpacing(3)
-        self.scroll.setWidget(self.nav)
-        root.addWidget(self.scroll, 1)
+        # 分隔 + 分组：发现
+        self.addSeparator()
+        self._header_discover = self.addItemHeader(tr("发现"))
+        for route_key, text_fn, icon in _NAV_GROUPS[1][1]:
+            self._add_nav_item(route_key, text_fn, icon)
 
-        # 底部：语言 + 设置 + 关于
-        self._build_footer(root)
+        # 底部：界面语言 / 设置 / 关于
+        self.lang_item = self.addItem(
+            "language", _nav_fluent_icon("language"), tr("界面语言"),
+            onClick=self._open_language_menu, selectable=False,
+            position=NavigationItemPosition.BOTTOM, tooltip=tr("界面语言"),
+        )
+        self.settings_item = self.addItem(
+            "settings", _nav_fluent_icon("settings"), tr("设置"),
+            onClick=self.on_settings, selectable=False,
+            position=NavigationItemPosition.BOTTOM, tooltip=tr("设置"),
+        )
+        self.about_item = self.addItem(
+            "about", _nav_fluent_icon("about"), tr("关于"),
+            onClick=self.on_about, selectable=False,
+            position=NavigationItemPosition.BOTTOM, tooltip=tr("关于"),
+        )
 
-        self.refresh()
+    def _add_nav_item(self, route_key, text_fn, icon):
+        item = self.addItem(
+            route_key, _nav_fluent_icon(icon), text_fn(),
+            onClick=lambda _checked=False, rk=route_key: self._on_item(rk),
+            selectable=True, tooltip=text_fn(),
+        )
+        self._items[route_key] = item
 
-    def _build_profile(self, root):
-        user = QFrame()
-        user.setObjectName("navProfile")
-        ul = QVBoxLayout(user)
-        ul.setContentsMargins(0, 0, 0, 0)
-        ul.setSpacing(6)
-        self.avatar = QLabel()
-        self.avatar.setFixedSize(56, 56)
-        self.avatar.setAlignment(Qt.AlignCenter)
-        self._set_avatar_placeholder()
-        ul.addWidget(self.avatar, alignment=Qt.AlignCenter)
-        self.user_label = QLabel(tr("未登录"))
-        self.user_label.setAlignment(Qt.AlignCenter)
-        self.user_label.setWordWrap(True)
-        self.user_label.setStyleSheet("font-weight:600; font-size:12px;")
-        ul.addWidget(self.user_label)
-        self.login_btn = QPushButton(tr("登录"))
-        self.login_btn.setObjectName("accentBtn")
-        self.login_btn.setFixedHeight(30)
-        self.login_btn.clicked.connect(self.do_login)
-        ul.addWidget(self.login_btn)
-        root.addWidget(user)
+    # ---------- 交互 ----------
+    def _on_item(self, route_key):
+        self.setCurrentItem(route_key)
+        if self.on_nav_click:
+            self.on_nav_click(route_key, None)
 
-    def _build_footer(self, root):
-        bottom = QFrame()
-        bl = QVBoxLayout(bottom)
-        bl.setContentsMargins(0, 0, 0, 0)
-        bl.setSpacing(4)
-
-        self.lang_label = QLabel(tr("界面语言"))
-        bl.addWidget(self.lang_label)
-        self.lang_combo = QComboBox()
-        self.lang_combo.addItems(list(LANGUAGES.values()))
-        self.lang_combo.setCurrentText(LANGUAGES.get(get_language(), "简体中文"))
-        self.lang_combo.currentTextChanged.connect(self._on_lang_select)
-        bl.addWidget(self.lang_combo)
-
-        sep = QFrame()
-        sep.setFrameShape(QFrame.HLine)
-        sep.setObjectName("navSep")
-        bl.addWidget(sep)
-
-        # 设置 / 关于 作为底部动作项（不可选中高亮，仅触发回调）
-        self.settings_item = self._action_item("settings", tr("设置"), self._on_settings)
-        bl.addWidget(self.settings_item)
-        self.about_item = self._action_item("about", tr("关于"), self._on_about)
-        bl.addWidget(self.about_item)
-
-        root.addWidget(bottom)
-
-    def _action_item(self, icon, text, slot):
-        item = NavItem("__action_" + icon, text, icon, selectable=False)
-        item.clicked.connect(lambda _checked=False: slot())
-        return item
-
-    # ---------- 导航项 ----------
-    def _add_group(self, title_text, divider=False):
-        """分组标题；divider=True 时先画一条分隔线（ClassIsland 风格的分组分隔）。"""
-        if divider:
-            sep = QFrame()
-            sep.setFrameShape(QFrame.HLine)
-            sep.setObjectName("navSep")
-            self.nav_lay.addWidget(sep)
-        label = QLabel(title_text)
-        label.setObjectName("navGroupLabel")
-        label.setContentsMargins(12, 8, 0, 2)
-        self.nav_lay.addWidget(label)
-
-    def refresh(self):
-        """根据登录状态重建导航项与用户区。"""
-        # 清空旧的导航项
-        for i in reversed(range(self.nav_lay.count())):
-            w = self.nav_lay.itemAt(i).widget()
-            if w:
-                w.deleteLater()
-        self._items.clear()
-        self._avatar_token += 1
-
-        if not self.api.uid:
-            self.user_label.setText(tr("未登录"))
-            self.login_btn.setText(tr("登录"))
-            self._safe_connect(self.login_btn, self.do_login)
-            self._set_avatar_placeholder()
+    def _on_user_card_click(self):
+        if self.api.uid:
+            # 已登录 -> 登出
+            if self.on_nav_click:
+                self.on_nav_click("logout", None)
+            self.refresh()
         else:
-            self.user_label.setText(self.api.nickname or tr("已登录"))
-            self.login_btn.setText(tr("登出"))
-            self._safe_connect(self.login_btn, self.do_logout)
+            if self.on_login:
+                self.on_login()
+
+    def _open_language_menu(self):
+        menu = RoundMenu(tr("界面语言"), self)
+        current = get_language()
+        for code, display in LANGUAGES.items():
+            action = Action(display, triggered=lambda _a=None, c=code: self._on_lang_select(c))
+            if code == current:
+                action.setCheckable(True)
+                action.setChecked(True)
+            menu.addAction(action)
+        # 在语言项右侧弹出（紧凑模式下也始终可用）
+        pos = self.lang_item.mapToGlobal(QPoint(self.lang_item.width(), 0))
+        menu.exec(pos)
+
+    def _on_lang_select(self, code):
+        if self.on_language_change:
+            self.on_language_change(code)
+
+    # ---------- 高亮 ----------
+    def setCurrentItem(self, route_key):
+        self._current_route = route_key
+        # NavigationInterface.setCurrentItem 对不存在的 routeKey 直接忽略，安全
+        super().setCurrentItem(route_key)
+
+    # ---------- 登录态刷新 ----------
+    def refresh(self):
+        """根据登录状态刷新用户卡片（头像 / 昵称 / 状态）。"""
+        self._avatar_token += 1
+        if not self.api.uid:
+            self.user_card.setTitle(tr("未登录"))
+            self.user_card.setSubtitle(tr("请登录以使用更多功能"))
+            self._set_placeholder_avatar()
+        else:
+            self.user_card.setTitle(self.api.nickname or tr("已登录"))
+            self.user_card.setSubtitle(tr("已登录"))
             self._load_avatar(self.api.avatar, self._avatar_token)
 
-        for gi, (title_fn, items) in enumerate(_NAV_GROUPS):
-            self._add_group(title_fn(), divider=gi > 0)
-            for route_key, text_fn, icon in items:
-                item = NavItem(route_key, text_fn(), icon, selectable=True)
-                item.clicked.connect(lambda _checked=False, rk=route_key: self._on_item_clicked(rk))
-                self._items[route_key] = item
-                self.nav_lay.addWidget(item)
+    def _set_placeholder_avatar(self):
+        """未登录占位头像：根目录 not_logged_in.jpeg（开发/打包均经 resource_path 解析）。
 
-        # 恢复选中态
-        if self._current_route in self._items:
-            self._items[self._current_route].set_selected(True)
-
-        self.nav_lay.addStretch(1)
-
-    def retranslate(self):
-        """语言切换时刷新 footer / 用户区中一次性创建的文案。
-
-        refresh() 仅重建导航区与用户区，footer（界面语言标签、设置、关于）只在
-        _build_footer() 创建一次，不会被 refresh 触及，故这里单独刷新它们。
+        AvatarWidget 会自动中心裁剪 + 椭圆裁剪为圆形，故 jpeg 直接传入即可；
+        文件缺失时回退到 FluentIcon.PEOPLE 图标占位。
         """
-        self.lang_label.setText(tr("界面语言"))
-        # 用户区：未登录态文案（已登录态昵称不翻译）
-        if not self.api.uid:
-            self.user_label.setText(tr("未登录"))
-            self.login_btn.setText(tr("登录"))
+        pix = QPixmap(resource_path("not_logged_in.jpeg"))
+        if not pix.isNull():
+            self.user_card.setAvatar(pix)
+            self._restore_avatar_geometry()
         else:
-            self.login_btn.setText(tr("登出"))
-        self.settings_item.set_text(tr("设置"))
-        self.about_item.set_text(tr("关于"))
+            self.user_card.setAvatarIcon(FluentIcon.PEOPLE)
+            self._restore_avatar_geometry()
 
-    def _on_item_clicked(self, route_key):
-        item = self._items.get(route_key)
-        if item is None or not item.is_selectable():
-            return
-        self.setCurrentItem(route_key)
-        self.on_nav_click(route_key, None)
+    # ---------- 语言刷新 ----------
+    def set_language_display(self, lang):
+        """语言切换后供外部调用（菜单每次打开都会按当前语言打勾，这里仅做占位兼容）。"""
+        self.lang_item.setToolTip(LANGUAGES.get(lang, tr("界面语言")))
 
-    def setCurrentItem(self, route_key):
-        if route_key not in self._items:
-            return
-        self._current_route = route_key
-        for k, it in self._items.items():
-            it.set_selected(k == route_key)
+    # ---------- 文案刷新 ----------
+    def retranslate(self):
+        # 用户卡片（已登录态昵称不翻译）
+        if not self.api.uid:
+            self.user_card.setTitle(tr("未登录"))
+            self.user_card.setSubtitle(tr("请登录以使用更多功能"))
+        else:
+            self.user_card.setSubtitle(tr("已登录"))
 
-    # ---------- 头像 ----------
-    def _set_avatar_placeholder(self):
-        self.avatar.clear()
-        self.avatar.setText("👤")
-        self.avatar.setStyleSheet("font-size:26px; border-radius:28px;")
+        # 分组标题
+        self._header_my.setText(tr("我的"))
+        self._header_discover.setText(tr("发现"))
 
+        # 导航项
+        for route_key, text_fn, _icon in _NAV_GROUPS[0][1] + _NAV_GROUPS[1][1]:
+            w = self._items.get(route_key)
+            if w is not None:
+                w.setText(text_fn())
+                w.setToolTip(text_fn())
+
+        # 底部项
+        self.lang_item.setText(tr("界面语言"))
+        self.lang_item.setToolTip(tr("界面语言"))
+        self.settings_item.setText(tr("设置"))
+        self.settings_item.setToolTip(tr("设置"))
+        self.about_item.setText(tr("关于"))
+        self.about_item.setToolTip(tr("关于"))
+
+    # ---------- 折叠持久化 ----------
+    def _on_display_mode_changed(self, mode):
+        collapsed = mode in (NavigationDisplayMode.COMPACT, NavigationDisplayMode.MINIMAL)
+        self._collapsed = collapsed
+        if self.config is not None:
+            try:
+                self.config.set("sidebar_collapsed", bool(collapsed))
+            except Exception:
+                pass
+
+    # ---------- 头像加载 ----------
     def _load_avatar(self, url, token=None):
         if not url:
-            self._set_avatar_placeholder()
             return
         threading.Thread(target=self._fetch_avatar, args=(url, token), daemon=True).start()
 
@@ -314,7 +296,8 @@ class NavigationBar(QWidget):
         try:
             resp = requests.get(url, timeout=8)
             img = Image.open(BytesIO(resp.content)).convert("RGBA")
-            img = img.resize((112, 112), Image.LANCZOS)
+            img = img.resize((128, 128), Image.LANCZOS)
+            # 圆形遮罩
             mask = Image.new("L", img.size, 0)
             ImageDraw.Draw(mask).ellipse((0, 0, img.size[0], img.size[1]), fill=255)
             img.putalpha(mask)
@@ -323,52 +306,31 @@ class NavigationBar(QWidget):
             if token == self._avatar_token:
                 self._apply_avatar(QByteArray(buf.getvalue()))
         except Exception:
-            if token == self._avatar_token:
-                self._apply_avatar(QByteArray())
+            pass
 
     def _apply_avatar(self, ba):
         if not ba.size():
-            self._set_avatar_placeholder()
             return
-        pm = QPixmap()
-        if pm.loadFromData(ba):
-            self.avatar.setPixmap(pm.scaled(56, 56, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-            self.avatar.setStyleSheet("border-radius:28px;")
+        pix = QPixmap()
+        if pix.loadFromData(ba):
+            self.user_card.setAvatar(pix)
+            self._restore_avatar_geometry()
 
-    # ---------- 登录 / 登出 / 设置 / 关于 ----------
-    def do_login(self):
-        if self.api.uid:
-            self.do_logout()
-            return
-        if self.on_login:
-            self.on_login()
+    def _restore_avatar_geometry(self):
+        """qfluentwidgets 的 NavigationUserCard.setAvatar/setAvatarIcon 会把头像半径
+        硬重置为紧凑态（12 -> 24px），在已展开状态下导致头像显示为折叠尺寸。
 
-    def do_logout(self):
-        self.on_nav_click("logout", None)
-        self.refresh()
-
-    def _on_settings(self):
-        if self.on_settings:
-            self.on_settings()
-
-    def _on_about(self):
-        if self.on_about:
-            self.on_about()
-
-    def _on_lang_select(self, display_name):
-        code = {v: k for k, v in LANGUAGES.items()}.get(display_name)
-        if code is None:
-            return
-        if self.on_language_change:
-            self.on_language_change(code)
-
-    @staticmethod
-    def _safe_connect(btn, slot):
-        try:
-            btn.clicked.disconnect()
-        except Exception:
-            pass
-        btn.clicked.connect(slot)
+        这里按当前「展开 / 折叠」态恢复正确半径（32 / 12）与位置（展开垂直居中、
+        紧凑左上角），避免再展开后登录头像变成小图。
+        """
+        card = self.user_card
+        radius = 32 if not card.isCompacted else 12
+        card.avatar.setRadius(radius)
+        if card.isCompacted:
+            card.avatar.move(8, 6)
+        else:
+            card.avatar.move(16, (card.height() - card.avatar.height()) // 2)
+        card.update()
 
 
 # 兼容旧名称：main_window 等仍可 ``from ui.sidebar import Sidebar``

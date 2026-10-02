@@ -27,21 +27,50 @@ from PySide6.QtCore import (
 from PySide6.QtGui import QPixmap, QPainter, QColor, QFont, QPen, QFontMetrics, QPainterPath
 from PySide6.QtWidgets import (
     QListView, QAbstractItemView, QStyledItemDelegate, QStyleOptionViewItem,
+    QToolTip,
 )
 
-from utils.helpers import optimize_thumbnail_url, format_duration, format_count
+from utils.helpers import (
+    optimize_thumbnail_url, format_duration, format_count, open_in_browser,
+)
 from utils.i18n import tr
 from ui.theme import palette, is_dark, get_accent
 from ui.list_icons import (
     draw_check, draw_placeholder, category_badge_color,
 )
 from ui.list_layout import manager, is_compact
+from ui.icons import icon_pixmap
+from qfluentwidgets import FluentIcon
 
 
 def _key_of(item):
     if not item:
         return None
     return item.get("url") or item.get("bvid") or id(item)
+
+
+def _derive_url(item):
+    """从 item 字段推导「在浏览器中打开」的目标链接（通用兜底，供所有列表复用）。
+
+    优先用显式 ``url``；否则按 bvid / mid / season_id / epid / aid 拼装 B 站对应页面。
+    返回 None 表示该行不显示打开按钮。宿主也可通过 ``set_open_url_fn`` 显式覆盖。
+    """
+    if not item:
+        return None
+    url = item.get("url")
+    if url:
+        return url
+    if item.get("bvid"):
+        return f"https://www.bilibili.com/video/{item['bvid']}"
+    if item.get("mid"):
+        return f"https://space.bilibili.com/{item['mid']}"
+    if item.get("season_id"):
+        return f"https://www.bilibili.com/bangumi/play/ss{item['season_id']}"
+    if item.get("epid"):
+        return f"https://www.bilibili.com/bangumi/play/ep{item['epid']}"
+    if item.get("aid"):
+        return f"https://www.bilibili.com/video/av{item['aid']}"
+    return None
 
 
 class SelectListModel(QAbstractListModel):
@@ -83,32 +112,125 @@ class SelectItemDelegate(QStyledItemDelegate):
         super().__init__()
         self._view = view
         self._hover_row = -1
+        self._icon_hover_row = -1   # 当前鼠标悬停在「在浏览器中打开」图标上的行
+        self._press_on_icon = -1    # 在图标上按下、等待释放的行的行号（-1 表示无）
+        self._link_cache = {}       # 链接图标按颜色缓存的 QPixmap
 
     # ------------------------------------------------------------------ #
     # 交互
     # ------------------------------------------------------------------ #
     def editorEvent(self, event, model, option, index):
-        if event.type() == QEvent.Type.MouseMove:
-            if self._hover_row != index.row():
+        etype = event.type()
+        # ---- 鼠标移动：处理悬停高亮 + 图标悬停 ----
+        if etype == QEvent.Type.MouseMove:
+            row = index.row()
+            if self._hover_row != row:
                 prev = self._hover_row
-                self._hover_row = index.row()
+                self._hover_row = row
                 self._view.viewport().update(self._view.visualRect(index))
                 if prev != -1:
                     prev_index = self._view.model().index(prev, 0)
                     self._view.viewport().update(self._view.visualRect(prev_index))
+            # 图标悬停检测（仅当该项有可打开的链接时）
+            icon_hover = bool(
+                self._url_for(index.data(Qt.UserRole))
+                and self._icon_rect(option.rect).contains(event.pos())
+            )
+            if icon_hover != (self._icon_hover_row == row):
+                self._icon_hover_row = row if icon_hover else -1
+                self._view.viewport().update(self._view.visualRect(index))
             return False
-        if event.type() == QEvent.Type.Leave:
+        # ---- 鼠标离开：清除悬停态 ----
+        if etype == QEvent.Type.Leave:
             prev = self._hover_row
             self._hover_row = -1
+            self._icon_hover_row = -1
             if prev != -1:
                 prev_index = self._view.model().index(prev, 0)
                 self._view.viewport().update(self._view.visualRect(prev_index))
             return False
-        if event.type() == QEvent.Type.MouseButtonRelease and \
+        # ---- 鼠标按下：命中图标区域则吞掉，避免触发整行勾选 ----
+        if etype == QEvent.Type.MouseButtonPress and \
                 event.button() == Qt.MouseButton.LeftButton:
+            item = index.data(Qt.UserRole)
+            if self._url_for(item) and \
+                    self._icon_rect(option.rect).contains(event.pos()):
+                self._press_on_icon = index.row()
+                return True
+            return False
+        # ---- 鼠标释放：图标上释放→打开浏览器；否则整行切换勾选 ----
+        if etype == QEvent.Type.MouseButtonRelease and \
+                event.button() == Qt.MouseButton.LeftButton:
+            if getattr(self, "_press_on_icon", -1) == index.row():
+                self._press_on_icon = -1
+                url = self._url_for(index.data(Qt.UserRole))
+                if url:
+                    open_in_browser(url)
+                return True
             self._view.rowClicked.emit(index)
             return True
         return False
+
+    # ------------------------------------------------------------------ #
+    # 「在浏览器中打开」链接图标（行尾）
+    # ------------------------------------------------------------------ #
+    def _icon_rect(self, rect):
+        """行尾链接图标的命中 / 绘制区域（viewport 坐标，paint 与事件共用）。"""
+        size = 18
+        return QRect(rect.right() - size - 8,
+                     rect.center().y() - size // 2, size, size)
+
+    def _url_for(self, item):
+        """返回该项的可打开链接，无则返回 None（不绘制图标 / 不响应点击）。
+
+        未显式设置回调时按 item 字段自动推导（见 ``_derive_url``），
+        因此各列表（收藏夹 / 历史 / UP主 / 稍后再看 / 排行榜 / 追番 / 分集 / 搜索）
+        只要有 url/bvid/mid/season_id/epid/aid 即自动带「在浏览器中打开」按钮。
+        """
+        fn = self._view._open_url_fn
+        try:
+            url = fn(item) if fn is not None else _derive_url(item)
+        except Exception:
+            return None
+        return url if url else None
+
+    def _link_pixmap(self, color):
+        key = color.name()
+        pm = self._link_cache.get(key)
+        if pm is None:
+            pm = icon_pixmap(FluentIcon.LINK, 16, color)
+            self._link_cache[key] = pm
+        return pm
+
+    def _paint_open_icon(self, painter, rect, row, sub_color):
+        ir = self._icon_rect(rect)
+        if row != -1 and self._icon_hover_row == row:
+            painter.save()
+            painter.setPen(Qt.NoPen)
+            c = 255 if is_dark() else 0
+            painter.setBrush(QColor(c, c, c, 45 if is_dark() else 30))
+            painter.drawRoundedRect(ir.adjusted(-3, -3, 3, 3), 5, 5)
+            painter.restore()
+        color = QColor(get_accent()) if (
+            self._hover_row == row or self._icon_hover_row == row
+        ) else sub_color
+        # 用固定逻辑尺寸（16）构造目标矩形绘制：QIcon.pixmap 在 HiDPI 屏会返回带
+        # devicePixelRatio 的高分辨率 pixmap（pm.width() 为物理像素而非逻辑像素），
+        # 若用 pm.width() 做居中会把图标推出命中区导致错位；drawPixmap(目标矩形, pm)
+        # 会按目标矩形自适应缩放，居中且清晰，不受 DPR 影响。
+        LOGICAL = 16
+        tx = ir.x() + (ir.width() - LOGICAL) // 2
+        ty = ir.y() + (ir.height() - LOGICAL) // 2
+        painter.drawPixmap(QRect(tx, ty, LOGICAL, LOGICAL), self._link_pixmap(color))
+
+    def helpEvent(self, event, view, option, index):
+        """鼠标悬停在链接图标上时显示「在浏览器中打开」提示。"""
+        if self._url_for(index.data(Qt.UserRole)) and \
+                self._icon_rect(option.rect).contains(event.pos()):
+            QToolTip.showText(view.mapToGlobal(event.pos()),
+                              tr("在浏览器中打开"), view)
+            return True
+        return super().helpEvent(event, view, option, index)
 
     # ------------------------------------------------------------------ #
     # 绘制
@@ -135,6 +257,10 @@ class SelectItemDelegate(QStyledItemDelegate):
         sub = QColor(pal["sub"])
         accent = QColor(get_accent())
 
+        # 行尾「在浏览器中打开」图标：该项可推导出链接即显示
+        # （url/bvid/mid/season_id/epid/aid 自动推导，或显式回调；_url_for 已处理 None 回调兜底）
+        show_icon = bool(self._url_for(item))
+
         x = rect.x() + 10
         # 勾选框
         cb = QRect(x, rect.center().y() - 11, 22, 22)
@@ -143,7 +269,7 @@ class SelectItemDelegate(QStyledItemDelegate):
 
         # ---- 精简布局：仅展示 标题 + UP + 时长（隐藏封面 / 徽标 / 统计）----
         if is_compact():
-            self._paint_compact(painter, item, rect, x, fg, sub)
+            self._paint_compact(painter, item, rect, x, fg, sub, index.row())
             return
 
         has_thumb = bool(item.get("thumbnail"))
@@ -185,9 +311,12 @@ class SelectItemDelegate(QStyledItemDelegate):
                              Qt.AlignCenter, str(index.row() + 1))
             x += 30
 
-        # 文本块
+        # 文本块（行尾若有「在浏览器中打开」图标，则右侧预留空间避免文字与图标重叠）
         tx = x
-        tw = rect.right() - tx - 14
+        if show_icon:
+            tw = self._icon_rect(rect).left() - 10 - tx
+        else:
+            tw = rect.right() - tx - 14
         title = item.get("title", tr("未知"))
         # 类型徽标
         badge, badge_color = category_badge_color(item.get("category", ""))
@@ -207,10 +336,13 @@ class SelectItemDelegate(QStyledItemDelegate):
             title_x = tx + 2
         painter.setPen(fg)
         painter.setFont(QFont("Microsoft YaHei UI", 13, QFont.Bold))
-        painter.drawText(QRect(title_x, rect.y() + 8, rect.right() - title_x - 6, 22),
+        # 标题右侧预留「在浏览器中打开」图标空间，避免长标题与之重叠
+        title_max_right = (self._icon_rect(rect).left() - 6) if show_icon else (rect.right() - 6)
+        title_w = max(0, title_max_right - title_x)
+        painter.drawText(QRect(title_x, rect.y() + 8, title_w, 22),
                          Qt.AlignLeft | Qt.AlignTop,
                          QFontMetrics(painter.font()).elidedText(
-                             title, Qt.ElideRight, rect.right() - title_x - 6))
+                             title, Qt.ElideRight, title_w))
 
         # 副信息：UP主 · 时长 · 播放 · 点赞 · 收藏
         parts = []
@@ -240,15 +372,21 @@ class SelectItemDelegate(QStyledItemDelegate):
             # 有封面但无副信息：底部留白即可
             pass
 
+        # 行尾「在浏览器中打开」图标（悬停时高亮，点击跳转）
+        if show_icon:
+            self._paint_open_icon(painter, rect, index.row(), QColor(pal["sub"]))
+
     def sizeHint(self, option, index):
         return QSize(0, self.ROW_H)
 
     # ------------------------------------------------------------------ #
     # 精简布局：标题 + UP + 时长（无封面 / 徽标 / 统计）
     # ------------------------------------------------------------------ #
-    def _paint_compact(self, painter, item, rect, x, fg, sub):
+    def _paint_compact(self, painter, item, rect, x, fg, sub, row):
         tx = x
-        tw = rect.right() - tx - 14
+        show_icon = bool(self._url_for(item))
+        right_edge = (self._icon_rect(rect).left() - 10) if show_icon else (rect.right() - 14)
+        tw = right_edge - tx
         if tw <= 0:
             return
         title = item.get("title", tr("未知"))
@@ -278,6 +416,10 @@ class SelectItemDelegate(QStyledItemDelegate):
                 QFontMetrics(painter.font()).elidedText(
                     " · ".join(parts), Qt.ElideRight, tw))
 
+        # 行尾「在浏览器中打开」图标
+        if show_icon:
+            self._paint_open_icon(painter, rect, row, sub)
+
 
 def QPainterPath_rrect(rect, r):
     p = QPainterPath()
@@ -293,6 +435,7 @@ class SelectListView(QListView):
         self._closed = False
         self._thumbs = {}
         self._pending = set()
+        self._open_url_fn = None   # 行尾「在浏览器中打开」回调：item -> url 或 None
         self._thumb_q = pyq.Queue()
         self._model = SelectListModel(checked_keys)
         self.setModel(self._model)
@@ -316,6 +459,17 @@ class SelectListView(QListView):
     # ---------- 数据 ----------
     def set_items(self, items):
         self._model.set_items(items)
+
+    def set_open_url_fn(self, fn):
+        """设置行尾「在浏览器中打开」回调：``fn(item) -> url 或 None``。
+
+        - 回调返回非空 url 时，对应行显示链接图标并响应点击跳转；
+        - 设为 None（默认）则按 item 字段自动推导链接（url/bvid/mid/season_id/epid/aid），
+          所有 B 站内容列表因此自动带该按钮；
+        - 传入 ``lambda item: None`` 可强制关闭该按钮。
+        """
+        self._open_url_fn = fn
+        self._repaint_all()
 
     def items(self):
         return self._model._items

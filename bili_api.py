@@ -1322,19 +1322,17 @@ class BiliAPI:
             data = resp.json()
             if data.get("code") != 0:
                 print(f"[搜索] 失败 code:{data.get('code')} msg:{data.get('message')}")
-                return []
+                return [], False
             groups = (data.get("data") or {}).get("result", []) or []
             results = []
-            # 限制单次搜索拉取量：视频最多 20 条、UP主最多 20 条（番剧通常较少，保持原样）
-            video_cap, user_cap = 20, 20
+            # 不再人为限制每页条数：单页条数由 B 站接口决定（视频约 20 条），
+            # 翻页通过 page 参数获取后续内容。记录 count 仅用于推算 has_more。
             video_count, user_count = 0, 0
             for grp in groups:
                 rtype = grp.get("result_type")
                 items = grp.get("data", []) or []
                 if rtype == "video":
                     for it in items:
-                        if video_count >= video_cap:
-                            break
                         video_count += 1
                         title = re.sub(r"<[^>]+>", "", it.get("title", ""))
                         author = it.get("author", "")
@@ -1371,8 +1369,6 @@ class BiliAPI:
                         })
                 elif rtype == "bili_user":
                     for it in items:
-                        if user_count >= user_cap:
-                            break
                         user_count += 1
                         name = re.sub(r"<[^>]+>", "", it.get("uname", ""))
                         face = it.get("upic", "") or it.get("face", "")
@@ -1392,11 +1388,13 @@ class BiliAPI:
             video_results = [item for item in results if item.get("type") == "video"]
             if video_results:
                 self.enrich_videos(video_results)
-            print(f"[搜索] {keyword!r} 共 {len(results)} 条")
-            return results
+            # 综合搜索每页视频约 20 条；满页视为还有下一页（设软上限 50 页防失控）。
+            has_more = (video_count >= 20 or user_count >= 20) and page < 50
+            print(f"[搜索] {keyword!r} 第{page}页 共 {len(results)} 条，has_more={has_more}")
+            return results, has_more
         except Exception as e:
             print(f"[搜索] 异常: {e}")
-            return []
+            return [], False
 
     def get_music_search_results(self, keyword, page=1):
         """bilibili 音乐搜索：返回音乐 / MV 视频结果。
@@ -1423,7 +1421,6 @@ class BiliAPI:
                 return []
             groups = (data.get("data") or {}).get("result", []) or []
             results = []
-            video_cap = 30
             video_count = 0
             for grp in groups:
                 rtype = grp.get("result_type")
@@ -1432,8 +1429,6 @@ class BiliAPI:
                     continue
                 items = grp.get("data", []) or []
                 for it in items:
-                    if video_count >= video_cap:
-                        break
                     video_count += 1
                     title = re.sub(r"<[^>]+>", "", it.get("title", ""))
                     author = it.get("author", "")
@@ -1453,8 +1448,10 @@ class BiliAPI:
                     })
             if results:
                 self.enrich_videos(results)
-            print(f"[音乐搜索] {keyword!r} 共 {len(results)} 条")
-            return results
+            # 音乐搜索每页视频约 20 条；满页视为还有下一页（设软上限 50 页防失控）。
+            has_more = (video_count >= 20) and page < 50
+            print(f"[音乐搜索] {keyword!r} 第{page}页 共 {len(results)} 条，has_more={has_more}")
+            return results, has_more
         except Exception as e:
             print(f"[音乐搜索] 异常: {e}")
             return []

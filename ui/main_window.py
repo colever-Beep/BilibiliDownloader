@@ -741,25 +741,15 @@ class MainWindow:
                 if vlist:
                     return vlist, f"动态 {mid}", None, False
                 return None, "", "动态解析失败", False
-            self.logger.log(f"识别到UP主空间，mid={mid}，分页拉取全部视频...")
-            all_videos = []
-            pn = 1
-            PAGE = 30
-            while True:
-                res = self.api.get_uploader_videos(mid, pn=pn, ps=PAGE) or {}
+            self.logger.log(f"识别到UP主空间，mid={mid}，按需翻页拉取（与收藏夹/稍后再看统一）...")
+            def fetch(pn, ps):
+                res = self.api.get_uploader_videos(mid, pn=pn, ps=ps) or {}
                 items = res.get("items", []) or []
-                if items:
-                    self.api.enrich_videos(items)
-                    all_videos.extend(items)
-                has_more = res.get("has_more", False)
-                if (not has_more) or (not items):
-                    break
-                pn += 1
-                if pn > 500:
-                    break
-            if not all_videos:
-                return None, f"UP主空间 {mid}", "该UP主暂无视频", False
-            return all_videos, f"UP主空间 {mid}", None, False
+                self.api.enrich_videos(items)
+                total = res.get("total", 0)
+                total_pages = (total + ps - 1) // ps if total else None
+                return items, res.get("has_more", False), total_pages
+            return None, f"UP主空间 {mid}", None, False, fetch
         ep_match = re.search(r'bangumi/(?:play|media)/ep(\d+)', url)
         ss_match = re.search(r'bangumi/(?:play|media)/(?:ss|md)(\d+)', url)
         if ep_match or ss_match:
@@ -799,6 +789,18 @@ class MainWindow:
                 self.logger.log(f"原生解析失败，回退 yt_dlp: {e}")
             return self._yt_dlp_resolve(url, bvid)
         return self._yt_dlp_resolve(url, "")
+
+    def _resolve_videos(self, url):
+        """统一解析入口：把 _resolve_url_to_videos 的返回规范为 5 元组
+        ``(video_list, title, err, episode_like, fetch)``。
+
+        - 可翻页来源（如 UP 主空间）返回 ``fetch`` 回调（``(pn, ps) -> (items, has_more)``），
+          调用方据此弹统一的「分页选择」对话框，按需翻页拉取，而非一次性拉全。
+        - 非翻页来源 ``fetch`` 为 ``None``，沿用原有的整列表展示逻辑。
+        """
+        r = self._resolve_url_to_videos(url)
+        fetch = r[4] if len(r) > 4 else None
+        return r[0], r[1], r[2], r[3], fetch
 
     def _yt_dlp_resolve(self, url, fallback_title=""):
         import yt_dlp
@@ -843,14 +845,19 @@ class MainWindow:
 
     def _parse_and_add(self, url):
         try:
-            video_list, title, err, episode_like = self._resolve_url_to_videos(url)
+            video_list, title, err, episode_like, fetch = self._resolve_videos(url)
             if err:
                 self._add_done(False, err)
+                return
+            self._add_done(True, f"解析：{title or ''}")
+            if fetch is not None:
+                # 可翻页来源（UP 主空间等）：复用统一的「分页选择」对话框，
+                # 先弹窗、仅拉第 1 页、按需翻页，不再一次性分页拉全。
+                run_on_main(lambda t=title, f=fetch: self._pull_all_and_show(t, f))
                 return
             if not video_list:
                 self._add_done(False, "无数据")
                 return
-            self._add_done(True, f"解析：{title or ''}")
             if len(video_list) == 1:
                 self._add_videos_direct(video_list)
             elif episode_like:
@@ -935,26 +942,36 @@ class MainWindow:
         threading.Thread(target=self._batch_parse_thread, args=(lines,), daemon=True).start()
 
     def _batch_parse_thread(self, links):
-        all_videos = []
+        aggregated = []           # 非翻页来源解析出的整列表
+        pending_dialogs = []      # (title, fetch)：可翻页来源各自弹统一的分页选择框
         failed = 0
         for raw in links:
             url = resolve_short_url(raw) or raw
             try:
-                vlist, title, err, _ep = self._resolve_url_to_videos(url)
-                if err or not vlist:
+                vlist, title, err, _ep, fetch = self._resolve_videos(url)
+                if err or (not vlist and fetch is None):
                     failed += 1
                     self.logger.log(f"批量解析失败：{raw}")
                     continue
-                all_videos.extend(vlist)
+                if fetch is not None:
+                    # 可翻页来源（UP 主空间等）不再一次性拉全，改为各自弹
+                    # 「按需分页」选择框，与收藏夹/稍后再看保持一致。
+                    pending_dialogs.append((title, fetch))
+                else:
+                    aggregated.extend(vlist)
             except Exception as e:
                 failed += 1
                 self.logger.log(f"批量解析失败：{raw} {e}")
         if failed:
             self.logger.log(f"批量解析：{failed} 个链接解析失败")
-        if all_videos:
-            self.logger.log(f"批量解析：共 {len(all_videos)} 个视频，请在弹窗中勾选")
-            run_on_main(lambda: self.show_video_select(all_videos))
-        else:
+        # 非翻页来源汇总到一个勾选框
+        if aggregated:
+            self.logger.log(f"批量解析：共 {len(aggregated)} 个视频，请在弹窗中勾选")
+            run_on_main(lambda v=list(aggregated): self.show_video_select(v))
+        # 可翻页来源各自弹统一的「按需分页」选择框
+        for title, fetch in pending_dialogs:
+            run_on_main(lambda t=title, f=fetch: self._pull_all_and_show(t, f))
+        if not aggregated and not pending_dialogs and not failed:
             self.logger.log("批量解析：未获取到任何视频")
 
     def open_settings(self):
@@ -1085,7 +1102,9 @@ class MainWindow:
             res = self.api.get_favorite_list(media_id, pn=pn, ps=ps) or {}
             items = self._map_folder_items(res.get("items", []))
             self.api.enrich_videos(items)
-            return items, res.get("has_more", False)
+            total = res.get("total", 0)
+            total_pages = (total + ps - 1) // ps if total else None
+            return items, res.get("has_more", False), total_pages
         self._pull_all_and_show("收藏夹", fetch, ps=20)
 
     def _select_favorite_folder(self):
@@ -1126,7 +1145,9 @@ class MainWindow:
             res = self.api.get_history_search(pn=pn, ps=ps) or {}
             items = self._map_history_items(res.get("items", []))
             self.api.enrich_videos(items)
-            return items, res.get("has_more", False)
+            total = res.get("total", 0)
+            total_pages = (total + ps - 1) // ps if total else None
+            return items, res.get("has_more", False), total_pages
         self._pull_all_and_show("历史记录", fetch, ps=20)
 
     def _map_history_items(self, raw):
@@ -1190,7 +1211,9 @@ class MainWindow:
             res = self.api.get_uploader_videos(mid, pn=pn, ps=ps) or {}
             items = res.get("items", []) or []
             self.api.enrich_videos(items)
-            return items, res.get("has_more", False)
+            total = res.get("total", 0)
+            total_pages = (total + ps - 1) // ps if total else None
+            return items, res.get("has_more", False), total_pages
         self._pull_all_and_show(f"UP主空间 {mid}", fetch, ps=30)
 
     def load_season_list(self):
@@ -1237,7 +1260,9 @@ class MainWindow:
             res = self.api.get_toview(pn=pn, ps=ps) or {}
             items = self._map_toview_items(res.get("items", []))
             self.api.enrich_videos(items)
-            return items, res.get("has_more", False)
+            total = res.get("total", 0)
+            total_pages = (total + ps - 1) // ps if total else None
+            return items, res.get("has_more", False), total_pages
         self._pull_all_and_show("稍后再看", fetch, ps=20)
 
     def _map_toview_items(self, raw):
@@ -1258,39 +1283,47 @@ class MainWindow:
 
     def load_popular(self):
         self.logger.log("加载每周必看（最新一期）...")
-        threading.Thread(target=self._load_popular_thread, daemon=True).start()
+        # 先弹窗显示「加载中」，再后台拉取，避免弹窗空白造成卡顿错觉
+        dlg = SelectDialog(self.window, None, self._on_videos_selected,
+                           title=tr("每周必看"), loading=True)
+        threading.Thread(target=self._load_popular_thread, args=(dlg,), daemon=True).start()
+        dlg.exec()
 
-    def _load_popular_thread(self):
+    def _load_popular_thread(self, dlg):
         try:
             video_list = self.api.get_popular_weekly()
             if not video_list:
-                run_on_main(lambda: (self.logger.log("每周必看为空或获取失败"),
-                                              msg_warn(self.window, tr("每周必看为空或获取失败"), tr("提示"))))
+                run_on_main(lambda: (dlg.set_loading(False, tr("每周必看为空或获取失败")),
+                                              msg_warn(dlg, tr("每周必看为空或获取失败"), tr("提示"))))
                 return
             self.api.enrich_videos(video_list)
             run_on_main(lambda n=len(video_list): self.logger.log(f"已加载 {n} 个每周必看视频"))
-            run_on_main(lambda: self.show_video_select(video_list))
+            run_on_main(lambda: dlg.fill(video_list))
         except Exception as e:
-            run_on_main(lambda err=e: (self.logger.log(f"加载每周必看失败：{str(err)}"),
-                                                 msg_error(self.window, tr("加载每周必看失败：{}").format(str(err)), tr("错误"))))
+            run_on_main(lambda err=str(e): (dlg.set_loading(False, tr("加载每周必看失败：{}").format(err)),
+                                                 msg_error(dlg, tr("加载每周必看失败：{}").format(err), tr("错误"))))
 
     def load_ranking(self):
         self.logger.log("加载排行榜（全站）...")
-        threading.Thread(target=self._load_ranking_thread, daemon=True).start()
+        # 先弹窗显示「加载中」，再后台拉取，避免弹窗空白造成卡顿错觉
+        dlg = SelectDialog(self.window, None, self._on_videos_selected,
+                           title=tr("排行榜"), loading=True)
+        threading.Thread(target=self._load_ranking_thread, args=(dlg,), daemon=True).start()
+        dlg.exec()
 
-    def _load_ranking_thread(self):
+    def _load_ranking_thread(self, dlg):
         try:
             video_list = self.api.get_ranking(rid=0)
             if not video_list:
-                run_on_main(lambda: (self.logger.log("排行榜为空或获取失败"),
-                                              msg_warn(self.window, tr("排行榜为空或获取失败"), tr("提示"))))
+                run_on_main(lambda: (dlg.set_loading(False, tr("排行榜为空或获取失败")),
+                                              msg_warn(dlg, tr("排行榜为空或获取失败"), tr("提示"))))
                 return
             self.api.enrich_videos(video_list)
             run_on_main(lambda n=len(video_list): self.logger.log(f"已加载 {n} 个排行榜视频"))
-            run_on_main(lambda: self.show_video_select(video_list))
+            run_on_main(lambda: dlg.fill(video_list))
         except Exception as e:
-            run_on_main(lambda err=e: (self.logger.log(f"加载排行榜失败：{str(err)}"),
-                                                 msg_error(self.window, tr("加载排行榜失败：{}").format(str(err)), tr("错误"))))
+            run_on_main(lambda err=str(e): (dlg.set_loading(False, tr("加载排行榜失败：{}").format(err)),
+                                                 msg_error(dlg, tr("加载排行榜失败：{}").format(err), tr("错误"))))
 
     def _record_history(self, video_list, source="manual"):
         try:
@@ -1573,8 +1606,7 @@ class MainWindow:
         try:
             self.sidebar.refresh()
             self.sidebar.retranslate()
-            if hasattr(self.sidebar, "lang_combo"):
-                self.sidebar.lang_combo.setCurrentText(LANGUAGES.get(lang, "简体中文"))
+            self.sidebar.set_language_display(lang)
         except Exception:
             pass
         try:

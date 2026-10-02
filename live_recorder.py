@@ -33,6 +33,9 @@ class LiveRecorder:
                 config.get("download_path")) or os.getcwd()
         else:
             self.output_dir = os.getcwd()
+        # 是否用户显式指定了目录：仅当使用默认（配置 download_path）时才自动归类子目录，
+        # 避免覆盖用户在录制对话框里手动选择的路径。
+        self._explicit_dir = bool(output_dir)
         self.proc = None
         self.thread = None
         self.running = False
@@ -43,6 +46,12 @@ class LiveRecorder:
 
     def _resolve_out_dir(self):
         out = self.output_dir or os.getcwd()
+        # 按视频种类分文件夹：直播统一归入『直播』子目录
+        # （仅当用户未自定义目录、且开启 create_folder 时生效）
+        if (self.config is not None
+                and self.config.get("create_folder", True)
+                and not self._explicit_dir):
+            out = os.path.join(out, "直播")
         try:
             os.makedirs(out, exist_ok=True)
         except Exception:

@@ -312,7 +312,7 @@ class DownloadOptionsDialog(TopNavigationDialog):
             CONFLICT_OPTIONS, c.get("file_conflict_resolution", "auto_rename"))
 
         _, self.folder_sw = _add_switch(
-            g, "FOLDER", "为合集/多P视频创建单独文件夹", "按视频分文件夹保存",
+            g, "FOLDER", "按视频种类自动分文件夹", "按类型（视频/番剧/直播/音频…）自动归类到子目录",
             c.get("create_folder", True))
 
         _, self.show_again_sw = _add_switch(

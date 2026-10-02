@@ -48,6 +48,11 @@ ICON = os.path.join(ROOT, "icon.ico")
 if os.path.exists(ICON):
     datas.append(f"{ICON};.")
 
+# 未登录占位头像 not_logged_in.jpeg（根目录），随包进入 _MEIPASS，供 resource_path("not_logged_in.jpeg") 取到
+PLACEHOLDER_AVATAR = os.path.join(ROOT, "not_logged_in.jpeg")
+if os.path.exists(PLACEHOLDER_AVATAR):
+    datas.append(f"{PLACEHOLDER_AVATAR};.")
+
 # ---- Hidden imports that may be missed by the static finder ----
 hidden = [
     "PySide6",

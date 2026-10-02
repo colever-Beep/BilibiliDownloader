@@ -197,37 +197,64 @@ class SelectDialogBase(FluentContentDialog):
 
 
 class SelectDialog(SelectDialogBase):
-    """一次性列表（数据已拉全）。"""
+    """一次性列表（数据已拉全）。
 
-    def __init__(self, parent, items, on_confirm, title=tr("选择视频")):
-        super().__init__(parent, on_confirm, title)
-        self._fill_table(list(items))
-
-
-class PaginatedSelectDialog(SelectDialogBase):
-    """分页拉取对话框：构造即弹窗，按页按需拉取。
-
-    fetch: callable(pn:int, ps:int) -> (items:list[dict], has_more:bool)
-        - 返回两元组时按 (items, has_more) 解析；
-        - 返回单列表 / None 时视为「无更多页」。
-    已选项跨页保留（按 url/bvid 去重）；「全选」仅作用于当前页。
+    也可传 ``loading=True`` 配合 ``set_loading`` / ``fill`` 实现「先弹窗显示加载中、
+    后台拉取完成后再填充」，避免数据多时弹窗长时间空白、给用户卡顿错觉。
     """
 
-    def __init__(self, parent, fetch, ps, on_confirm, title=tr("选择视频")):
-        self.fetch = fetch
-        self.ps = ps
-        self.pn = 1
-        self.has_more = True
-        self._busy = False
+    def __init__(self, parent, items=None, on_confirm=None, title=tr("选择视频"),
+                 loading=False):
         super().__init__(parent, on_confirm, title)
-        self._load_page(1)  # 弹窗即拉第 1 页，后台线程进行，UI 不阻塞
+        # 加载态提示（列表与底部按钮之间），平时为空
+        self._status = CaptionLabel("", self)
+        self.add_widget(self._status)
+        if loading:
+            self.set_loading(True)
+        elif items is not None:
+            self._fill_table(list(items))
 
-    def _build_extra(self):
-        # 状态行（加载中 / 当前页条数）
+    def set_loading(self, on, message=None):
+        """切换「加载中」状态。
+
+        - on=True：清空列表并显示加载提示（默认「加载中...」），确认按钮禁用；
+        - on=False：清除提示（可附 ``message`` 作为终态文案，如「获取失败」）。
+        """
+        if on:
+            self._status.setText(message or tr("加载中..."))
+            self.list.set_items([])
+            self.btn_ok.setEnabled(False)
+        else:
+            self._status.setText(message or "")
+
+    def set_status(self, text):
+        self._status.setText(text)
+
+    def fill(self, items):
+        """后台拉取完成后填充数据并结束加载态。"""
+        self._fill_table(list(items))
+        self._status.setText("")
+
+
+class PaginationMixin:
+    """分页拉取能力（可被任意 SelectDialogBase 子类复用）。
+
+    依赖宿主在 super().__init__ 之前设置：self.fetch / self.ps / self.pn /
+    self.has_more / self._busy，并提供 self.list / self._fill_table 等基类能力。
+    fetch 契约：callable(pn:int, ps:int) -> (items:list[dict], has_more:bool)
+        - 返回两元组时按 (items, has_more) 解析；
+        - 返回单列表 / None 时视为「无更多页」。
+    提供：分页栏（上一页 / 下一页 / 第 N 页 / 跳转）、加载锁、状态行、错误提示。
+    已选项跨页保留由 SelectDialogBase 负责。
+    """
+
+    # ------------------------------------------------------------------ #
+    # 分页栏
+    # ------------------------------------------------------------------ #
+    def _build_pagination_bar(self):
         self.status_lbl = CaptionLabel("", self)
         self.add_widget(self.status_lbl)
 
-        # 分页栏
         pg = QHBoxLayout()
         pg.setSpacing(10)
         self.btn_prev = PushButton(tr("上一页"), self)
@@ -235,9 +262,11 @@ class PaginatedSelectDialog(SelectDialogBase):
         self.btn_prev.clicked.connect(self._go_prev)
         self.btn_next.clicked.connect(self._go_next)
         self.page_lbl = CaptionLabel(tr("第 1 页"), self)
+        # 预留足够宽度，保证「第 N / M 页」在窄窗下也不被省略
+        self.page_lbl.setMinimumWidth(120)
         self.jump_spin = SpinBox(self)
         self.jump_spin.setRange(1, 10000)
-        self.jump_spin.setFixedWidth(80)
+        self.jump_spin.setFixedWidth(110)
         self.btn_jump = PushButton(tr("跳转"), self)
         self.btn_jump.clicked.connect(self._go_jump)
 
@@ -250,6 +279,13 @@ class PaginatedSelectDialog(SelectDialogBase):
         pg.addWidget(self.jump_spin)
         pg.addWidget(self.btn_jump)
         self.add_layout(pg)
+
+        # 总页数追踪：
+        #   self._total_pn  —— fetch 显式返回的总页数（已知即可立即限制跳页/显示）；
+        #   self._last_pn   —— 无 total 来源（如搜索）靠「has_more=False」探明的最后一页，
+        #                       作为总页数的兜底，避免跳页超出实际范围。
+        self._total_pn = None
+        self._last_pn = None
 
         self._set_nav_enabled(False)  # 首屏拉取中，先禁用导航
 
@@ -268,25 +304,46 @@ class PaginatedSelectDialog(SelectDialogBase):
         try:
             res = self.fetch(pn, self.ps)
             if res is None:
-                items, has_more = [], False
+                items, has_more, total = [], False, None
             elif isinstance(res, tuple):
-                items, has_more = (res[0] or []), bool(res[1])
+                if len(res) >= 3 and res[2] is not None:
+                    items, has_more, total = (res[0] or []), bool(res[1]), res[2]
+                else:
+                    items, has_more, total = (res[0] or []), bool(res[1]), None
             else:
-                items, has_more = res or [], False
+                items, has_more, total = res or [], False, None
         except Exception as e:
             run_on_main(lambda err=str(e): self._on_error(pn, err))
             return
-        run_on_main(lambda: self._render_page(pn, items, has_more))
+        run_on_main(lambda: self._render_page(pn, items, has_more, total))
 
-    def _render_page(self, pn, items, has_more):
+    def _render_page(self, pn, items, has_more, total=None):
         self.pn = pn
         self.has_more = has_more
+        if total is not None:
+            self._total_pn = total
+        if not has_more:
+            self._last_pn = pn  # 已到末页，记录真实总页数（兜底）
         self._busy = False
         self._fill_table(items)
-        self.page_lbl.setText(tr("第 {pn} 页").format(pn=pn))
+        # 已知总页数：fetch 显式返回优先，其次为探明的末页
+        M = self._total_pn or self._last_pn
+        if M:
+            self.page_lbl.setText(
+                tr("第 {pn} / {total} 页").format(pn=pn, total=M))
+        else:
+            self.page_lbl.setText(tr("第 {pn} 页").format(pn=pn))
         self.jump_spin.setValue(pn)
+        if M:
+            # 限制跳转框上限为总页数（不允许输入 / 跳转到超出范围的数字）
+            self.jump_spin.setRange(1, max(1, M))
         self._set_nav_enabled(True)
-        self.status_lbl.setText(tr("第 {pn} 页，共 {n} 条").format(pn=pn, n=len(items)))
+        if M:
+            self.status_lbl.setText(
+                tr("第 {pn} / {total} 页，共 {n} 条").format(pn=pn, total=M, n=len(items)))
+        else:
+            self.status_lbl.setText(
+                tr("第 {pn} 页，共 {n} 条").format(pn=pn, n=len(items)))
         if not items:
             if pn == 1:
                 msg_info(self, tr("该分类下没有视频"))
@@ -316,6 +373,31 @@ class PaginatedSelectDialog(SelectDialogBase):
 
     def _go_jump(self):
         target = self.jump_spin.value()
+        # 不允许跳到超出总页数的位置：超过则强制回到最后一页
+        M = self._total_pn or self._last_pn
+        if M and target > M:
+            target = M
+            self.jump_spin.setValue(M)
         if target < 1 or target == self.pn:
             return
         self._load_page(target)
+
+
+class PaginatedSelectDialog(PaginationMixin, SelectDialogBase):
+    """分页拉取对话框：构造即弹窗，按页按需拉取。
+
+    fetch: callable(pn:int, ps:int) -> (items:list[dict], has_more:bool)
+    已选项跨页保留（按 url/bvid 去重）；「全选」仅作用于当前页。
+    """
+
+    def __init__(self, parent, fetch, ps, on_confirm, title=tr("选择视频")):
+        self.fetch = fetch
+        self.ps = ps
+        self.pn = 1
+        self.has_more = True
+        self._busy = False
+        super().__init__(parent, on_confirm, title)
+        self._load_page(1)  # 弹窗即拉第 1 页，后台线程进行，UI 不阻塞
+
+    def _build_extra(self):
+        self._build_pagination_bar()

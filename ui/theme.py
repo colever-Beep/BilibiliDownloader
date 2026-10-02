@@ -11,6 +11,7 @@ import colorsys
 import weakref
 
 from PySide6.QtGui import QColor
+from PySide6.QtCore import QTimer
 
 DEFAULT_ACCENT = "#1f8a4c"
 
@@ -50,6 +51,18 @@ _ROOT = None
 # _apply_qss()/setThemeColor，导致启动后强调色/Fluent 主题色全未建立，必须进
 # 设置改动一次才显示。此标记确保「基线主题」在进程内至少应用一次。
 _QSS_READY = False
+
+# 主题切换防抖：set_accent / apply_appearance / apply_theme 的「重成本副作用」
+# （重建全局 QSS + qfluentwidgets setThemeColor，各约 200ms）集中在 _commit 中，
+# 通过 _schedule_commit 在短时间窗口内合并为一次执行。这能消除颜色选择器拖动 /
+# 连续快速切换时每次都触发全应用 re-polish 造成的明显卡顿；首次（基线尚未建立）
+# 或无 QApplication 实例时仍同步立即提交，避免启动闪默认样式或测试环境丢主题。
+_DEBOUNCE_MS = 140
+_commit_timer = None
+# 已真正提交到 UI 的最近一次状态（内存值可能与之一致也可能超前：连续切换时
+# 内存立即更新、UI 延后合并），_commit 据此判断是否需要重建 QSS / 切换 Fluent 主题。
+_committed_accent = DEFAULT_ACCENT
+_committed_appearance = "dark"
 
 
 def _darken(hex_color, factor=0.85):
@@ -217,31 +230,56 @@ def _style_accent(widget, color):
 def register_accent_widget(widget):
     """注册一个应随强调色变化的控件（通常是主操作按钮）。"""
     _ACCENT_WIDGETS.add(widget)
+    # object-name 标记（accentBtn）一次性设好即可，由全局 QSS 的 #accentBtn 规则
+    # 驱动其背景/悬停样式，无需在每次切换强调色时重复遍历重设。
     _style_accent(widget, ACCENT)
 
 
-def set_accent(color):
-    """设置全局强调色并即时应用到所有相关控件，同时更新全局 QSS。
+def _schedule_commit():
+    """把主题重成本副作用调度为一个防抖提交（详见模块顶部 _DEBOUNCE_MS 说明）。"""
+    global _commit_timer
+    from PySide6.QtWidgets import QApplication
+    # 首次（基线尚未写入）或无 QApplication 实例时，必须同步立即提交：
+    # 否则启动会闪默认样式，或在无 GUI 的测试环境下主题永不生效。
+    if (not _QSS_READY) or (QApplication.instance() is None):
+        _flush_commit()
+        return
+    if _commit_timer is None:
+        _commit_timer = QTimer()
+        _commit_timer.setSingleShot(True)
+        _commit_timer.timeout.connect(_flush_commit)
+    # 连续调用只重置计时，窗口内仅真正提交一次（颜色选择器拖动场景的关键优化）
+    _commit_timer.start(_DEBOUNCE_MS)
 
-    颜色会先经 `_norm_color` 校验归一化；非法值（缺 #、坏 hex、None）直接
-    拒绝并保留上一有效强调色，避免污染全局 QSS。
 
-    性能注意：_apply_qss + setThemeColor 会触发全应用 re-polish（数百 ms），
-    因此颜色与当前值相同时直接跳过，避免重复刷新。颜色支持 "system"
-    （跟随 Windows 系统强调色）。
+def _flush_commit():
+    """防抖窗口到点：执行一次真正的主题提交。"""
+    global _commit_timer
+    _commit_timer = None
+    _commit()
+
+
+def _commit():
+    """真正执行主题重成本副作用（全局 QSS 重设 + qfluentwidgets 主题色同步）。
+
+    根据内存当前状态与已提交状态的差异决定是否重建 QSS / 切换 Fluent 主题；
+    无差异且基线已建立时走快速路径，仅确保图标主题同步（轻量）。
     """
-    global ACCENT, _QSS_READY
-    color = resolve_accent(color)
-    color = _norm_color(color)
-    if not color:
+    global _committed_accent, _committed_appearance, _QSS_READY
+    accent_changed = ACCENT != _committed_accent
+    appearance_changed = _APPEARANCE != _committed_appearance
+    # 快速路径：值与已提交态一致且基线已建立 —— 不重建 QSS、不触发 Fluent 全量
+    # 重绘，仅确保图标主题同步（开销极低）。
+    if not accent_changed and not appearance_changed and _QSS_READY:
+        try:
+            from ui.icons import set_fluent_theme
+            set_fluent_theme(_APPEARANCE == "dark")
+        except Exception:
+            pass
         return
-    if color == ACCENT:
-        return
-    ACCENT = color
-    _apply_qss()
+    was_ready = _QSS_READY
+    _apply_qss()  # 全局 QSS 含强调色，accent / appearance 任一变化都需重建
     _QSS_READY = True
-    for w in list(_ACCENT_WIDGETS):
-        _style_accent(w, ACCENT)
     # 同步给 qfluentwidgets 主题色：使 Fluent 控件（侧边栏导航按钮、设置窗口）的
     # 强调色与 app 强调色一致——否则停留在 Fluent 默认蓝，与整体主题脱节。
     try:
@@ -249,6 +287,43 @@ def set_accent(color):
         setThemeColor(QColor(ACCENT))
     except Exception:
         pass
+    # 首次建立或明暗变化时才 setTheme（强制 Fluent 控件重新按当前 themeColor 取色）；
+    # 仅强调色变化无需 setTheme，避免多余的全量重绘。
+    if not was_ready or appearance_changed:
+        try:
+            from qfluentwidgets import setTheme, Theme
+            setTheme(Theme.DARK if _APPEARANCE == "dark" else Theme.LIGHT)
+        except Exception:
+            pass
+    try:
+        from ui.icons import set_fluent_theme
+        set_fluent_theme(_APPEARANCE == "dark")
+    except Exception:
+        pass
+    _committed_accent = ACCENT
+    _committed_appearance = _APPEARANCE
+
+
+def set_accent(color):
+    """设置全局强调色（内存立即生效，UI 在防抖窗口内合并提交一次）。
+
+    颜色会先经 `_norm_color` 校验归一化；非法值（缺 #、坏 hex、None）直接
+    拒绝并保留上一有效强调色，避免污染全局 QSS。
+
+    性能：重建全局 QSS + setThemeColor 各约 200ms，单次切换无可避免；但本函数
+    把重成本副作用交给 _schedule_commit 防抖合并——颜色选择器拖动 / 连续快速
+    切换时只真正提交最后一次，避免每次 re-polish 累积成明显卡顿。颜色支持
+    "system"（跟随 Windows 系统强调色）。
+    """
+    global ACCENT
+    color = resolve_accent(color)
+    color = _norm_color(color)
+    if not color:
+        return
+    if color != ACCENT:
+        ACCENT = color
+    # 即便值未变也调度一次（轻量快速路径），确保首次 / 外部漏应用时 UI 已同步。
+    _schedule_commit()
 
 
 def get_accent():
@@ -305,23 +380,19 @@ def resolve_accent(color):
 
 
 def apply_appearance(mode):
-    """切换明暗模式并重设全局 QSS。
+    """切换明暗模式（内存立即生效，UI 在防抖窗口内合并提交一次）。
 
     旧版需在切换后手动刷新 VirtualList 行容器背景色；PySide6 下 QSS 全局驱动，
     列表/控件自动跟随，无需任何手动重绘。mode 支持 "system"（跟随 Windows）。
+
+    性能：重成本副作用经 _schedule_commit 防抖合并，连续/快速切换只真正重绘一次。
     """
-    global _APPEARANCE, _QSS_READY
+    global _APPEARANCE
     resolved = resolve_appearance(mode)
     if resolved != _APPEARANCE:
         _APPEARANCE = resolved
-        _apply_qss()
-        _QSS_READY = True
-    # 即使应用主题值未变，也要修正启动时可能尚未同步的 Fluent 主题。
-    try:
-        from ui.icons import set_fluent_theme
-        set_fluent_theme(_APPEARANCE == "dark")
-    except Exception:
-        pass
+    # 即便值未变也调度一次（轻量快速路径），确保首次 / 外部漏应用时 UI 已同步。
+    _schedule_commit()
 
 
 def palette():
@@ -330,62 +401,31 @@ def palette():
 
 
 def apply_theme(accent=None, appearance=None):
-    """一次性应用强调色 + 明暗模式（只做一次全局 QSS 重设）。
+    """一次性应用强调色 + 明暗模式（内存立即生效，UI 在防抖窗口内合并提交一次）。
 
-    set_accent 与 apply_appearance 各自都会触发一次全应用 re-polish
-    （各约 200ms+）；当两者需要同时更新（如启动、设置变更回调）时，
-    使用本函数合并为一次，避免双倍卡顿。
+    set_accent 与 apply_appearance 各自都会触发一次全应用 re-polish（各约 200ms+）；
+    本函数把两者的重成本副作用统一交给 _schedule_commit 防抖合并——多次连续调用
+    （如拖动取色器同时切明暗）只在窗口末尾真正提交一次，避免双倍甚至 N 倍卡顿。
 
     accent / appearance 支持 "system"（跟随 Windows），解析后才参与变更比较，
     因此系统设置变化时重复调用本函数即可自动跟随。
+
+    返回 True 表示内存状态相对上次有变化（供调用方决定是否做轻量重绘，如侧边栏）。
     """
-    global ACCENT, _APPEARANCE, _QSS_READY
+    global ACCENT, _APPEARANCE
     accent = _norm_color(resolve_accent(accent)) or ACCENT
     appearance = resolve_appearance(appearance or _APPEARANCE)
 
     accent_changed = accent != ACCENT
     appearance_changed = appearance != _APPEARANCE
-    # 基线主题尚未写入（进程首次）：即便配置恰等于模块默认值、看似「无变更」，
-    # 也必须真正跑一次 _apply_qss()/setThemeColor，否则启动后强调色/Fluent 主题色
-    # 全未建立，需进设置改动一次才显示。已建立过且值未变则跳过，保护 10s 轮询性能。
-    if not accent_changed and not appearance_changed and _QSS_READY:
-        try:
-            from ui.icons import set_fluent_theme
-            set_fluent_theme(_APPEARANCE == "dark")
-        except Exception:
-            pass
-        return False
-
-    was_ready = _QSS_READY
-    ACCENT = accent
-    _APPEARANCE = appearance
-    _apply_qss()  # 合并为一次全局重设
-    _QSS_READY = True
-    for w in list(_ACCENT_WIDGETS):
-        _style_accent(w, ACCENT)
-    # 先 setThemeColor 把主题色设对（qconfig.themeColor 实时生效，全局 QSS 的
-    # #accentBtn / selection 等立即变），再在「首次建立或明暗变化」时 setTheme
-    # 强制 Fluent 控件（侧边栏 NavigationInterface 等）重新按当前 themeColor 取色。
-    # 顺序要点：必须先把 themeColor 设绿，再 setTheme 重新初始化，否则 setTheme
-    # 那一刻 themeColor 仍是默认蓝，侧边栏 indicator 会被缓存成蓝、之后不再回退，
-    # 表现即「启动强调色停在默认蓝，进设置（无条件 setTheme）才正常」。
-    try:
-        from qfluentwidgets import setThemeColor
-        setThemeColor(QColor(ACCENT))
-    except Exception:
-        pass
-    if not was_ready or appearance_changed:
-        try:
-            from qfluentwidgets import setTheme, Theme
-            setTheme(Theme.DARK if _APPEARANCE == "dark" else Theme.LIGHT)
-        except Exception:
-            pass
-    try:
-        from ui.icons import set_fluent_theme
-        set_fluent_theme(_APPEARANCE == "dark")
-    except Exception:
-        pass
-    return True
+    if accent_changed:
+        ACCENT = accent
+    if appearance_changed:
+        _APPEARANCE = appearance
+    # 防抖合并重成本副作用；首次（_QSS_READY 为 False）会同步立即提交基线主题，
+    # 后续连续调用只在窗口末尾提交一次，保护系统主题 10s 轮询与拖动取色器性能。
+    _schedule_commit()
+    return accent_changed or appearance_changed
 
 
 def is_dark():

@@ -18,12 +18,17 @@ from utils.resources import get_app_icon_path
 from bili_api import BiliAPI
 from download_engine import DownloadEngine
 from utils.cookie_manager import load_cookie_string
+from utils.qfw_compat import patch_qfw_style_watchers
 import warnings
 import urllib3
 
 # 关闭未校验HTTPS警告
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 warnings.filterwarnings("ignore")
+
+# qfluentwidgets 样式 watcher 防 GC 补丁：必须在创建任何 Qt 控件之前打上
+patch_qfw_style_watchers()
+
 
 def main():
     # 设置 DPI 感知（Windows），让高分屏下 UI 不糊

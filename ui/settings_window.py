@@ -123,7 +123,6 @@ class _SubInterface(QScrollArea):
 
 
 class SettingsWindow(MSFluentWindow):
-    """bili23 风格的设置窗口：左侧垂直导航 + 右侧抽屉式滚动卡片组。"""
 
     def __init__(self, parent, config, on_language_change, on_settings_changed, preview_theme,
                  on_open_logs=None, on_stay_on_top=None):
@@ -340,7 +339,7 @@ class SettingsWindow(MSFluentWindow):
 
         # 外观（明暗，支持跟随系统）
         self._combo_card(
-            g, "BRUSH", "外观", "明暗主题；跟随系统时读取 Windows 应用模式", "appearance",
+            g, "BRUSH", "外观", "明暗主题", "appearance",
             [tr("跟随系统"), tr("深色"), tr("浅色")],
             {tr("跟随系统"): "system", tr("深色"): "dark", tr("浅色"): "light"},
             "dark", on_change=self._on_appearance)
@@ -430,7 +429,7 @@ class SettingsWindow(MSFluentWindow):
                         "下载限速", "0 表示不限速（KB/s）", "download_limit", 0, 102400, 0)
 
         # 建文件夹
-        self._switch_card(g, "FOLDER", "按 UP 主建文件夹", "按 UP 主分文件夹保存",
+        self._switch_card(g, "FOLDER", "按视频种类分文件夹", "按类型（视频/番剧/直播/音频…）自动归类到子目录保存",
                           "create_folder", default=True)
 
         # 同名处理

@@ -48,6 +48,7 @@ from ui.fluent_dialog import (
 )
 from ui.list_layout import LayoutModeToggle, manager, is_compact
 from ui.select_list_view import SelectListView, _key_of
+from ui.select_dialog import PaginationMixin, SelectDialogBase
 from ui.icons import icon_pixmap
 from ui.theme import palette, get_accent
 
@@ -312,27 +313,36 @@ class LoginDialog(TopNavigationDialog):
 # --------------------------------------------------------------------------- #
 # 搜索（综合 / 音乐）
 # --------------------------------------------------------------------------- #
-class SearchDialog(FluentContentDialog):
-    """B 站综合搜索 / 音乐搜索窗口（Fluent 版）。
+class SearchDialog(PaginationMixin, SelectDialogBase):
+    """B 站综合搜索 / 音乐搜索窗口（Fluent 版，复用分页逻辑）。
 
-    顶部内联搜索框，回车或点「搜索」即在后台线程调用 search_fn(keyword)，
-    结果复用 SelectListView，以显示视频封面 / UP 主头像，并响应全局详细 / 精简
-    布局。确认后把勾选项经 on_confirm(selected) 回调交给主窗口路由。
+    顶部内联搜索框，回车或点「搜索」即在后台线程调用 search_fn(keyword, page=pn)，
+    结果复用 SelectListView，以显示视频封面 / UP 主头像，并响应全局详细 / 精简布局。
+    确认后把勾选项经 on_confirm(selected) 回调交给主窗口路由。
+
+    分页：复用 PaginationMixin 的 fetch(pn, ps)->(items, has_more) 契约与翻页栏，
+    搜索函数按 page 返回后续页（不再受单次 20 条上限约束），可翻到更多结果。
 
     search_fn 由调用方注入：
       - 综合搜索：api.get_search_results
       - 音乐搜索：api.get_music_search_results
-    均为 (keyword:str) -> list[dict]，结果项含 type/title/url/duration 等。
+    均为 (keyword:str, page:int=1) -> (items:list[dict], has_more:bool)。
     """
 
     def __init__(self, parent, search_fn, on_confirm=None, title=tr("搜索")):
-        super().__init__((780, 620), parent, title=title)
         self.search_fn = search_fn
-        self.on_confirm = on_confirm
-        self._items = []
-        self._checked_keys = set()
-        self._selected = {}
+        # 复用分页契约：fetch(pn, ps) -> (items, has_more)
+        self.fetch = lambda pn, ps: self._search_fetch(pn)
+        self.ps = 20
+        self.pn = 1
+        self.has_more = True
+        self._busy = False
+        self._keyword = ""
+        super().__init__(parent, on_confirm, title)
+        self.input.setFocus()
 
+    def _build_content(self):
+        # 顶部：内联搜索框（置于最上方；列表、全选、分页栏由基类构建）
         top = QHBoxLayout()
         top.setSpacing(10)
         self.input = SearchLineEdit(self)
@@ -346,100 +356,76 @@ class SearchDialog(FluentContentDialog):
         top.addWidget(self.input, 1)
         top.addWidget(self.search_btn)
         self.add_layout(top)
-
-        self.status_lbl = CaptionLabel("", self)
-        self.add_widget(self.status_lbl)
-
-        self.list = SelectListView(self._checked_keys, self)
-        self.list.rowClicked.connect(self._on_row_clicked)
-        self.add_widget(self.list, 1)
-
-        self.btn_all = self.add_button(tr("全选"), right=False, min_width=88,
-                                      slot=lambda: self._set_all(True))
-        self.btn_none = self.add_button(tr("全不选"), right=False, min_width=88,
-                                       slot=lambda: self._set_all(False))
-        self.btn_ok = self.add_button(tr("确认"), primary=True, slot=self._on_accept)
-        self.btn_cancel = self.add_button(tr("取消"), slot=self.reject)
-
+        super()._build_content()
+        # 行尾「在浏览器中打开」按钮由 SelectListView 按 item 字段自动推导
+        # （搜索结果自带 url：视频/BV 页、UP 主/个人空间、番剧/bangumi 页），无需显式设置。
         register(self.search_btn, "搜索")
-        register(self.btn_all, "全选")
-        register(self.btn_none, "全不选")
-        register(self.btn_ok, "确认")
-        register(self.btn_cancel, "取消")
         register(self.input, "输入关键词后回车或点击搜索", "placeholder_text")
 
-        self._closed = False
-        self._leftBtns.insertWidget(0, LayoutModeToggle(self))
+    def _build_extra(self):
+        # 复用分页栏（上一页 / 下一页 / 第 N 页 / 跳转）
+        self._build_pagination_bar()
 
-        self.input.setFocus()
+    def _search_fetch(self, pn):
+        """按页拉取，兼容 search_fn 返回 list 或 (items, has_more)。"""
+        if not self._keyword:
+            return [], False
+        res = self.search_fn(self._keyword, page=pn)
+        if isinstance(res, tuple):
+            items, has_more = (res[0] or []), bool(res[1])
+        else:
+            items, has_more = (res or []), False
+        return items, has_more
 
     def _do_search(self):
         kw = self.input.text().strip()
         if not kw:
             return
-        self.search_btn.setEnabled(False)
-        self.status_lbl.setText(tr("搜索中..."))
+        self._keyword = kw
         self._checked_keys.clear()
         self._selected.clear()
-        self.list.set_items([])
-        threading.Thread(target=self._search_thread, args=(kw,), daemon=True).start()
+        self.search_btn.setEnabled(False)
+        self._load_page(1)  # 复用分页加载（后台线程，UI 不阻塞）
 
-    def _search_thread(self, kw):
-        try:
-            results = self.search_fn(kw) or []
-        except Exception as e:
-            run_on_main(lambda err=str(e): msg_error(self, tr("搜索失败：{}").format(err)))
-            run_on_main(lambda: self._finish_search([]))
-            return
-        run_on_main(lambda: self._finish_search(results))
-
-    def _finish_search(self, results):
-        self._items = list(results)
-        self.search_btn.setEnabled(True)
-        self.list.set_items(self._items)
-        self._selected = {
-            _key_of(item): item for item in self._items
-            if _key_of(item) in self._checked_keys
-        }
-        if not self._items:
-            self.status_lbl.setText(tr("未找到结果"))
-            return
-        self.status_lbl.setText(tr("共 {} 条结果").format(len(self._items)))
-
-    def _on_row_clicked(self, index):
-        item = self.list.model().item_at(index.row())
-        key = _key_of(item)
-        if key is None:
-            return
-        if key in self._checked_keys:
-            self._checked_keys.discard(key)
-            self._selected.pop(key, None)
+    def _render_page(self, pn, items, has_more, total=None):
+        self.pn = pn
+        self.has_more = has_more
+        if total is not None:
+            self._total_pn = total
+        if not has_more:
+            self._last_pn = pn
+        self._busy = False
+        self._fill_table(items)
+        M = self._total_pn or self._last_pn
+        if M:
+            self.page_lbl.setText(
+                tr("第 {pn} / {total} 页").format(pn=pn, total=M))
         else:
-            self._checked_keys.add(key)
-            self._selected[key] = item
-        self.list.refresh_row(index)
-
-    def _set_all(self, checked):
-        for item in self.list.items():
-            key = _key_of(item)
-            if key is None:
-                continue
-            if checked:
-                self._checked_keys.add(key)
-                self._selected[key] = item
+            self.page_lbl.setText(tr("第 {pn} 页").format(pn=pn))
+        self.jump_spin.setValue(pn)
+        if M:
+            self.jump_spin.setRange(1, max(1, M))
+        self._set_nav_enabled(True)
+        if M:
+            self.status_lbl.setText(
+                tr("第 {pn} / {total} 页，共 {n} 条结果").format(pn=pn, total=M, n=len(items)))
+        else:
+            self.status_lbl.setText(tr("第 {pn} 页，共 {n} 条结果").format(pn=pn, n=len(items)))
+        self.search_btn.setEnabled(True)
+        if not items:
+            if pn == 1:
+                msg_info(self, tr("未找到结果"))
             else:
-                self._checked_keys.discard(key)
-                self._selected.pop(key, None)
-        self.list.viewport().update()
+                msg_info(self, tr("第 {pn} 页没有数据").format(pn=pn))
 
-    def _on_accept(self):
-        selected = list(self._selected.values())
-        if self.on_confirm is not None:
-            self.on_confirm(selected)
-        self.accept()
+    def _on_error(self, pn, err):
+        self._busy = False
+        self._set_nav_enabled(True)
+        self.status_lbl.setText(tr("加载失败"))
+        self.search_btn.setEnabled(True)
+        msg_error(self, tr("加载第 {pn} 页失败：{err}").format(pn=pn, err=err))
 
     def closeEvent(self, ev):
-        self._closed = True
         self.list.close()
         super().closeEvent(ev)
 
