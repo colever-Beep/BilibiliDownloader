@@ -57,3 +57,59 @@ jobs:
             dist/*.dmg
             dist/*.app.zip
           if-no-files-found: error
+
+  # 仅在推送 v* tag 时，把上面两个平台的产物发布到 GitHub Release（永久保留、
+  # 可直接下载链接；Actions artifact 90 天会过期）。workflow_dispatch 手动触发时跳过。
+  release:
+    name: Publish to GitHub Release
+    needs: [appimage, dmg]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download AppImage
+        uses: actions/download-artifact@v7
+        with:
+          name: BilibiliDownloader-AppImage
+          path: dist
+      - name: Download macOS package
+        uses: actions/download-artifact@v7
+        with:
+          name: BilibiliDownloader-macOS
+          path: dist
+      - name: List collected files
+        run: ls -lh dist
+      - name: Create or update Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          notes=$(mktemp)
+          {
+            echo "## 下载"
+            echo
+            echo "| 平台 | 文件 | 说明 |"
+            echo "| --- | --- | --- |"
+            echo "| Linux | \`BilibiliDownloader-*-x86_64.AppImage\` | 单文件，\`chmod +x\` 后运行 |"
+            echo "| macOS | \`BilibiliDownloader-macos.dmg\` | 拖拽到「应用程序」安装 |"
+            echo "| macOS | \`BilibiliDownloader-macos.app.zip\` | 已 ad-hoc 签名的 \`.app\` |"
+            echo
+            echo "> **macOS 首次打开**：本包未做 Apple 公证，Gatekeeper 会拦截。"
+            echo "> 请右键点击 App/DMG 选择「打开」，或在终端执行："
+            echo "> \`xattr -d com.apple.quarantine /Applications/BilibiliDownloader.app\`"
+            echo
+            echo "> FFmpeg 不内置：首次使用会自动按平台下载并缓存（AppImage 写入 \$XDG_DATA_HOME，"
+            echo "> macOS 写入 ~/Library/Application Support）。离线环境请手动放入。"
+          } > "$notes"
+          files=(dist/*)
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${files[@]}" --clobber
+            gh release edit "$TAG" --notes-file "$notes"
+            echo "Release $TAG 已更新"
+          else
+            gh release create "$TAG" "${files[@]}" \
+              --title "BilibiliDownloader $TAG" --notes-file "$notes"
+            echo "Release $TAG 已创建"
+          fi
