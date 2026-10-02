@@ -432,6 +432,13 @@ class MainWindow:
             return
         if isinstance(val, SystemExit):
             return
+        # 退出流程中的任何异常都不再弹模态错误框：此时弹框会让主界面冻住
+        # （用户表现为"点击退出后卡很久"），且真正的退出已由 quit_app 的
+        # finally 兜底完成。只打印到控制台便于排查。
+        if getattr(self, "_quitting", False):
+            import traceback as _tb2
+            print("[退出阶段异常]", "".join(_tb2.format_exception(exc, val, tb)))
+            return
         msg = "".join(_tb.format_exception(exc, val, tb))
         try:
             self.logger.log(f"[UI异常] {msg}")
@@ -491,26 +498,34 @@ class MainWindow:
         if getattr(self, "_quitting", False):
             return
         self._quitting = True
-        self.logger.log("程序退出中...")
+        # 退出流程必须"绝不阻塞、绝不抛异常"：任何异常上抛都会进 sys.excepthook
+        # 弹出模态错误框，界面就会冻住等用户点击，且 os._exit 永远到不了
+        # （用户表现为"点击退出后卡很久"）。故全部包 try，os._exit 放 finally 兜底。
         try:
-            if self.engine.is_running:
-                self.engine.cancel()
-        except Exception:
-            pass
-        try:
-            self.tray.stop()
-        except Exception:
-            pass
-        try:
-            app = QApplication.instance()
-            if app is not None:
-                app.quit()
-        except Exception:
-            pass
-        try:
-            os._exit(0)
-        except Exception:
-            pass
+            try:
+                self.logger.log("程序退出中...")
+            except Exception:
+                pass
+            try:
+                if self.engine.is_running:
+                    self.engine.cancel()
+            except Exception:
+                pass
+            try:
+                self.tray.stop()
+            except Exception:
+                pass
+            try:
+                app = QApplication.instance()
+                if app is not None:
+                    app.quit()
+            except Exception:
+                pass
+        finally:
+            try:
+                os._exit(0)
+            except Exception:
+                pass
 
     # ---------- 通知 ----------
     def _alert(self, title, message, level="warning"):

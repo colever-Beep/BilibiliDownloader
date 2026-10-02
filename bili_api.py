@@ -13,7 +13,7 @@ import concurrent.futures  # 确保导入
 from utils.helpers import duration_to_seconds
 
 class BiliAPI:
-    def __init__(self, cookie_string=""):
+    def __init__(self, cookie_string="", validate=True):
         self.session = requests.Session()
         self.session.headers.update({
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -40,7 +40,7 @@ class BiliAPI:
         self.wbi_last_refresh = 0
         
         if cookie_string:
-            self.set_cookie_string(cookie_string)
+            self.set_cookie_string(cookie_string, validate=validate)
 
     def clear_all_cookies(self):
         self.session.cookies.clear()
@@ -52,11 +52,16 @@ class BiliAPI:
         self.cookies.clear()
         self.wbi_mixin_key = ""
 
-    def set_cookie_string(self, cookie_string):
+    def set_cookie_string(self, cookie_string, validate=True):
         """解析 Cookie 字符串并登录。支持三种格式：
         1) JSON 对象：{"SESSDATA": "...", "bili_jct": "..."}
         2) Netscape 多行（tab 或空格分隔的 7 字段；也兼容每行一个 key=value）
         3) 请求头 Cookie：SESSDATA=xxx; bili_jct=yyy
+
+        validate=False 时只做本地解析（快，不触网），把登录态网络校验交给调用方
+        异步执行——用于启动路径：同步请求 api.bilibili.com（timeout=15）会在
+        网络不可达/慢时阻塞窗口与托盘出现（"启动很慢"）。此时 self.uid 保持 None，
+        调用方需自行在后台调用 _refresh_user_info() 并在完成后刷新 UI。
         """
         self.clear_all_cookies()
         raw = (cookie_string or "").strip()
@@ -122,6 +127,9 @@ class BiliAPI:
         if not self.SESSDATA:
             print("[登录校验失败] 未解析SESSDATA，无法登录")
             return False
+        if not validate:
+            # 仅解析不校验：登录态由调用方后台校验（见 __init__ / docstring）
+            return True
         login_ok = self._refresh_user_info()
         if login_ok:
             print(f"[登录成功] UID:{self.uid} 昵称:{self.nickname}")

@@ -3,6 +3,7 @@
 
 import os
 import sys
+import threading
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -17,6 +18,7 @@ from utils.i18n import set_language
 from utils.resources import get_app_icon_path
 from bili_api import BiliAPI
 from download_engine import DownloadEngine
+from utils.main_thread import run_on_main
 from utils.cookie_manager import load_cookie_string
 from utils.qfw_compat import patch_qfw_style_watchers
 import warnings
@@ -95,15 +97,15 @@ def main():
     except Exception:
         pass
     # Cookie
+    # 启动路径只做本地解析（很快），**不同步校验登录态**：原实现在构造 BiliAPI 时
+    # 会同步请求 api.bilibili.com（timeout=15），网络慢/不可达时会阻塞在窗口与
+    # 托盘出现之前（"启动到出托盘很慢"）。校验改为窗口显示后的后台线程。
     cookie_str = load_cookie_string("cookies.txt") if os.path.exists("cookies.txt") else ""
-    bili_api = BiliAPI(cookie_str)
-    if bili_api.uid:
-        logger.log(f"已登录用户：{bili_api.nickname}")
+    bili_api = BiliAPI(cookie_str, validate=False)
+    if cookie_str:
+        logger.log("已解析本地 Cookie，登录态正在后台校验")
     else:
-        if cookie_str:
-            logger.log("Cookie文件存在但验证失败，可能已过期")
-        else:
-            logger.log("未找到Cookie，请登录")
+        logger.log("未找到Cookie，请登录")
     # 下载引擎
     engine = DownloadEngine(config, logger, bili_api)
 
@@ -123,6 +125,19 @@ def main():
             pass
     # 关闭逻辑（取消下载 / 销毁托盘 / 退出）统一由 MainWindow 内部处理
     win.run()
+
+    # 窗口与托盘已显示，再在后台校验登录态（不阻塞启动）。
+    # 校验完成后回到主线程刷新依赖 uid 的启动提示。
+    if cookie_str:
+        def _validate_login_bg():
+            ok = bili_api._refresh_user_info()
+            if ok:
+                logger.log(f"已登录用户：{bili_api.nickname}")
+                run_on_main(win._maybe_show_login_api_warning)
+            else:
+                logger.log("Cookie文件存在但验证失败，可能已过期")
+
+        threading.Thread(target=_validate_login_bg, daemon=True).start()
 
     # 进入 Qt 事件循环
     sys.exit(app.exec())
