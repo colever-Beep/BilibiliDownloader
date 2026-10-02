@@ -12,6 +12,8 @@ dist/
 build/
 bin/
 .build_tmp/
+*.pyc
+__pycache__/
 
 # ===== 第三方 / 依赖副本（非本仓库源码） =====
 bili23_example/
