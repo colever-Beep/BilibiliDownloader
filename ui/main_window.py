@@ -479,8 +479,12 @@ class MainWindow:
             ev.ignore()
             self.minimize_to_tray()
         else:
-            ev.accept()
+            # 顺序要紧：先 quit_app()（内部 os._exit(0) 立即结束进程），再 accept()。
+            # 若反过来先 ev.accept()，Qt 会先走一遍窗口关闭流程（隐藏/销毁整棵控件树
+            # ——侧边栏+队列+全部 UI，控件极多），这段销毁耗时就是用户看到的
+            # "界面冻住一段时间才消失"。os._exit 是强制结束，不依赖任何清理。
             self.quit_app()
+            ev.accept()
 
     def on_closing(self):
         # 兼容旧调用点；实际关闭由 closeEvent 驱动
