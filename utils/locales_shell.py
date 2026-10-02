@@ -8,7 +8,7 @@ FRAGMENT 格式：{ "简体中文": {"zh_TW": "...", "en": "...", "ja": "..."}, 
 
 FRAGMENT = {
     # ---------- 主窗口 / 通用 ----------
-    "B站下载器 Pro": {
+    "BilibiliDownloader": {
         "zh_TW": "B站下載器 Pro",
         "en": "Bilibili Downloader Pro",
         "ja": "Bilibiliダウンローダー Pro",

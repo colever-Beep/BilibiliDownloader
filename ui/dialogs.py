@@ -52,7 +52,7 @@ from ui.select_dialog import PaginationMixin, SelectDialogBase
 from ui.icons import icon_pixmap
 from ui.theme import palette, get_accent
 
-APP_NAME = "B站下载器 Pro"
+APP_NAME = "BilibiliDownloader"
 
 # FluentIcon 简写
 FIF = FluentIcon

@@ -68,7 +68,7 @@ class SystemTray:
             return
         self.is_running = True
         self.icon = QSystemTrayIcon(self._make_icon(self.idle_color), self.app_window)
-        self.icon.setToolTip(tr("B站下载器 Pro"))
+        self.icon.setToolTip("BilibiliDownloader")
         self.icon.setContextMenu(self._build_menu())
         self.icon.activated.connect(self._on_activated)
         self.icon.show()

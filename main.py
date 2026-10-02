@@ -49,7 +49,7 @@ def main():
 
     # Qt 应用对象（单例，必须在任何 Qt 窗口之前创建）
     app = QApplication(sys.argv)
-    app.setApplicationName("B站下载器 Pro")
+    app.setApplicationName("BilibiliDownloader")
 
     # QApplication 就绪后一次性应用主题，确保全局 QSS 和 Fluent 强调色
     # 在主窗口构建前写入，避免首帧使用默认色。

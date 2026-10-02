@@ -31,7 +31,7 @@ msgstr ""
 msgid "B站下载器"
 msgstr ""
 
-msgid "B站下载器 Pro"
+msgid "BilibiliDownloader"
 msgstr ""
 
 msgid "Cookie 登录"

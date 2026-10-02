@@ -8,7 +8,7 @@ FRAGMENT = {
     '1080p 及以下': {'en': '1080p or lower', 'ja': '1080p 以下', 'zh_TW': '1080p 及以下'},
     '720p 及以下': {'en': '720p or lower', 'ja': '720p 以下', 'zh_TW': '720p 及以下'},
     'B站下载器': {'en': 'Bilibili Downloader', 'ja': 'Bilibiliダウンローダー', 'zh_TW': 'B站下載器'},
-    'B站下载器 Pro': {'en': 'Bilibili Downloader Pro', 'ja': 'Bilibiliダウンローダー Pro', 'zh_TW': 'B站下載器 Pro'},
+    'BilibiliDownloader': {'en': 'Bilibili Downloader Pro', 'ja': 'Bilibiliダウンローダー Pro', 'zh_TW': 'B站下載器 Pro'},
     'Cookie 登录': {'en': 'Cookie login', 'ja': 'Cookie ログイン', 'zh_TW': 'Cookie 登入'},
     'H.264（兼容性好）': {'en': 'H.264 (better compatibility)', 'ja': 'H.264（互換性良好）', 'zh_TW': 'H.264（相容性佳）'},
     'H.265（体积更小）': {'en': 'H.265 (smaller size)', 'ja': 'H.265（容量削減）', 'zh_TW': 'H.265（體積更小）'},

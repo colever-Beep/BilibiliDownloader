@@ -87,7 +87,7 @@ class MainWindow:
         self._live_manual = []   # 手动输入（无 room_id）的窗口，仅用于保活
         self._season_list_loading = False
         self.window = _AppMainWindow(self)
-        self.window.setWindowTitle(tr("B站下载器 Pro"))
+        self.window.setWindowTitle("BilibiliDownloader")
         self.window.resize(1100, 800)
         self.window.setMinimumSize(900, 650)
         # 窗口置顶（设置窗口可实时切换；启动时按配置恢复）
@@ -1597,7 +1597,7 @@ class MainWindow:
             self.config.set("language", lang)
         except Exception:
             pass
-        self.window.setWindowTitle(tr("B站下载器 Pro"))
+        self.window.setWindowTitle("BilibiliDownloader")
         retranslate_all()
         try:
             self.refresh_overall_progress()
