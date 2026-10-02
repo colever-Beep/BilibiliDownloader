@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import FeatureCard from '../components/FeatureCard.astro';
+import DownloadSection from '../components/DownloadSection.astro';
+
+const features = [
+  { title: '多类型解析', desc: '视频、番剧、直播、音频、歌单、收藏夹、UP 主、合集、课程一键解析下载。', path: 'M12 3v10m0 0l4-4m-4 4l-4-4M5 19h14' },
+  { title: '统一分页选择', desc: '搜索 / 收藏夹 / 历史等列表统一分页弹窗，支持跳页与总页数显示。', path: 'M4 6h16M4 12h16M4 18h16' },
+  { title: '批量解析', desc: '一次粘贴多个链接，可翻页来源各自走统一分页选择框。', path: 'M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5' },
+  { title: '直播录制', desc: '支持 B 站直播录制，实时保存为本地视频文件。', path: 'M12 8a4 4 0 100 8 4 4 0 000-8zM5 5a9 9 0 000 14M19 5a9 9 0 010 14' },
+  { title: '自动归类', desc: '按视频种类自动分文件夹存放，下载路径整洁有序。', path: 'M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z' },
+  { title: '浏览器跳转', desc: '列表项一键「在浏览器中打开」对应页面（视频/UP 主空间等）。', path: 'M10 14a4 4 0 005.66 0l3-3a4 4 0 10-5.66-5.66l-1.5 1.5M14 10a4 4 0 00-5.66 0l-3 3a4 4 0 105.66 5.66l1.5-1.5' },
+  { title: '主题与强调色', desc: '明暗主题 + 可自定义强调色，切换做了防抖优化更顺滑。', path: 'M12 3a9 9 0 100 18c1 0 1.5-1 1-2-.5-1 .5-2 1.5-2H17a4 4 0 004-4c0-5-4-8-9-8z' },
+  { title: '多语言', desc: '界面支持简体中文、繁体中文、English、日本語等多语言。', path: 'M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18' },
+  { title: '高 DPI 适配', desc: '完美适配高分屏与不同缩放下，界面元素清晰不模糊。', path: 'M3 4h18v12H3zM8 20h8M12 16v4' },
+];
+
+// 截图占位：把真实图片放到 website/public/screenshots/ 后，把下面 .ph 换成 <img src=...>
+const shots = [
+  { cap: '主界面 / 下载队列' },
+  { cap: '设置窗口' },
+  { cap: '解析选择对话框（分页 + 跳转按钮）' },
+  { cap: '明暗主题对比' },
+];
+---
+<BaseLayout title="BilibiliDownloader — B 站内容下载器">
+  <Hero />
+
+  <section class="features container">
+    <h2 class="section-title">核心功能</h2>
+    <div class="grid">
+      {features.map((f) => <FeatureCard title={f.title} desc={f.desc} path={f.path} />)}
+    </div>
+  </section>
+
+  <section class="screenshots container">
+    <h2 class="section-title">界面预览</h2>
+    <div class="shot-grid">
+      {shots.map((s) => (
+        <figure class="shot">
+          <div class="ph">截图占位 · {s.cap}</div>
+          <figcaption>{s.cap}</figcaption>
+        </figure>
+      ))}
+    </div>
+    <p class="hint">
+      截图即将上线 —— 将图片命名为 <code>main.png</code> / <code>settings.png</code> / <code>select.png</code> / <code>theme.png</code>
+      放入 <code>website/public/screenshots/</code>，并把上方占位框替换为 <code>&lt;img&gt;</code> 即可显示。
+    </p>
+  </section>
+
+  <DownloadSection />
+</BaseLayout>

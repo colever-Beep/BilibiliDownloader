@@ -1,0 +1,22 @@
+---
+const releases = 'https://github.com/colever-Beep/BilibiliDownloader/releases';
+---
+<section id="download" class="download">
+  <div class="container">
+    <h2 class="section-title">下载</h2>
+    <p class="center">支持 Windows 10 / 11，提供单文件 exe 与便携版两种打包。</p>
+    <div class="dl-cards">
+      <div class="dl-card">
+        <h3>单文件版 (exe)</h3>
+        <p>双击即用的独立可执行文件，适合大多数用户。</p>
+        <a class="btn primary" href={releases} target="_blank" rel="noopener">前往 Releases 下载</a>
+      </div>
+      <div class="dl-card">
+        <h3>便携版 (portable)</h3>
+        <p>免安装、可放 U 盘，配置随目录携带。</p>
+        <a class="btn ghost" href={releases} target="_blank" rel="noopener">前往 Releases 下载</a>
+      </div>
+    </div>
+    <p class="note">首次运行会自动下载 FFmpeg（约数十 MB）；也可手动将 ffmpeg.exe 放入 <code>bin/</code> 目录。</p>
+  </div>
+</section>

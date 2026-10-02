@@ -1,0 +1,25 @@
+---
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+
+const { title = 'BilibiliDownloader', active = '', prose = false } = Astro.props;
+const favicon = import.meta.env.BASE_URL + 'favicon.svg';
+---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href={favicon} />
+    <meta name="description" content="BilibiliDownloader — 开源 B 站内容下载器，支持视频、番剧、直播、音频一键解析，Windows 桌面应用。" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <Nav active={active} />
+    <main class="container main">
+      {prose ? <div class="prose"><slot /></div> : <slot />}
+    </main>
+    <Footer />
+  </body>
+</html>
