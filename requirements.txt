@@ -1,0 +1,12 @@
+# BilibiliDownloader 运行期依赖
+# 用途：源码运行（pip install -r requirements.txt）、CI 构建（build-unix.yml）与打包。
+# PySide6 / qfluentwidgets 锁定版本，与项目测试环境一致（PySide6 6.11.2 + qfluentwidgets 1.11.2）。
+PySide6==6.11.2
+qfluentwidgets==1.11.2
+requests>=2.31
+Pillow>=10.0
+qrcode>=7.4
+segno>=1.6
+numpy>=1.26
+yt-dlp>=2024.1.0
+pyperclip>=1.8

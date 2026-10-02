@@ -50,7 +50,7 @@
 2. 安装依赖：
 
    ```bash
-   pip install PySide6 qfluentwidgets requests Pillow qrcode segno numpy yt-dlp pyperclip win10toast
+   pip install -r requirements.txt
    ```
 
 3. 运行：
