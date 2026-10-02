@@ -90,7 +90,33 @@ pip install auto-py-to-exe
 
   产物：`dist/BilibiliDownloader/`（双击即用，适合压缩分发；首次使用自动下载 FFmpeg）。
 
-> 两种打包均**不内置 FFmpeg**（控制体积），运行时会优先读取同目录 `bin/ffmpeg.exe`，缺失则后台从 [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases) 下载解压；离线环境请手动放置。
+- **Linux AppImage**（需在 Linux 上构建）：
+
+  ```bash
+  pip install pyinstaller
+  python build_linux_appimage.py
+  ```
+
+  产物：`dist/BilibiliDownloader-x86_64.AppImage`（单文件，`chmod +x` 后直接运行）。
+
+- **macOS DMG**（需在 macOS 上构建）：
+
+  ```bash
+  pip install pyinstaller
+  python build_macos_dmg.py
+  ```
+
+  产物：`dist/BilibiliDownloader-macos.dmg` 与 `dist/BilibiliDownloader-macos.app.zip`
+  （ad-hoc 签名，拖拽到「应用程序」安装；Apple Silicon 上必须签名才能运行）。
+
+> 也可用仓库自带的工作流 `.github/workflows/build-unix.yml` 一键构建：在 Actions
+> 页面手动触发（或推送 `v*` tag），分别由 Ubuntu / macOS runner 产出 AppImage 与
+> DMG，并作为构建产物（artifact）下载。
+
+> 上述打包均**不内置 FFmpeg**（控制体积），运行时按当前平台自动下载对应版本
+> （Windows 走 zip、Linux/macOS 走 tar.xz，来源 [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases)）。
+> 便携版/普通 onedir 写入 exe 同目录 `bin/`；macOS `.app`（签名只读包）与 AppImage
+> （只读挂载）则写入用户数据目录，避免写入失败。离线环境请手动放置。
 
 ---
 

@@ -92,11 +92,28 @@ def _download_spec():
 # --------------------------------------------------------------------------- #
 # 路径解析
 # --------------------------------------------------------------------------- #
+def _frozen_base_dir():
+    """冻结态下用于存放 bin/ 的可写基目录。
+
+    - macOS .app：签名只读包，不能往包内写（会破坏签名）-> 用户 Application Support。
+    - AppImage：运行时挂载为只读 squashfs（/tmp/.mount_*）-> XDG 数据目录。
+    - 其余（Windows / Linux 普通 onedir）：exe 同目录（便携版就地下 bin/）。
+    """
+    if sys.platform == "darwin":
+        return os.path.join(os.path.expanduser("~"), "Library",
+                            "Application Support", "BilibiliDownloader")
+    if os.environ.get("APPIMAGE"):
+        xdg = os.environ.get("XDG_DATA_HOME") or os.path.join(
+            os.path.expanduser("~"), ".local", "share")
+        return os.path.join(xdg, "BilibiliDownloader")
+    return os.path.dirname(os.path.abspath(sys.executable))
+
+
 def get_ffmpeg_dir():
     """返回 bin/ 目录的绝对路径（与 get_bundled_ffmpeg_path 约定一致）。"""
     if getattr(sys, "frozen", False):
-        # 冻结态：写到 exe 所在目录的 bin/（_MEIPASS 只读且会被清理）
-        return os.path.join(os.path.dirname(os.path.abspath(sys.executable)), "bin")
+        # 冻结态：_MEIPASS 只读且会被清理，写到可写的基目录/bin（见 _frozen_base_dir）
+        return os.path.join(_frozen_base_dir(), "bin")
     # 开发态：本文件在 utils/，项目根 = 上级目录
     return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "bin")
 
