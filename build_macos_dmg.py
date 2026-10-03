@@ -88,7 +88,7 @@ def pyinstaller_args(icns_path):
     ]
     args = [
         "pyinstaller", os.path.join(ROOT, "main.py"),
-        "--noconfirm", "--clean",
+        "--noconfirm",
         "--windowed",
         "--name", NAME,
         "--distpath", DIST,
@@ -107,6 +107,29 @@ def pyinstaller_args(icns_path):
     return args
 
 
+def prune_app(app_path):
+    """删除 .app 中未使用的 Qt 翻译/示例数据，缩小体积、加快 codesign 与打包。
+
+    本项目翻译走自己的 .po -> utils/locales_weblate.py，不依赖 Qt 的 .qm，
+    因此 Qt/translations 下 100+ 语言的 .qm（几十 MB）和 examples 可安全删除。
+    """
+    res = os.path.join(app_path, "Contents", "Resources")
+    for cand in (
+        os.path.join(res, "PySide6", "Qt", "translations"),
+        os.path.join(res, "PySide6", "examples"),
+    ):
+        if os.path.isdir(cand):
+            shutil.rmtree(cand, ignore_errors=True)
+    # 兜底：删除任何残留的 .qm
+    for root, _dirs, files in os.walk(res):
+        for f in files:
+            if f.endswith(".qm"):
+                try:
+                    os.remove(os.path.join(root, f))
+                except OSError:
+                    pass
+
+
 def codesign_app(app_path):
     """ad-hoc 签名（分发够用；Apple Silicon 必需）。"""
     try:
@@ -122,7 +145,8 @@ def build_dmg():
     os.makedirs(WORK, exist_ok=True)
 
     # 架构后缀：Apple Silicon 为 arm64，Intel 为 x86_64。CI 矩阵分别用
-    # macos-14 / macos-13 跑出两种架构，产物名带后缀避免互相覆盖。
+    # macos-14 / macos-15-intel 跑出两种架构（macos-13 已于 2025-12 下线），
+    # 产物名带后缀避免互相覆盖。
     arch = platform.machine()
     if arch not in ("arm64", "x86_64"):
         arch = "x86_64"
@@ -142,6 +166,9 @@ def build_dmg():
     if not os.path.isdir(app):
         die("PyInstaller 未产出预期 .app：%s" % app)
 
+    # 裁剪未使用的 Qt 数据（翻译/示例），缩小 .app，加快后续 codesign 与打包
+    prune_app(app)
+
     codesign_app(app)
 
     # .app.zip（便于直接下载）
@@ -149,12 +176,12 @@ def build_dmg():
     shutil.make_archive(zip_base, "zip", root_dir=DIST, base_dir=NAME + ".app")
 
     # .dmg（含 /Applications 快捷方式）
+    # 直接把 .app 与「Applications 软链目录」一起交给 hdiutil，
+    # 避免先 copytree 整包再压缩导致的二次复制（.app 只写入镜像一次）。
     stage = os.path.join(WORK, "dmgstage")
     shutil.rmtree(stage, ignore_errors=True)
     os.makedirs(stage)
-    # 拷贝 .app（不能用符号链接，dmg 里要真实内容）
-    shutil.copytree(app, os.path.join(stage, NAME + ".app"), symlinks=True)
-    # Applications 快捷方式
+    # Applications 快捷方式（仅一个软链，不复制 .app 内容）
     link = os.path.join(stage, "Applications")
     if not os.path.exists(link):
         os.symlink("/Applications", link)
@@ -162,7 +189,7 @@ def build_dmg():
     if os.path.exists(out_dmg):
         os.remove(out_dmg)
     run(["hdiutil", "create", "-volname", NAME,
-         "-srcfolder", stage, "-ov", "-format", "UDZO", out_dmg])
+         "-srcfolder", app, "-srcfolder", stage, "-ov", "-format", "UDZO", out_dmg])
 
     print("\n=== DMG BUILD SUCCESS ===")
     for p in (out_dmg, zip_base + ".zip"):

@@ -52,7 +52,9 @@ jobs:
           - arch: arm64
             runner: macos-14
           - arch: x86_64
-            runner: macos-13
+            # macos-13 已于 2025-12 下线（GitHub 停止维护 Intel runner）；
+            # 改用官方提供的最后一个 x86_64 镜像 macos-15-intel（预计可用至 2027-08）。
+            runner: macos-15-intel
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
