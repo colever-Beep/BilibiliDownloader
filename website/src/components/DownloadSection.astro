@@ -1,22 +1,66 @@
 ---
 const releases = 'https://github.com/colever-Beep/BilibiliDownloader/releases';
+const platforms = [
+  {
+    name: 'Windows', note: 'Windows 10 / 11',
+    items: [
+      { label: '安装版 (exe)', desc: '双击安装，带开始菜单与卸载入口' },
+      { label: '便携版 (zip)', desc: '免安装，可放 U 盘随用随走' },
+    ],
+  },
+  {
+    name: 'macOS', note: 'Apple Silicon / Intel',
+    items: [
+      { label: 'Apple Silicon (arm64)', desc: 'M 系列芯片 · .dmg / .app.zip' },
+      { label: 'Intel (x86_64)', desc: '老款 Mac · .dmg / .app.zip' },
+    ],
+  },
+  {
+    name: 'Linux', note: 'x86_64 / ARM64',
+    items: [
+      { label: 'AppImage (x86_64)', desc: '赋予执行权限后直接运行' },
+      { label: 'AppImage (aarch64)', desc: '树莓派 / ARM 设备' },
+    ],
+  },
+];
 ---
-<section id="download" class="download">
+<section id="download" class="section alt">
   <div class="container">
     <h2 class="section-title">下载</h2>
-    <p class="center">支持 Windows 10 / 11，提供单文件 exe 与便携版两种打包。</p>
-    <div class="dl-cards">
-      <div class="dl-card">
-        <h3>单文件版 (exe)</h3>
-        <p>双击即用的独立可执行文件，适合大多数用户。</p>
-        <a class="btn primary" href={releases} target="_blank" rel="noopener">前往 Releases 下载</a>
-      </div>
-      <div class="dl-card">
-        <h3>便携版 (portable)</h3>
-        <p>免安装、可放 U 盘，配置随目录携带。</p>
-        <a class="btn ghost" href={releases} target="_blank" rel="noopener">前往 Releases 下载</a>
-      </div>
+    <p class="section-sub">所有平台安装包均在 GitHub Releases 发布，开源免费。</p>
+    <div class="dl-grid">
+      {platforms.map((p) => (
+        <div class="dl-card card">
+          <div class="dl-head">
+            <h3>{p.name}</h3>
+            <small>{p.note}</small>
+          </div>
+          <ul class="dl-items">
+            {p.items.map((it) => (
+              <li><b>{it.label}</b><span>{it.desc}</span></li>
+            ))}
+          </ul>
+          <a class="btn primary" href={releases} target="_blank" rel="noopener">前往 Releases 下载</a>
+        </div>
+      ))}
     </div>
-    <p class="note">首次运行会自动下载 FFmpeg（约数十 MB）；也可手动将 ffmpeg.exe 放入 <code>bin/</code> 目录。</p>
+    <p class="note">
+      首次运行会自动下载 FFmpeg（约数十 MB）；macOS 包未做 Apple 公证，首次打开请右键「打开」，
+      或在终端执行 <code>xattr -d com.apple.quarantine /Applications/BilibiliDownloader.app</code>。
+    </p>
   </div>
 </section>
+
+<style>
+  .dl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+  .dl-card { display: flex; flex-direction: column; }
+  .dl-head { margin-bottom: 14px; }
+  .dl-head h3 { margin: 0; font-size: 18px; }
+  .dl-head small { color: var(--text-soft); font-size: 13px; }
+  .dl-items { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .dl-items li { display: flex; flex-direction: column; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-soft); }
+  .dl-items b { font-size: 14px; color: var(--text); }
+  .dl-items span { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+  .dl-card .btn { width: 100%; }
+  .note { text-align: center; color: var(--text-soft); font-size: 13px; margin-top: 24px; line-height: 1.8; }
+</style>

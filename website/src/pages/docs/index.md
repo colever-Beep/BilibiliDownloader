@@ -26,7 +26,7 @@ BilibiliDownloader 是一款基于 **PySide6 + qfluentwidgets** 的 B 站内容�
 
 ## 运行环境
 
-- 操作系统：Windows 10 / 11
+- 操作系统：Windows 10 / 11、macOS（Apple Silicon / Intel）、Linux（x86_64 / ARM64）
 - Python：3.10+（已验证 3.13 / 3.14）
 - FFmpeg：首次运行自动下载，也可手动放置
 
@@ -49,12 +49,16 @@ python main.py
 
 ## 打包为可执行文件
 
-项目提供两个打包脚本（基于 PyInstaller）：
+项目提供跨平台打包脚本（基于 PyInstaller）：
 
 ```bash
-python build_exe.py        # 生成单文件 BilibiliDownloader.exe
-python build_portable.py   # 生成便携版文件夹
+python build_exe.py            # Windows：单文件 BilibiliDownloader.exe
+python build_portable.py       # Windows：便携版文件夹
+python build_macos_dmg.py      # macOS：arm64 / x86_64 的 .dmg 与 .app.zip
+python build_linux_appimage.py # Linux：x86_64 / aarch64 的 AppImage
 ```
+
+GitHub Actions 会在推送 `v*` tag 或手动触发时自动构建上述全部平台的安装包，并发布到 GitHub Releases。
 
 - FFmpeg **不内置**到包中：首次运行自动下载，或手动将 `ffmpeg.exe` 放入 `bin/` 目录。
 - 打包产物位于 `dist/`（已在 `.gitignore` 中忽略）。

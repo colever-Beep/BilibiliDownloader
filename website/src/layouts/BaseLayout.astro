@@ -12,13 +12,23 @@ const favicon = import.meta.env.BASE_URL + 'favicon.svg';
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href={favicon} />
-    <meta name="description" content="BilibiliDownloader — 开源 B 站内容下载器，支持视频、番剧、直播、音频一键解析，Windows 桌面应用。" />
+    <meta name="description" content="BilibiliDownloader — 开源 B 站内容下载器，支持 Windows / macOS / Linux，视频、番剧、直播、音频一键解析下载。" />
     <title>{title}</title>
+    {/* 无闪烁主题初始化：优先 localStorage，否则跟随系统偏好 */}
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          document.documentElement.dataset.theme = t;
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <Nav active={active} />
-    <main class="container main">
-      {prose ? <div class="prose"><slot /></div> : <slot />}
+    <main class="main">
+      {prose ? <div class="container"><div class="prose"><slot /></div></div> : <slot />}
     </main>
     <Footer />
   </body>

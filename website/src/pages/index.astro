@@ -16,39 +16,66 @@ const features = [
   { title: '高 DPI 适配', desc: '完美适配高分屏与不同缩放下，界面元素清晰不模糊。', path: 'M3 4h18v12H3zM8 20h8M12 16v4' },
 ];
 
-// 截图占位：把真实图片放到 website/public/screenshots/ 后，把下面 .ph 换成 <img src=...>
+// 界面预览：把真实截图放到 website/public/screenshots/ 后，将下方 .ph 换成 <img> 即可
 const shots = [
-  { cap: '主界面 / 下载队列' },
-  { cap: '设置窗口' },
-  { cap: '解析选择对话框（分页 + 跳转按钮）' },
-  { cap: '明暗主题对比' },
+  { cap: '主界面 / 下载队列', file: 'main.png' },
+  { cap: '设置窗口', file: 'settings.png' },
+  { cap: '解析选择对话框', file: 'select.png' },
+  { cap: '明暗主题对比', file: 'theme.png' },
 ];
 ---
 <BaseLayout title="BilibiliDownloader — B 站内容下载器">
   <Hero />
 
-  <section class="features container">
-    <h2 class="section-title">核心功能</h2>
-    <div class="grid">
-      {features.map((f) => <FeatureCard title={f.title} desc={f.desc} path={f.path} />)}
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">核心功能</h2>
+      <p class="section-sub">一个工具，覆盖 B 站绝大多数内容类型的解析与下载</p>
+      <div class="grid">
+        {features.map((f) => <FeatureCard title={f.title} desc={f.desc} path={f.path} />)}
+      </div>
     </div>
   </section>
 
-  <section class="screenshots container">
-    <h2 class="section-title">界面预览</h2>
-    <div class="shot-grid">
-      {shots.map((s) => (
-        <figure class="shot">
-          <div class="ph">截图占位 · {s.cap}</div>
-          <figcaption>{s.cap}</figcaption>
-        </figure>
-      ))}
+  <section class="section alt">
+    <div class="container">
+      <h2 class="section-title">界面预览</h2>
+      <p class="section-sub">Fluent / WinUI 风格界面，深浅主题随心切换</p>
+      <div class="shot-grid">
+        {shots.map((s) => (
+          <figure class="shot">
+            <div class="ph">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="2" />
+                <path d="M3 9h18M8 14h8M8 17h5" />
+              </svg>
+              <span>截图占位 · {s.cap}</span>
+            </div>
+            <figcaption>{s.cap}</figcaption>
+          </figure>
+        ))}
+      </div>
+      <p class="hint">
+        将图片命名为 <code>main.png</code> / <code>settings.png</code> / <code>select.png</code> / <code>theme.png</code>
+        放入 <code>website/public/screenshots/</code>，再把上方占位框替换为 <code>&lt;img src="/screenshots/文件名"&gt;</code> 即可显示。
+      </p>
     </div>
-    <p class="hint">
-      截图即将上线 —— 将图片命名为 <code>main.png</code> / <code>settings.png</code> / <code>select.png</code> / <code>theme.png</code>
-      放入 <code>website/public/screenshots/</code>，并把上方占位框替换为 <code>&lt;img&gt;</code> 即可显示。
-    </p>
   </section>
 
   <DownloadSection />
 </BaseLayout>
+
+<style>
+  .shot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+  .shot { margin: 0; }
+  .shot .ph {
+    aspect-ratio: 16 / 10; border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--accent-weak), var(--bg-soft));
+    border: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    color: var(--text-soft); font-size: 14px;
+  }
+  .shot .ph svg { width: 34px; height: 34px; color: var(--accent); opacity: 0.7; }
+  .shot figcaption { text-align: center; margin-top: 10px; color: var(--text-soft); font-size: 13px; }
+  .hint { text-align: center; color: var(--text-soft); font-size: 13px; margin-top: 22px; line-height: 1.8; }
+</style>

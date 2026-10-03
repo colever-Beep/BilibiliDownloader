@@ -1,16 +1,32 @@
 ---
+const base = import.meta.env.BASE_URL;
 const year = new Date().getFullYear();
 ---
 <footer class="footer">
   <div class="container footer-inner">
-    <p>© {year} colever-Beep · BilibiliDownloader</p>
+    <p class="brand-line"><strong>BilibiliDownloader</strong></p>
+    <p class="links">
+      <a href={base + 'docs'}>使用文档</a>
+      <a href={base + 'docs/faq'}>常见问题</a>
+      <a href={base + 'docs/changelog'}>更新日志</a>
+      <a href="https://github.com/colever-Beep/BilibiliDownloader" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/colever-Beep/BilibiliDownloader/releases" target="_blank" rel="noopener">下载</a>
+    </p>
     <p class="muted">
       基于 <a href="https://github.com/ScottSloan/Bili23-Downloader" target="_blank" rel="noopener">Bili23-Downloader</a>
       （GPL-3.0）衍生开发 · 仅供学习研究使用
     </p>
-    <p class="muted">
-      <a href="https://github.com/colever-Beep/BilibiliDownloader" target="_blank" rel="noopener">GitHub</a>
-      · <a href={import.meta.env.BASE_URL + 'docs'}>使用文档</a>
-    </p>
+    <p class="copy">© {year} colever-Beep · 以 GPL-3.0 许可证发布</p>
   </div>
 </footer>
+
+<style>
+  .footer { border-top: 1px solid var(--border); margin-top: 56px; padding: 32px 0; background: var(--bg-soft); }
+  .footer-inner { text-align: center; color: var(--text-soft); font-size: 14px; }
+  .brand-line { margin: 0 0 8px; color: var(--text); font-size: 16px; }
+  .links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin: 6px 0; }
+  .links a { color: var(--text-soft); }
+  .links a:hover { color: var(--accent); }
+  .muted { margin: 8px 0 4px; }
+  .copy { margin: 4px 0 0; font-size: 13px; }
+</style>
