@@ -7,92 +7,27 @@ const github = 'https://github.com/colever-Beep/BilibiliDownloader';
   <div class="container hero-inner">
     <span class="badge">开源 · GPL-3.0 · 跨平台</span>
     <h1>BilibiliDownloader</h1>
-    <p class="sub">跨平台的 B 站内容下载工具 · 视频 / 番剧 / 直播 / 音频 一键解析下载</p>
+    <p class="sub">跨平台的 B 站内容下载工具，视频 / 番剧 / 直播 / 音频 一键解析下载。</p>
     <div class="cta">
       <a class="btn primary lg" href={releases} target="_blank" rel="noopener">下载最新版</a>
       <a class="btn ghost lg" href={base + '/docs'}>使用文档</a>
       <a class="btn ghost lg" href={github} target="_blank" rel="noopener">GitHub</a>
     </div>
-    <div class="platforms">
-      <span class="pf"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5a2 2 0 012-2h14a2 2 0 012 2v9a2 2 0 01-2 2h-7l-4 4v-4H5a2 2 0 01-2-2V5z"/></svg>Windows</span>
-      <span class="pf"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 1.5c.1 1.3-.4 2.6-1.2 3.5-1 1-2.2 1.7-3.5 1.6-.1-1.2.4-2.5 1.1-3.4 1-1 2.3-1.7 3.6-1.7zM20 17.3c-.5 1.2-.8 1.7-1.5 2.7-1 1.4-2.4 3.1-4.2 3.1-1.5 0-1.9-1-4-1-2 0-2.5 1-4 1-1.8 0-3.1-1.6-4.1-2.9C.4 17.3-.3 12.4 1.3 9.6c1-1.7 2.6-2.7 4.3-2.7 1.7 0 2.7 1 4.1 1 1.3 0 2.1-1 4.1-1 1.5 0 3.1.8 4.2 2.3-3.7 2-3.1 7.2 2 8.1z"/></svg>macOS</span>
-      <span class="pf"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 2.1a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm4 0a1.3 1.3 0 11-2.6 0 1.3 1.3 0 012.6 0zM3.2 20.4V9.1h3.1v11.3H3.2zm4.9 0V9.1h3v1.6c.5-.9 1.6-1.8 3.3-1.8 2.7 0 3.6 1.8 3.6 4.4v7.1h-3.1v-6.4c0-1.4-.4-2.3-1.6-2.3-1.2 0-1.9.8-1.9 2.3v6.4H8.1z"/></svg>Linux</span>
-    </div>
-
-    {/* Fluent 风格下载器窗口 mock（纯 HTML/CSS，不含任何隐私信息） */}
-    <div class="hero-app" aria-hidden="true">
-      <div class="ha-bar"><span></span><span></span><span></span><b>BilibiliDownloader</b></div>
-      <div class="ha-body">
-        <aside class="ha-side">
-          <span class="ha-item active">下载队列</span>
-          <span class="ha-item">解析</span>
-          <span class="ha-item">收藏夹</span>
-          <span class="ha-item">设置</span>
-        </aside>
-        <div class="ha-main">
-          <div class="ha-row">
-            <div class="ha-thumb"></div>
-            <div class="ha-meta"><b>[4K] 示例视频标题</b><i>视频 · 68%</i></div>
-            <div class="ha-bar"><i style="width:68%"></i></div>
-          </div>
-          <div class="ha-row">
-            <div class="ha-thumb"></div>
-            <div class="ha-meta"><b>[1080P] 番剧第 12 话</b><i>番剧 · 34%</i></div>
-            <div class="ha-bar"><i style="width:34%"></i></div>
-          </div>
-          <div class="ha-row">
-            <div class="ha-thumb"></div>
-            <div class="ha-meta"><b>[Hi-Res] 音乐专辑</b><i>音频 · 已完成</i></div>
-            <div class="ha-bar done"><i style="width:100%"></i></div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <p class="platforms-text">支持 Windows · macOS · Linux</p>
   </div>
 </section>
 
 <style>
-  .hero { padding: 56px 0 32px; text-align: center; }
+  .hero { padding: 72px 0 40px; text-align: center; }
   .badge {
     display: inline-block; padding: 4px 14px; border-radius: 999px;
     background: var(--accent-weak); color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 18px;
   }
   .hero h1 { font-size: 46px; margin: 0 0 12px; letter-spacing: -1px; }
-  .sub { font-size: 18px; color: var(--text-soft); margin: 0 0 26px; }
+  .sub { font-size: 18px; color: var(--text-soft); margin: 0 auto 26px; max-width: 640px; }
   .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .platforms { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
-  .pf {
-    display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px;
-    border: 1px solid var(--border); color: var(--text-soft); font-size: 14px; font-weight: 600;
-  }
-  .pf svg { width: 15px; height: 15px; }
-
-  /* 下载器窗口 mock */
-  .hero-app {
-    max-width: 720px; margin: 38px auto 0; border-radius: 14px; overflow: hidden;
-    border: 1px solid var(--border); box-shadow: var(--shadow); background: var(--card); text-align: left;
-  }
-  .ha-bar { display: flex; align-items: center; gap: 7px; padding: 10px 14px; background: var(--bg-soft); border-bottom: 1px solid var(--border); }
-  .ha-bar span { width: 11px; height: 11px; border-radius: 50%; background: #ff5f57; }
-  .ha-bar span:nth-child(2) { background: #febc2e; }
-  .ha-bar span:nth-child(3) { background: #28c840; }
-  .ha-bar b { margin-left: 8px; font-size: 13px; color: var(--text-soft); font-weight: 600; }
-  .ha-body { display: flex; min-height: 260px; }
-  .ha-side { width: 132px; padding: 14px 10px; background: var(--bg-soft); border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
-  .ha-item { padding: 8px 12px; border-radius: 8px; font-size: 13px; color: var(--text-soft); }
-  .ha-item.active { background: var(--accent-weak); color: var(--accent); font-weight: 600; }
-  .ha-main { flex: 1; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
-  .ha-row { display: flex; align-items: center; gap: 12px; }
-  .ha-thumb { width: 56px; height: 38px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), #ffb3c9); flex: none; }
-  .ha-meta { flex: 1; min-width: 0; }
-  .ha-meta b { display: block; font-size: 14px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ha-meta i { font-style: normal; font-size: 12px; color: var(--text-soft); }
-  .ha-bar { width: 90px; height: 6px; border-radius: 999px; background: var(--bg-soft); overflow: hidden; flex: none; }
-  .ha-bar i { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
-  .ha-bar.done i { background: #28c840; }
-
+  .platforms-text { margin-top: 22px; color: var(--text-soft); font-size: 14px; }
   @media (max-width: 600px) {
     .hero h1 { font-size: 34px; }
-    .ha-side { display: none; }
   }
 </style>

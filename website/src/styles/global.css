@@ -83,20 +83,6 @@ img { max-width: 100%; }
 .section-title { font-size: 28px; text-align: center; margin: 0 0 6px; letter-spacing: -0.3px; }
 .section-sub { text-align: center; color: var(--text-soft); margin: 0 0 36px; font-size: 15px; }
 
-/* ===== 卡片 ===== */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
-.card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow);
-}
-.card .ico {
-  display: inline-grid; place-items: center; width: 44px; height: 44px;
-  border-radius: 12px; background: var(--accent-weak); color: var(--accent); margin-bottom: 14px;
-}
-.card .ico svg { width: 24px; height: 24px; }
-.card h3 { margin: 0 0 6px; font-size: 17px; }
-.card p { margin: 0; color: var(--text-soft); font-size: 14px; }
-
 code { background: var(--bg-soft); padding: 2px 6px; border-radius: 6px; font-size: 13px; }
 
 /* ===== 主题切换图标显隐（由 html[data-theme] 控制） ===== */

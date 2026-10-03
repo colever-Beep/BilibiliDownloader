@@ -28,22 +28,21 @@ const platforms = [
   <div class="container">
     <h2 class="section-title">下载</h2>
     <p class="section-sub">所有平台安装包均在 GitHub Releases 发布，开源免费。</p>
-    <div class="dl-grid">
+    <div class="dl-groups">
       {platforms.map((p) => (
-        <div class="dl-card card">
-          <div class="dl-head">
-            <h3>{p.name}</h3>
-            <small>{p.note}</small>
-          </div>
-          <ul class="dl-items">
+        <div class="dl-group">
+          <h3 class="dl-name">{p.name} <small>{p.note}</small></h3>
+          <ul class="dl-list">
             {p.items.map((it) => (
-              <li><b>{it.label}</b><span>{it.desc}</span></li>
+              <li><a href={releases} target="_blank" rel="noopener">{it.label}</a><span>{it.desc}</span></li>
             ))}
           </ul>
-          <a class="btn primary" href={releases} target="_blank" rel="noopener">前往 Releases 下载</a>
         </div>
       ))}
     </div>
+    <p class="dl-cta">
+      <a class="btn primary" href={releases} target="_blank" rel="noopener">前往 GitHub Releases 下载</a>
+    </p>
     <p class="note">
       首次运行会自动下载 FFmpeg（约数十 MB）；macOS 包未做 Apple 公证，首次打开请右键「打开」，
       或在终端执行 <code>xattr -d com.apple.quarantine /Applications/BilibiliDownloader.app</code>。
@@ -52,15 +51,14 @@ const platforms = [
 </section>
 
 <style>
-  .dl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
-  .dl-card { display: flex; flex-direction: column; }
-  .dl-head { margin-bottom: 14px; }
-  .dl-head h3 { margin: 0; font-size: 18px; }
-  .dl-head small { color: var(--text-soft); font-size: 13px; }
-  .dl-items { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
-  .dl-items li { display: flex; flex-direction: column; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-soft); }
-  .dl-items b { font-size: 14px; color: var(--text); }
-  .dl-items span { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
-  .dl-card .btn { width: 100%; }
-  .note { text-align: center; color: var(--text-soft); font-size: 13px; margin-top: 24px; line-height: 1.8; }
+  .dl-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px; }
+  .dl-name { font-size: 17px; margin: 0 0 10px; color: var(--text); }
+  .dl-name small { color: var(--text-soft); font-size: 13px; font-weight: 400; margin-left: 6px; }
+  .dl-list { list-style: none; margin: 0; padding: 0; }
+  .dl-list li { padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .dl-list li:last-child { border-bottom: none; }
+  .dl-list a { font-weight: 600; }
+  .dl-list span { display: block; color: var(--text-soft); font-size: 13px; margin-top: 2px; }
+  .dl-cta { text-align: center; margin-top: 28px; }
+  .note { text-align: center; color: var(--text-soft); font-size: 13px; margin-top: 20px; line-height: 1.8; }
 </style>
