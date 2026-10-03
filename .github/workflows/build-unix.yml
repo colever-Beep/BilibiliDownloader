@@ -107,14 +107,19 @@ jobs:
           merge-multiple: true
       - name: List collected files
         run: ls -lh dist
+      # 注意：本 job 不 checkout 源码（无需 .git），因此必须显式用 --repo 指定仓库，
+      # 否则 gh 会回退到 git 命令去探测 remote，在无 .git 目录时直接报
+      # “failed to run git: fatal: not a git repository”，导致发布失败。
       - name: Create or update Release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
           TAG: ${{ steps.tag.outputs.tag }}
           TITLE: ${{ steps.tag.outputs.title }}
           PRERELEASE: ${{ steps.tag.outputs.prerelease }}
         run: |
           set -euo pipefail
+          REPO="$GITHUB_REPOSITORY"
           notes=$(mktemp)
           {
             echo "## 下载"
@@ -140,12 +145,12 @@ jobs:
             echo "> macOS 写入 ~/Library/Application Support）。离线环境请手动放入。"
           } > "$notes"
           files=(dist/*)
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "${files[@]}" --clobber
-            gh release edit "$TAG" --title "$TITLE" --notes-file "$notes" $PRERELEASE
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" --repo "$REPO" "${files[@]}" --clobber
+            gh release edit "$TAG" --repo "$REPO" --title "$TITLE" --notes-file "$notes" $PRERELEASE
             echo "Release $TAG 已更新"
           else
-            gh release create "$TAG" "${files[@]}" \
+            gh release create "$TAG" --repo "$REPO" "${files[@]}" \
               --title "$TITLE" --notes-file "$notes" $PRERELEASE
             echo "Release $TAG 已创建"
           fi
