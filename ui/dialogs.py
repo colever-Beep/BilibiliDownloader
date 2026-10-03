@@ -21,7 +21,7 @@ import threading
 
 import requests
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QFont, QImage, QPixmap, QTextCursor, QGuiApplication
 from PySide6.QtWidgets import (
     QFrame, QHBoxLayout, QLabel, QHeaderView, QListWidgetItem, QScrollArea,
@@ -225,9 +225,10 @@ class LoginDialog(TopNavigationDialog):
             self.cookie_status.setText(tr("登录成功，但保存 Cookie 失败：") + str(e))
             return
         self.api.set_cookie_string(load_cookie_string("cookies.txt"))
-        if self.on_success:
-            self.on_success()
         self.accept()
+        if self.on_success:
+            cb = self.on_success
+            QTimer.singleShot(0, cb)
 
     # ---------- 二维码生成 ----------
     def _generate(self):
@@ -297,9 +298,13 @@ class LoginDialog(TopNavigationDialog):
             self.api.set_cookie_string(load_cookie_string("cookies.txt"))
         except Exception as e:
             self.status_label.setText(tr("登录成功，但保存 Cookie 失败：") + str(e))
-        if self.on_success:
-            self.on_success()
+        # 先关闭登录窗口，再异步执行成功回调（刷新侧栏 + 首次登录温馨提示），
+        # 避免温馨提示弹窗被仍可见的登录窗压在后面（此前 on_success 先跑、登录窗
+        # 尚未关，提示框父窗口是主窗口、被置顶的登录窗盖住）。
         self.accept()
+        if self.on_success:
+            cb = self.on_success
+            QTimer.singleShot(0, cb)
 
     def reject(self):
         self._stop.set()

@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import os
 
-from PySide6.QtCore import QEventLoop, QSize, Qt
+from PySide6.QtCore import QEventLoop, QSize, QTimer, Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QDialog, QHBoxLayout, QVBoxLayout
 
@@ -135,11 +135,10 @@ class FluentModalDialog(FluentWidget):
             pass
         self.setWindowModality(Qt.ApplicationModal)
         self.setFixedSize(self._size)
-        # 置顶（bili23 的焦点/置顶方案）：保证弹窗在 Windows 下必定可点击，
-        # 不被前台锁卡成「看得见点不动」。不做 Win32 抢前台（会与 exec 时序冲突）。
-        # 直接用窗口标志，避免 qfluentwidgets setStayOnTop 内部自带的 show()
-        # 副作用在 __init__ 阶段提前弹出空窗口。
-        self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
+        # 注意：不再使用 WindowStaysOnTopHint 全局置顶——那样会让弹窗盖住
+        # 其它程序的窗口（用户反馈的 bug）。保持 ApplicationModal 即可让弹窗始终
+        # 位于本应用窗口之上、且不挡其它应用；exec() 内再 raise_()/activateWindow()
+        # 保证 Windows 下必定可点击、不被前台锁卡成「看得见点不动」。
         # 子窗口图标：继承父窗口（主窗口已加载 icon.ico），否则用根目录 icon.ico
         self.setWindowIcon(_child_window_icon(self._parent_window))
 
@@ -201,6 +200,10 @@ class FluentModalDialog(FluentWidget):
     def exec(self):
         """等效 QDialog.exec()：阻塞到窗口关闭，返回是否点了「确定」。"""
         self.show()
+        # 提升并激活到本应用最前（不含 WindowStaysOnTopHint，不会盖住其它程序窗口），
+        # 解决 Windows 下模态弹窗「看得见点不动」的前台锁问题。
+        self.raise_()
+        self.activateWindow()
         self._loop = QEventLoop(self)
         self._loop.exec()
         self._loop = None
@@ -427,25 +430,26 @@ class _MaskMessageBox(MessageBox):
     关闭后在 `_message()` 里显式 `deleteLater()` 释放，既不踩 exec() 语义，也不
     会让隐藏对话框（含 windowMask 遮罩层、淡入动画）在主窗口子树里累积。
 
-    置顶（`setStayOnTop`）保证 Windows 下弹窗必定可点击、不被前台锁卡成
-    「看得见点不动」——这是 bili23 的置顶方案，比自己写 Win32 抢前台更稳。
+    不再使用 WindowStaysOnTopHint 全局置顶（会盖住其它程序窗口，用户反馈的 bug）；
+    保持模态即可位于本应用窗口之上，showEvent 内延迟 raise_/activateWindow 保证
+    Windows 下必定可点击、不被前台锁卡成「看得见点不动」。
     """
 
     def __init__(self, title, content, parent=None):
         super().__init__(title, content, parent)
-        # 置顶（bili23 的置顶方案）：保证 Windows 下弹窗必定可点击、不被前台锁
-        # 卡成「看得见点不动」。MessageBox 自身没有 setStayOnTop 方法，用标准
-        # 窗口标志实现；MaskDialogBase.showEvent 只做淡入动画、不会清掉该标志。
-        try:
-            self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
-        except Exception:
-            pass
         # 子窗口图标：遮罩式消息框覆盖在父窗口上，继承父窗口图标（避免任务栏/
         # 切换窗口时显示空白图标），父窗口无图标时回退到根目录 icon.ico。
         try:
             self.setWindowIcon(_child_window_icon(parent))
         except Exception:
             pass
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        # 延迟到首帧后提升并激活（不含全局置顶），避免盖住其它程序窗口的同时
+        # 解决 Windows 模态弹窗「看得见点不动」的前台锁问题。
+        QTimer.singleShot(0, self.raise_)
+        QTimer.singleShot(0, self.activateWindow)
 
 
 def msg_info(parent, content, title=None, ok_text=None):

@@ -53,6 +53,10 @@ def main():
     # Qt 应用对象（单例，必须在任何 Qt 窗口之前创建）
     app = QApplication(sys.argv)
     app.setApplicationName("BilibiliDownloader")
+    # 关闭到托盘的关键：默认 quitOnLastWindowClosed=True，隐藏主窗口（最小化到托盘）
+    # 会触发 lastWindowClosed → 应用直接退出，托盘随之失效（用户反馈"首次退出卡顿且托盘失效"）。
+    # 改为 False：由 closeEvent 决定最小化到托盘还是真正退出（quit_app 内 os._exit 兜底）。
+    app.setQuitOnLastWindowClosed(False)
 
     # QApplication 就绪后一次性应用主题，确保全局 QSS 和 Fluent 强调色
     # 在主窗口构建前写入，避免首帧使用默认色。

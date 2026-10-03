@@ -57,9 +57,9 @@ class _AppMainWindow(QMainWindow):
 
     控制器 ``MainWindow`` 是普通 Python 类，其 ``closeEvent`` 不会被 Qt 直接
     调用；此前 ``self.window`` 是裸 ``QMainWindow``，点击 X 走默认 ``closeEvent``
-    （直接接受关闭），配合默认的 ``quitOnLastWindowClosed=True`` 直接退出、托盘
-    随之失效。这里用最小子类把 ``Close`` 事件转发给控制器，由其决定最小化到托盘
-    还是退出。
+    （直接接受关闭），配合默认的 ``quitOnLastWindowClosed=True`` 会直接退出、托盘
+    随之失效（main.py 已将该标志设为 False 修复）。这里用最小子类把 ``Close`` 事件
+    转发给控制器，由其决定最小化到托盘还是退出。
     """
 
     def __init__(self, controller):
@@ -463,28 +463,42 @@ class MainWindow:
         self.tray.hide_window()
 
     def closeEvent(self, ev):
+        # 关键：绝不在 closeEvent 内直接 exec() 模态弹窗。那样会跑「嵌套事件循环」，
+        # 与窗口关闭时序冲突——Windows 下表现为「点完选项后界面冻住几秒（未响应）」，
+        # 冻结期间主窗口关闭流程被打断/兜底，最终连带把程序关掉（用户感知为卡一下就退出）。
+        # 正确做法：未设置过关闭方式时先 ignore 本次关闭，再用 singleShot 在「主线事件循环」
+        # 里弹询问窗（bili23 同款），由用户选择再决定最小化到托盘或退出；已设置的则直接走。
         behavior = self.config.get("close_behavior", "")
-        if behavior not in ("tray", "quit"):
-            dlg = ChoiceDialog(self.window, tr("关闭方式"), tr("关闭程序时："),
-                               options=[(tr("直接退出"), "quit"),
-                                        (tr("最小化到托盘"), "tray")],
-                               default="tray")
-            dlg.exec()
-            behavior = dlg.value
-            try:
-                self.config.set("close_behavior", behavior)
-            except Exception:
-                pass
         if behavior == "tray":
             ev.ignore()
             self.minimize_to_tray()
-        else:
-            # 顺序要紧：先 quit_app()（内部 os._exit(0) 立即结束进程），再 accept()。
-            # 若反过来先 ev.accept()，Qt 会先走一遍窗口关闭流程（隐藏/销毁整棵控件树
-            # ——侧边栏+队列+全部 UI，控件极多），这段销毁耗时就是用户看到的
-            # "界面冻住一段时间才消失"。os._exit 是强制结束，不依赖任何清理。
+        elif behavior == "quit":
+            # 直接退出：os._exit 兜底，不依赖 ev.accept 走整棵控件树销毁（避免卡顿）
             self.quit_app()
-            ev.accept()
+        else:
+            ev.ignore()
+            QTimer.singleShot(0, self._ask_close_behavior)
+
+    def _ask_close_behavior(self):
+        """主线事件循环内弹「关闭方式」询问窗（不嵌套于 closeEvent）。
+
+        取消（点标题栏 X）时 value 保持默认 "tray"，与首次进入时的默认一致；
+        选「直接退出」走 quit_app（os._exit 兜底），选「最小化到托盘」走 minimize_to_tray。
+        """
+        dlg = ChoiceDialog(self.window, tr("关闭方式"), tr("关闭程序时："),
+                           options=[(tr("直接退出"), "quit"),
+                                    (tr("最小化到托盘"), "tray")],
+                           default="tray")
+        dlg.exec()
+        choice = dlg.value or "tray"
+        try:
+            self.config.set("close_behavior", choice)
+        except Exception:
+            pass
+        if choice == "tray":
+            self.minimize_to_tray()
+        else:
+            self.quit_app()
 
     def on_closing(self):
         # 兼容旧调用点；实际关闭由 closeEvent 驱动
