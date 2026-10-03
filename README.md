@@ -97,7 +97,7 @@ pip install auto-py-to-exe
   python build_linux_appimage.py
   ```
 
-  产物：`dist/BilibiliDownloader-x86_64.AppImage`（单文件，`chmod +x` 后直接运行）。
+  产物：`dist/BilibiliDownloader-<arch>.AppImage`（`arch` 为 `x86_64` 或 `aarch64`，取决于构建机架构；单文件，`chmod +x` 后直接运行）。
 
 - **macOS DMG**（需在 macOS 上构建）：
 
@@ -106,8 +106,9 @@ pip install auto-py-to-exe
   python build_macos_dmg.py
   ```
 
-  产物：`dist/BilibiliDownloader-macos.dmg` 与 `dist/BilibiliDownloader-macos.app.zip`
-  （ad-hoc 签名，拖拽到「应用程序」安装；Apple Silicon 上必须签名才能运行）。
+  产物：`dist/BilibiliDownloader-macos-<arch>.dmg` 与 `dist/BilibiliDownloader-macos-<arch>.app.zip`
+  （`arch` 为 `arm64` 或 `x86_64`，取决于构建机架构；ad-hoc 签名，拖拽到「应用程序」安装；
+  Apple Silicon 上必须签名才能运行）。
 
 > 也可用仓库自带的工作流 `.github/workflows/build-unix.yml` 一键构建：在 Actions
 > 页面手动触发（或推送 `v*` tag），分别由 Ubuntu / macOS runner 产出 AppImage 与

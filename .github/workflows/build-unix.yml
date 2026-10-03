@@ -1,8 +1,9 @@
 name: Build Linux/macOS packages
 
-# 手动触发（Actions 页面 Run workflow）或推送 v* tag 时构建：
-#   - Linux: AppImage（单文件，赋予执行权限即可运行）
-#   - macOS: ad-hoc 签名 .app 的 .dmg / .app.zip
+# 手动触发（Actions 页面 Run workflow）或推送 v* tag 时构建；构建完成后自动发布到 Releases：
+#   - Linux: AppImage（单文件，赋予执行权限即可运行），按架构拆分 x86_64 / aarch64
+#   - macOS: ad-hoc 签名 .app 的 .dmg / .app.zip，按架构拆分 arm64（Apple Silicon）/ x86_64（Intel）
+# 每个工件名都带架构后缀，release 阶段统一收集后发布（tag 触发发正式版，手动触发发 continuous 预发布）。
 on:
   workflow_dispatch:
   push:
@@ -11,8 +12,16 @@ on:
 
 jobs:
   appimage:
-    name: AppImage (Linux)
-    runs-on: ubuntu-latest
+    name: AppImage (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -29,13 +38,21 @@ jobs:
         run: python build_linux_appimage.py
       - uses: actions/upload-artifact@v7
         with:
-          name: BilibiliDownloader-AppImage
-          path: dist/*.AppImage
+          name: BilibiliDownloader-AppImage-${{ matrix.arch }}
+          path: dist/BilibiliDownloader-${{ matrix.arch }}.AppImage
           if-no-files-found: error
 
   dmg:
-    name: DMG (macOS)
-    runs-on: macos-latest
+    name: DMG (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-14
+          - arch: x86_64
+            runner: macos-13
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -52,50 +69,67 @@ jobs:
         run: python build_macos_dmg.py
       - uses: actions/upload-artifact@v7
         with:
-          name: BilibiliDownloader-macOS
+          name: BilibiliDownloader-macOS-${{ matrix.arch }}
           path: |
-            dist/*.dmg
-            dist/*.app.zip
+            dist/BilibiliDownloader-macos-${{ matrix.arch }}.dmg
+            dist/BilibiliDownloader-macos-${{ matrix.arch }}.app.zip
           if-no-files-found: error
 
-  # 仅在推送 v* tag 时，把上面两个平台的产物发布到 GitHub Release（永久保留、
-  # 可直接下载链接；Actions artifact 90 天会过期）。workflow_dispatch 手动触发时跳过。
+  # 每次构建完都自动发布到 GitHub Release（永久保留、可直接下载；Actions artifact
+  # 90 天会过期）。推送 v* tag 时发正式版（release 名即 tag）；手动触发（workflow_dispatch）
+  # 时发滚动的 continuous 预发布，每次覆盖更新同名 release 的资源。
   release:
     name: Publish to GitHub Release
     needs: [appimage, dmg]
-    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Download AppImage
+      - name: Determine release tag
+        id: tag
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=" >> "$GITHUB_OUTPUT"
+            echo "title=BilibiliDownloader ${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=continuous" >> "$GITHUB_OUTPUT"
+            echo "prerelease=--prerelease" >> "$GITHUB_OUTPUT"
+            echo "title=BilibiliDownloader 持续构建 ($(date +%Y-%m-%d))" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Download all artifacts
         uses: actions/download-artifact@v7
         with:
-          name: BilibiliDownloader-AppImage
           path: dist
-      - name: Download macOS package
-        uses: actions/download-artifact@v7
-        with:
-          name: BilibiliDownloader-macOS
-          path: dist
+          merge-multiple: true
       - name: List collected files
         run: ls -lh dist
       - name: Create or update Release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          TITLE: ${{ steps.tag.outputs.title }}
+          PRERELEASE: ${{ steps.tag.outputs.prerelease }}
         run: |
           set -euo pipefail
           notes=$(mktemp)
           {
             echo "## 下载"
             echo
-            echo "| 平台 | 文件 | 说明 |"
-            echo "| --- | --- | --- |"
-            echo "| Linux | \`BilibiliDownloader-*-x86_64.AppImage\` | 单文件，\`chmod +x\` 后运行 |"
-            echo "| macOS | \`BilibiliDownloader-macos.dmg\` | 拖拽到「应用程序」安装 |"
-            echo "| macOS | \`BilibiliDownloader-macos.app.zip\` | 已 ad-hoc 签名的 \`.app\` |"
+            echo "| 平台 | 架构 | 文件 | 说明 |"
+            echo "| --- | --- | --- | --- |"
+            echo "| Linux | x86_64 | \`BilibiliDownloader-x86_64.AppImage\` | 单文件，\`chmod +x\` 后运行 |"
+            echo "| Linux | ARM64 | \`BilibiliDownloader-aarch64.AppImage\` | 树莓派 / ARM 设备，\`chmod +x\` 后运行 |"
+            echo "| macOS | Apple Silicon | \`BilibiliDownloader-macos-arm64.dmg\` | 拖拽到「应用程序」安装 |"
+            echo "| macOS | Apple Silicon | \`BilibiliDownloader-macos-arm64.app.zip\` | 已 ad-hoc 签名的 \`.app\` |"
+            echo "| macOS | Intel | \`BilibiliDownloader-macos-x86_64.dmg\` | 拖拽到「应用程序」安装 |"
+            echo "| macOS | Intel | \`BilibiliDownloader-macos-x86_64.app.zip\` | 已 ad-hoc 签名的 \`.app\` |"
             echo
+            if [[ -n "$PRERELEASE" ]]; then
+              echo "> 本发布为**持续构建（prerelease）**，对应最近一次手动触发的构建，可能不稳定。"
+              echo
+            fi
             echo "> **macOS 首次打开**：本包未做 Apple 公证，Gatekeeper 会拦截。"
             echo "> 请右键点击 App/DMG 选择「打开」，或在终端执行："
             echo "> \`xattr -d com.apple.quarantine /Applications/BilibiliDownloader.app\`"
@@ -106,10 +140,10 @@ jobs:
           files=(dist/*)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "${files[@]}" --clobber
-            gh release edit "$TAG" --notes-file "$notes"
+            gh release edit "$TAG" --title "$TITLE" --notes-file "$notes" $PRERELEASE
             echo "Release $TAG 已更新"
           else
             gh release create "$TAG" "${files[@]}" \
-              --title "BilibiliDownloader $TAG" --notes-file "$notes"
+              --title "$TITLE" --notes-file "$notes" $PRERELEASE
             echo "Release $TAG 已创建"
           fi

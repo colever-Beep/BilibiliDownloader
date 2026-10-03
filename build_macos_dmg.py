@@ -16,6 +16,7 @@ ffmpeg_provider 会写入 ~/Library/Application Support/BilibiliDownloader/bin�
 """
 import glob
 import os
+import platform
 import shutil
 import subprocess
 import sys
@@ -120,6 +121,12 @@ def build_dmg():
     os.makedirs(DIST, exist_ok=True)
     os.makedirs(WORK, exist_ok=True)
 
+    # 架构后缀：Apple Silicon 为 arm64，Intel 为 x86_64。CI 矩阵分别用
+    # macos-14 / macos-13 跑出两种架构，产物名带后缀避免互相覆盖。
+    arch = platform.machine()
+    if arch not in ("arm64", "x86_64"):
+        arch = "x86_64"
+
     bake_i18n()
 
     icns = os.path.join(WORK, "app.icns")
@@ -138,7 +145,7 @@ def build_dmg():
     codesign_app(app)
 
     # .app.zip（便于直接下载）
-    zip_base = os.path.join(DIST, "%s-macos" % NAME)
+    zip_base = os.path.join(DIST, "%s-macos-%s" % (NAME, arch))
     shutil.make_archive(zip_base, "zip", root_dir=DIST, base_dir=NAME + ".app")
 
     # .dmg（含 /Applications 快捷方式）
@@ -151,7 +158,7 @@ def build_dmg():
     link = os.path.join(stage, "Applications")
     if not os.path.exists(link):
         os.symlink("/Applications", link)
-    out_dmg = os.path.join(DIST, "%s-macos.dmg" % NAME)
+    out_dmg = os.path.join(DIST, "%s-macos-%s.dmg" % (NAME, arch))
     if os.path.exists(out_dmg):
         os.remove(out_dmg)
     run(["hdiutil", "create", "-volname", NAME,
