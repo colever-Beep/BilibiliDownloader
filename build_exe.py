@@ -14,7 +14,9 @@ import subprocess
 import auto_py_to_exe.config as ape_config
 from auto_py_to_exe.packaging import package
 
-ROOT = r"D:\VScode\b"
+# 动态取本脚本所在目录作为项目根：兼容本地 D:\VScode\b，也能在 CI runner 的
+# 任意检出路径下工作。切勿写死绝对路径，否则非本机环境打包会写入不存在的目录而崩溃。
+ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # Where PyInstaller does its temp work (build/spec/dist staging)
 ape_config.temporary_directory = os.path.join(ROOT, ".build_tmp")

@@ -1,9 +1,10 @@
-name: Build Linux/macOS packages
+name: Build packages
 
 # 手动触发（Actions 页面 Run workflow）或推送 v* tag 时构建；构建完成后自动发布到 Releases：
+#   - Windows: 单文件安装版 .exe（双击运行）+ 便携版 .zip（解压即用），均 x86_64
 #   - Linux: AppImage（单文件，赋予执行权限即可运行），按架构拆分 x86_64 / aarch64
 #   - macOS: ad-hoc 签名 .app 的 .dmg / .app.zip，按架构拆分 arm64（Apple Silicon）/ x86_64（Intel）
-# 每个工件名都带架构后缀，release 阶段统一收集后发布（tag 触发发正式版，手动触发发 continuous 预发布）。
+# 每个工件名都带平台/架构后缀，release 阶段统一收集后发布（tag 触发发正式版，手动触发发 continuous 预发布）。
 on:
   workflow_dispatch:
   push:
@@ -77,12 +78,43 @@ jobs:
             dist/BilibiliDownloader-macos-${{ matrix.arch }}.app.zip
           if-no-files-found: error
 
+  windows:
+    name: Windows exe / portable
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install build & runtime deps
+        # auto-py-to-exe 是 build_exe.py / build_portable.py 的打包引擎；
+        # win10toast 是 Windows 通知依赖（hidden-import，未进 requirements.txt，需单独装）。
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller auto-py-to-exe win10toast
+          pip install -r requirements.txt
+      - name: Build single-file exe
+        run: python build_exe.py
+      - name: Build portable (onedir) and zip
+        run: |
+          python build_portable.py
+          python -c "import shutil; shutil.make_archive('dist/BilibiliDownloader-portable', 'zip', 'dist', 'BilibiliDownloader')"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: BilibiliDownloader-Windows
+          path: |
+            dist/BilibiliDownloader.exe
+            dist/BilibiliDownloader-portable.zip
+          if-no-files-found: error
+
   # 每次构建完都自动发布到 GitHub Release（永久保留、可直接下载；Actions artifact
   # 90 天会过期）。推送 v* tag 时发正式版（release 名即 tag）；手动触发（workflow_dispatch）
   # 时发滚动的 continuous 预发布，每次覆盖更新同名 release 的资源。
   release:
     name: Publish to GitHub Release
-    needs: [appimage, dmg]
+    needs: [appimage, dmg, windows]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -132,6 +164,8 @@ jobs:
             echo "| macOS | Apple Silicon | \`BilibiliDownloader-macos-arm64.app.zip\` | 已 ad-hoc 签名的 \`.app\` |"
             echo "| macOS | Intel | \`BilibiliDownloader-macos-x86_64.dmg\` | 拖拽到「应用程序」安装 |"
             echo "| macOS | Intel | \`BilibiliDownloader-macos-x86_64.app.zip\` | 已 ad-hoc 签名的 \`.app\` |"
+            echo "| Windows | x86_64 | \`BilibiliDownloader.exe\` | 单文件安装版，双击运行 |"
+            echo "| Windows | x86_64 | \`BilibiliDownloader-portable.zip\` | 便携版（解压即用，无需安装） |"
             echo
             if [[ -n "$PRERELEASE" ]]; then
               echo "> 本发布为**持续构建（prerelease）**，对应最近一次手动触发的构建，可能不稳定。"
