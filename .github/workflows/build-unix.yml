@@ -1,7 +1,7 @@
 name: Build packages
 
 # 手动触发（Actions 页面 Run workflow）或推送 v* tag 时构建；构建完成后自动发布到 Releases：
-#   - Windows: 单文件安装版 .exe（双击运行）+ 便携版 .zip（解压即用），均 x86_64
+#   - Windows: 安装版 Setup.exe（向导安装，内置 ffmpeg，离线可用）+ 便携版 .zip（解压即用，内置 ffmpeg），均 x86_64
 #   - Linux: AppImage（单文件，赋予执行权限即可运行），按架构拆分 x86_64 / aarch64
 #   - macOS: ad-hoc 签名 .app 的 .dmg / .app.zip，按架构拆分 arm64（Apple Silicon）/ x86_64（Intel）
 # 每个工件名都带平台/架构后缀，release 阶段统一收集后发布（tag 触发发正式版，手动触发发 continuous 预发布）。
@@ -89,23 +89,35 @@ jobs:
           cache: pip
           cache-dependency-path: requirements.txt
       - name: Install build & runtime deps
-        # auto-py-to-exe 是 build_exe.py / build_portable.py 的打包引擎；
+        # auto-py-to-exe 是 build_portable.py 的打包引擎；
         # win10toast 是 Windows 通知依赖（hidden-import，未进 requirements.txt，需单独装）。
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller auto-py-to-exe win10toast
           pip install -r requirements.txt
-      - name: Build single-file exe
-        run: python build_exe.py
-      - name: Build portable (onedir) and zip
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+      - name: Set version
+        id: ver
+        shell: bash
         run: |
-          python build_portable.py
-          python -c "import shutil; shutil.make_archive('dist/BilibiliDownloader-portable', 'zip', 'dist', 'BilibiliDownloader')"
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "ver=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ver=continuous" >> "$GITHUB_OUTPUT"
+          fi
+      # 一键脚本：产出 onedir + 内置 ffmpeg，再编译出安装版 Setup.exe（取代原单文件 .exe）
+      - name: Build installer (Setup.exe) with embedded ffmpeg
+        run: .\installer\build_installer.ps1 -Version "$env:BD_VERSION"
+        env:
+          BD_VERSION: ${{ steps.ver.outputs.ver }}
+      - name: Zip portable (with embedded ffmpeg)
+        run: python -c "import shutil; shutil.make_archive('dist/BilibiliDownloader-portable', 'zip', 'dist', 'BilibiliDownloader')"
       - uses: actions/upload-artifact@v7
         with:
           name: BilibiliDownloader-Windows
           path: |
-            dist/BilibiliDownloader.exe
+            dist/BilibiliDownloader-Setup-*.exe
             dist/BilibiliDownloader-portable.zip
           if-no-files-found: error
 
@@ -164,7 +176,8 @@ jobs:
             echo "| macOS | Apple Silicon | \`BilibiliDownloader-macos-arm64.app.zip\` | 已 ad-hoc 签名的 \`.app\` |"
             echo "| macOS | Intel | \`BilibiliDownloader-macos-x86_64.dmg\` | 拖拽到「应用程序」安装 |"
             echo "| macOS | Intel | \`BilibiliDownloader-macos-x86_64.app.zip\` | 已 ad-hoc 签名的 \`.app\` |"
-            echo "| Windows | x86_64 | \`BilibiliDownloader.exe\` | 单文件安装版，双击运行 |"
+            WIN_SETUP="BilibiliDownloader-Setup-${TAG#v}.exe"
+            echo "| Windows | x86_64 | \`$WIN_SETUP\` | 安装版（向导安装，内置 ffmpeg，离线可用）|"
             echo "| Windows | x86_64 | \`BilibiliDownloader-portable.zip\` | 便携版（解压即用，无需安装） |"
             echo
             if [[ -n "$PRERELEASE" ]]; then
@@ -175,8 +188,8 @@ jobs:
             echo "> 请右键点击 App/DMG 选择「打开」，或在终端执行："
             echo "> \`xattr -d com.apple.quarantine /Applications/BilibiliDownloader.app\`"
             echo
-            echo "> FFmpeg 不内置：首次使用会自动按平台下载并缓存（AppImage 写入 \$XDG_DATA_HOME，"
-            echo "> macOS 写入 ~/Library/Application Support）。离线环境请手动放入。"
+            echo "> Windows 安装版 / 便携版均已**内置 FFmpeg**（无需联网即可下载视频）。"
+            echo "> Linux AppImage / macOS 仍会在首次使用时自动按平台下载并缓存 FFmpeg。"
           } > "$notes"
           files=(dist/*)
           if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then

@@ -4,6 +4,7 @@
 ;
 ; 编译命令：iscc installer.iss   （需先安装 Inno Setup 6，并把 ISCC.exe 加入 PATH）
 ; 版本号通过环境变量 BD_VERSION 注入，缺省 0.0.0。
+; 产物输出到 ../dist/BilibiliDownloader-Setup-<ver>.exe（与 CI 收集目录一致，便于自动发布）。
 
 #encoding utf-8-bom
 

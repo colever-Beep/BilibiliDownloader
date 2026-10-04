@@ -5,7 +5,7 @@
 .DESCRIPTION
     1) 用 build_portable.py 产出 onedir 便携版（dist\BilibiliDownloader\）。
     2) 下载 Windows ffmpeg 到 dist\BilibiliDownloader\bin\（内置，离线可用）。
-    3) 用 iscc 编译 installer\installer.iss -> installer\output\BilibiliDownloader-Setup-<ver>.exe。
+    3) 用 iscc 编译 installer\installer.iss -> dist\BilibiliDownloader-Setup-<ver>.exe。
 
 .PARAMETER Version
     安装包版本号。缺省时取 git describe --tags（去掉 v 前缀），再不行回退 0.0.0。
@@ -98,7 +98,7 @@ try {
     & "$Iscc" (Join-Path $Root "installer\installer.iss")
     if ($LASTEXITCODE -ne 0) { throw "iscc 编译失败（退出码 $LASTEXITCODE）" }
 
-    $Out = Join-Path $Root "installer\output\BilibiliDownloader-Setup-$Version.exe"
+    $Out = Join-Path $Root "dist\BilibiliDownloader-Setup-$Version.exe"
     if (Test-Path $Out) {
         Write-Host "==> 完成: $Out"
     } else {
