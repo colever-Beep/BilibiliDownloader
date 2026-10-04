@@ -47,19 +47,6 @@ const groups = [
     </div>
   </section>
 
-  <section class="section alt">
-    <div class="container narrow">
-      <h2 class="section-title">界面</h2>
-      <p class="section-sub">Fluent / WinUI 风格，明暗主题随心切换。</p>
-      <p class="prose-text">
-        主界面以下载队列为核心，左侧导航在下载、解析、收藏夹、设置之间切换；
-        各类列表（搜索结果、收藏夹视频、历史记录等）统一走分页选择弹窗。
-        整体沿用 B 站粉主色，并支持自定义强调色与高 DPI 缩放。
-      </p>
-      <p class="prose-note">真实界面截图将随后续版本补充。</p>
-    </div>
-  </section>
-
   <DownloadSection />
 </BaseLayout>
 
@@ -75,7 +62,4 @@ const groups = [
   .feat-list li:last-child { border-bottom: none; }
   .feat-list b { color: var(--text); font-weight: 600; }
   .feat-list span { display: block; color: var(--text-soft); font-size: 14px; margin-top: 2px; }
-  .container.narrow { max-width: 760px; }
-  .prose-text { color: var(--text-soft); line-height: 1.9; margin: 0; }
-  .prose-note { color: var(--text-soft); font-size: 13px; margin-top: 14px; }
 </style>
