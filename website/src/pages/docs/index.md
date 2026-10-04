@@ -52,8 +52,9 @@ python main.py
 项目提供跨平台打包脚本（基于 PyInstaller）：
 
 ```bash
-python build_exe.py            # Windows：单文件 BilibiliDownloader.exe
 python build_portable.py       # Windows：便携版文件夹
+# 安装版（向导安装，内置 FFmpeg）：需先装 Inno Setup 6，再运行
+#   ./installer/build_installer.ps1
 python build_macos_dmg.py      # macOS：arm64 / x86_64 的 .dmg 与 .app.zip
 python build_linux_appimage.py # Linux：x86_64 / aarch64 的 AppImage
 ```
@@ -92,7 +93,7 @@ GitHub Actions 会在推送 `v*` tag 或手动触发时自动构建上述全部�
 | `ui/` | 界面（主窗口、对话框、设置、侧边栏、主题） |
 | `utils/` | 工具（分类、i18n、qfluentwidgets 兼容补丁等） |
 | `translations/` | gettext 翻译文件 |
-| `build_exe.py` / `build_portable.py` | 打包脚本 |
+| `build_portable.py` / `installer/build_installer.ps1` | 打包脚本 |
 
 ## 常见问题
 

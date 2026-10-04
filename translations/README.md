@@ -56,7 +56,7 @@ git push -u origin main
 - **CI（见 `.github/workflows/bake-locales.yml`）**监听到 `translations/**` 变更，
   自动运行 `python scripts/i18n_tools.py bake`，把更新烘焙进
   `utils/locales_weblate.py` 并回写提交，保证运行时字典始终最新。
-- **应用构建**（`build_exe.py` / `build_portable.py`）在打包前也会跑一次 `bake`，
+- **应用构建**（`build_portable.py` / `installer/build_installer.ps1`）在打包前也会跑一次 `bake`，
   因此发布的 exe 一定包含最新译文。
 
 ---

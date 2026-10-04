@@ -1,6 +1,6 @@
 """便携版打包驱动（onedir 模式）。
 
-与 build_exe.py 使用同一 auto-py-to-exe 引擎，区别：
+使用 auto-py-to-exe 引擎打包 onedir（便携版）；与安装版 installer/build_installer.ps1 共用同一产物，区别：
 - 不加 --onefile → 产物为 dist/BilibiliDownloader/ 文件夹（exe + _internal），
   启动无需解压临时目录，双击即用，适合压缩成 zip 分发的便携版。
 - ffmpeg 仍不打包（体积考虑），首次使用时由 utils/ffmpeg_provider 自动

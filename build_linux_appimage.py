@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""AppImage 打包脚本（必须在 Linux 上运行；Windows/macOS 上请改用 build_exe.py /
-build_macos_dmg.py）。
+"""AppImage 打包脚本（必须在 Linux 上运行；Windows/macOS 上请改用 build_portable.py
+（便携版）或 installer/build_installer.ps1（安装版）。
 
 流程：
 1. bake i18n（用 .po 重新生成 utils/locales_weblate.py，无依赖，失败不阻断）。

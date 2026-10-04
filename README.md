@@ -74,13 +74,14 @@
 pip install auto-py-to-exe
 ```
 
-- **单文件版（exe）**：
+- **安装版（Setup.exe）**：
 
   ```bash
-  python build_exe.py
+  # 需先安装 Inno Setup 6（https://jrsoftware.org/isdl.php），并把 ISCC.exe 加入 PATH
+  ./installer/build_installer.ps1
   ```
 
-  产物：`dist/BilibiliDownloader.exe`（`--onefile --noconsole`）。
+  产物：`dist/BilibiliDownloader-Setup-<版本>.exe`（向导安装，内置 FFmpeg，离线可用）。
 
 - **便携版（文件夹）**：
 
@@ -154,7 +155,6 @@ pip install auto-py-to-exe
 ```
 BilibiliDownloader/
 ├── main.py                 # 程序入口
-├── build_exe.py            # 单文件打包驱动
 ├── build_portable.py       # 便携版打包驱动
 ├── config.py               # 配置默认值与读写
 ├── bili_api.py             # B 站 API 封装
