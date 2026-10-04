@@ -4,14 +4,14 @@ import Footer from '../components/Footer.astro';
 import '../styles/global.css';
 
 const { title = 'BilibiliDownloader', active = '', prose = false } = Astro.props;
-const favicon = import.meta.env.BASE_URL + '/favicon.svg';
+const favicon = import.meta.env.BASE_URL + '/favicon.ico';
 ---
 <!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/svg+xml" href={favicon} />
+    <link rel="icon" type="image/x-icon" href={favicon} />
     <meta name="description" content="BilibiliDownloader — 开源 B 站内容下载器，支持 Windows / macOS / Linux，视频、番剧、直播、音频一键解析下载。" />
     <title>{title}</title>
     {/* 无闪烁主题初始化：优先 localStorage，否则跟随系统偏好 */}

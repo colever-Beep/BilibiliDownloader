@@ -12,7 +12,7 @@ const links = [
 <header class="nav">
   <div class="container nav-inner">
     <a class="brand" href={base}>
-      <span class="logo">B</span> BilibiliDownloader
+      <img class="logo" src={base + '/favicon.ico'} alt="BilibiliDownloader" width="28" height="28" /> BilibiliDownloader
     </a>
     <nav class="nav-links">
       {links.map((l) => (
@@ -46,7 +46,7 @@ const links = [
   .nav-inner { display: flex; align-items: center; justify-content: space-between; height: var(--nav-h); }
   .brand { font-weight: 700; font-size: 18px; color: var(--text); display: flex; align-items: center; gap: 8px; }
   .brand:hover { text-decoration: none; }
-  .logo { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 800; }
+  .logo { width: 28px; height: 28px; border-radius: 6px; object-fit: contain; }
   .nav-links { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
   .nav-link { padding: 8px 14px; border-radius: 8px; color: var(--text-soft); font-size: 15px; white-space: nowrap; }
   .nav-link:hover { background: var(--bg-soft); color: var(--text); text-decoration: none; }
