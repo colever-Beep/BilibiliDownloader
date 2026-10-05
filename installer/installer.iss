@@ -44,7 +44,7 @@ PrivilegesRequired=admin
 DirExistsWarning=no
 
 [Languages]
-Name: "chinese"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
+Name: "chinese"; MessagesFile: "Languages\ChineseSimplified.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]

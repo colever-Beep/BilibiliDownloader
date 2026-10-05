@@ -107,6 +107,27 @@ try {
             if (Test-Path $cand) { $Iscc = $cand }
         }
     }
+    # 语言文件兜底：若仓库 installer/Languages 下缺 .isl，则从已安装的 Inno Setup
+    # 复制（通常装在 Languages 或 Languages\Unofficial 下）。
+    # 说明：本仓库已自带 installer/Languages/ChineseSimplified.isl（随仓库版本管理），
+    # 故正常 CI / 本地均走相对 include，不依赖 runner 装了什么语言包。
+    $repoLangDir = Join-Path $Root "installer\Languages"
+    $destLang = Join-Path $repoLangDir "ChineseSimplified.isl"
+    if (-not (Test-Path $destLang)) {
+        $innoBase = Split-Path -Parent $Iscc
+        $srcCandidates = @(
+            (Join-Path $innoBase "Languages\ChineseSimplified.isl"),
+            (Join-Path $innoBase "Languages\Unofficial\ChineseSimplified.isl")
+        )
+        foreach ($src in $srcCandidates) {
+            if (Test-Path $src) {
+                if (-not (Test-Path $repoLangDir)) { New-Item -ItemType Directory -Force -Path $repoLangDir | Out-Null }
+                Copy-Item -Path $src -Destination $destLang -Force
+                Write-Host "从 $src 复制语言文件到 installer\Languages"
+                break
+            }
+        }
+    }
     if (-not (Get-Command $Iscc -ErrorAction SilentlyContinue)) {
         throw "未找到 iscc。请安装 Inno Setup 6 并将 ISCC.exe 加入 PATH，或确认默认安装路径。" +
               "下载：https://jrsoftware.org/isdl.php"
