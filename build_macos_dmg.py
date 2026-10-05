@@ -20,6 +20,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import time
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 NAME = "BilibiliDownloader"
@@ -176,8 +177,9 @@ def build_dmg():
     shutil.make_archive(zip_base, "zip", root_dir=DIST, base_dir=NAME + ".app")
 
     # .dmg（含 /Applications 快捷方式）
-    # 直接把 .app 与「Applications 软链目录」一起交给 hdiutil，
-    # 避免先 copytree 整包再压缩导致的二次复制（.app 只写入镜像一次）。
+    # 先在临时目录(WORK)生成 .dmg，再移动到 DIST——
+    # 避免把输出文件放在正被 -srcfolder 包含的源目录(DIST)里，
+    # 否则 hdiutil 边读源目录边写目标会触发 Resource busy。
     stage = os.path.join(WORK, "dmgstage")
     shutil.rmtree(stage, ignore_errors=True)
     os.makedirs(stage)
@@ -185,14 +187,32 @@ def build_dmg():
     link = os.path.join(stage, "Applications")
     if not os.path.exists(link):
         os.symlink("/Applications", link)
-    out_dmg = os.path.join(DIST, "%s-macos-%s.dmg" % (NAME, arch))
-    if os.path.exists(out_dmg):
-        os.remove(out_dmg)
-    run(["hdiutil", "create", "-volname", NAME,
-         "-srcfolder", app, "-srcfolder", stage, "-ov", "-format", "UDZO", out_dmg])
+    # 临时与最终路径分离
+    out_dmg_final = os.path.join(DIST, "%s-macos-%s.dmg" % (NAME, arch))
+    out_dmg_tmp = os.path.join(WORK, "%s-macos-%s.dmg" % (NAME, arch))
+    if os.path.exists(out_dmg_tmp):
+        os.remove(out_dmg_tmp)
+    # 重试逻辑：应对 CI 环境偶发的短暂文件系统锁定(Resource busy)
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
+        try:
+            run(["hdiutil", "create", "-volname", NAME,
+                 "-srcfolder", app, "-srcfolder", stage, "-ov", "-format", "UDZO", out_dmg_tmp])
+            break
+        except subprocess.CalledProcessError as e:
+            if attempt < max_attempts:
+                print("WARN: hdiutil create failed (attempt %d), retrying..." % attempt, flush=True)
+                time.sleep(2 * attempt)
+            else:
+                # 最后一次仍失败则抛出，保持原有 CI 报错可定位行为
+                raise
+    # 移动到最终目录（覆盖现有同名文件）
+    if os.path.exists(out_dmg_final):
+        os.remove(out_dmg_final)
+    shutil.move(out_dmg_tmp, out_dmg_final)
 
     print("\n=== DMG BUILD SUCCESS ===")
-    for p in (out_dmg, zip_base + ".zip"):
+    for p in (out_dmg_final, zip_base + ".zip"):
         if os.path.exists(p):
             print("产物:", p, "(%.1f MB)" % (os.path.getsize(p) / 1e6))
 

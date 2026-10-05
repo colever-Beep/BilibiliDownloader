@@ -7,7 +7,11 @@
 ; 产物输出到 ../dist/BilibiliDownloader-Setup-<ver>.exe（与 CI 收集目录一致，便于自动发布）。
 
 #define MyAppName "BilibiliDownloader"
-#define MyAppVersion ReadEnv("BD_VERSION", "0.0.0")
+#define MyAppVersion ReadEnv("BD_VERSION")
+#if MyAppVersion == ""
+  #undef MyAppVersion
+  #define MyAppVersion "0.0.0"
+#endif
 #define MyAppPublisher "colever-Beep"
 #define MyAppURL "https://github.com/colever-Beep/BilibiliDownloader"
 #define MyAppExeName "BilibiliDownloader.exe"
