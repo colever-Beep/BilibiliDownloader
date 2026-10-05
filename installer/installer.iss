@@ -18,12 +18,21 @@
 ; 便携版 onedir 目录（相对本脚本 installer/）：../dist/BilibiliDownloader
 #define SourceDir "..\dist\BilibiliDownloader"
 
+; Ensure we have a numeric version string for Inno Setup VersionInfoVersion.
+; BD_VERSION may be a non-numeric tag (eg. "continuous"); read BD_VERSION_NUMERIC
+; which should be supplied by the build script. Fallback to 0.0.0.
+#define MyAppVersionNumeric ReadEnv("BD_VERSION_NUMERIC")
+#if MyAppVersionNumeric == ""
+  #undef MyAppVersionNumeric
+  #define MyAppVersionNumeric "0.0.0"
+#endif
+
 [Setup]
 ; AppId 必须唯一，用于覆盖安装 / 卸载识别（不同软件不可共用）
 AppId={{6F3A1E2B-9C4D-4A8E-B1F2-7D3E5C9A0B1F}}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-VersionInfoVersion={#MyAppVersion}
+VersionInfoVersion={#MyAppVersionNumeric}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
