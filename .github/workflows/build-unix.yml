@@ -95,8 +95,29 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller auto-py-to-exe win10toast
           pip install -r requirements.txt
+      # 直接下载官方 Inno Setup 6（版本锁定，避免 choco 默认装成 7.x 而落到
+      # “Inno Setup 7” 目录，导致 build_installer.ps1 默认路径 C:\Program Files (x86)\Inno Setup 6 找不到 iscc）。
+      # 静默安装到 Program Files (x86)\Inno Setup 6，并加入后续步骤的 PATH。
       - name: Install Inno Setup
-        run: choco install innosetup -y
+        shell: pwsh
+        run: |
+          $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          if (Test-Path $iscc) {
+            Write-Host "Inno Setup 6 已存在，跳过安装: $iscc"
+            exit 0
+          }
+          $url = "https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe"
+          $installer = Join-Path $env:TEMP 'innosetup-6.7.3.exe'
+          Write-Host "下载 Inno Setup 6.7.3: $url"
+          Invoke-WebRequest -Uri $url -OutFile $installer -UseBasicParsing
+          Write-Host "静默安装 Inno Setup 6 ..."
+          Start-Process -FilePath $installer -ArgumentList '/VERYSILENT','/NORESTART','/ALLUSERS' -Wait
+          if (-not (Test-Path $iscc)) {
+            throw "安装后仍未找到 $iscc，Inno Setup 安装可能失败。"
+          }
+          # 将 ISCC 加入后续步骤的 PATH（与 build_installer.ps1 默认路径一致）
+          echo "C:\Program Files (x86)\Inno Setup 6" >> $env:GITHUB_PATH
+          Write-Host "Inno Setup 6 安装完成。"
       - name: Set version
         id: ver
         shell: bash

@@ -94,7 +94,19 @@ try {
     # ---- 3. 编译 Inno Setup 安装程序 ----
     $Iscc = "iscc"
     $IsccDefault = Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"
-    if (Test-Path $IsccDefault) { $Iscc = $IsccDefault }
+    if (Test-Path $IsccDefault) {
+        $Iscc = $IsccDefault
+    } else {
+        # 兜底：在 Program Files (x86) 下查找任意 Inno Setup 安装目录
+        # （例如 choco 装成 7.x 落到 “Inno Setup 7”，或版本目录名不同）
+        $innoDir = Get-ChildItem -Path ${env:ProgramFiles(x86)} -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like 'Inno Setup*' } |
+            Sort-Object Name -Descending | Select-Object -First 1
+        if ($innoDir) {
+            $cand = Join-Path $innoDir.FullName 'ISCC.exe'
+            if (Test-Path $cand) { $Iscc = $cand }
+        }
+    }
     if (-not (Get-Command $Iscc -ErrorAction SilentlyContinue)) {
         throw "未找到 iscc。请安装 Inno Setup 6 并将 ISCC.exe 加入 PATH，或确认默认安装路径。" +
               "下载：https://jrsoftware.org/isdl.php"
