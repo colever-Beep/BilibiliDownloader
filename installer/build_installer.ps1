@@ -146,7 +146,9 @@ try {
     if (Test-Path $Out) {
         Write-Host "==> 完成: $Out"
     } else {
-        Write-Host "==> 完成，但未在预期路径找到产物，请检查 installer\output\ 目录。"
+        # 找不到产物直接抛错，避免“iscc 静默失败 / OutputDir 配置错位”时
+        # 仍被当成成功、release 里只出现便携版而漏掉安装版。
+        throw "未找到安装包产物 $Out。请检查 installer.iss 的 OutputDir 是否指向 dist/，以及 iscc 是否真正执行成功。"
     }
 } finally {
     Pop-Location

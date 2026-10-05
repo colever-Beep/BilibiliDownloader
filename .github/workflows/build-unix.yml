@@ -197,7 +197,11 @@ jobs:
             echo "| macOS | Apple Silicon | \`BilibiliDownloader-macos-arm64.app.zip\` | 已 ad-hoc 签名的 \`.app\` |"
             echo "| macOS | Intel | \`BilibiliDownloader-macos-x86_64.dmg\` | 拖拽到「应用程序」安装 |"
             echo "| macOS | Intel | \`BilibiliDownloader-macos-x86_64.app.zip\` | 已 ad-hoc 签名的 \`.app\` |"
-            WIN_SETUP="BilibiliDownloader-Setup-${TAG#v}.exe"
+            WIN_SETUP_FILE=$(ls dist/BilibiliDownloader-Setup-*.exe 2>/dev/null | head -1 | xargs -n1 basename)
+            if [[ -z "$WIN_SETUP_FILE" ]]; then
+              WIN_SETUP_FILE="BilibiliDownloader-Setup-${TAG#v}.exe"
+            fi
+            WIN_SETUP="$WIN_SETUP_FILE"
             echo "| Windows | x86_64 | \`$WIN_SETUP\` | 安装版（向导安装，内置 ffmpeg，离线可用）|"
             echo "| Windows | x86_64 | \`BilibiliDownloader-portable.zip\` | 便携版（解压即用，无需安装） |"
             echo
