@@ -74,7 +74,13 @@ try {
                 if ($entry.FullName -match 'bin/([^/]+\.exe)$') {
                     $name = $Matches[1]
                     $dest = Join-Path $BinDir $name
-                    [System.IO.Compression.ZipFile]::ExtractToFile($entry, $dest, $true)
+                    # 注意：ExtractToFile 是 ZipFileExtensions 的扩展方法，PowerShell 无法通过
+                    # [ZipFile]::ExtractToFile(...) 静态语法调用；改用条目流 + Stream.CopyTo 最稳妥。
+                    $inStream = $entry.Open()
+                    try {
+                        $outStream = [System.IO.File]::Create($dest)
+                        try { $inStream.CopyTo($outStream) } finally { $outStream.Dispose() }
+                    } finally { $inStream.Dispose() }
                     Write-Host "       提取 $name"
                 }
             }
