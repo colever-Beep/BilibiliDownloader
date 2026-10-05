@@ -1,12 +1,10 @@
-; Inno Setup 安装脚本
+﻿; Inno Setup 安装脚本
 ; 将 build_portable.py 产出的 onedir（含内置 ffmpeg 的 bin/）打包为带中文向导的
 ; Windows 安装程序 BilibiliDownloader-Setup-<ver>.exe。
 ;
 ; 编译命令：iscc installer.iss   （需先安装 Inno Setup 6，并把 ISCC.exe 加入 PATH）
 ; 版本号通过环境变量 BD_VERSION 注入，缺省 0.0.0。
 ; 产物输出到 ../dist/BilibiliDownloader-Setup-<ver>.exe（与 CI 收集目录一致，便于自动发布）。
-
-#encoding utf-8-bom
 
 #define MyAppName "BilibiliDownloader"
 #define MyAppVersion ReadEnv("BD_VERSION", "0.0.0")
@@ -18,7 +16,7 @@
 
 [Setup]
 ; AppId 必须唯一，用于覆盖安装 / 卸载识别（不同软件不可共用）
-AppId={{6F3A1E2B-9C4D-4A8E-B1F2-7D3E5C9A0B1F}
+AppId={{6F3A1E2B-9C4D-4A8E-B1F2-7D3E5C9A0B1F}}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 VersionInfoVersion={#MyAppVersion}
