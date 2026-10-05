@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     本地一键生成 Windows 安装程序（Inno Setup）。
 
@@ -37,6 +37,10 @@ try {
     }
     if (-not $Version) { $Version = "0.0.0" }
     $Version = $Version -replace '^v', ''
+    if ($Version -notmatch '^\d+(\.\d+){0,3}$') {
+        Write-Host "版本号 '$Version' 不是 Inno Setup 支持的数字格式，回退到 0.0.0"
+        $Version = "0.0.0"
+    }
     Write-Host "==> 版本号: $Version"
 
     # ---- 1. 构建 onedir 便携版 ----
@@ -134,6 +138,7 @@ try {
     }
     Write-Host "==> [3/3] 编译安装程序 (iscc)"
     $env:BD_VERSION = $Version
+    $env:BD_VERSION_NUMERIC = $Version
     & "$Iscc" (Join-Path $Root "installer\installer.iss")
     if ($LASTEXITCODE -ne 0) { throw "iscc 编译失败（退出码 $LASTEXITCODE）" }
 
