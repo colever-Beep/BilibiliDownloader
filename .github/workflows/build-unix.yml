@@ -1,7 +1,7 @@
 name: Build packages
 
 # 手动触发（Actions 页面 Run workflow）或推送 v* tag 时构建；构建完成后自动发布到 Releases：
-#   - Windows: 安装版 Setup.exe（向导安装，内置 ffmpeg，离线可用）+ 便携版 .zip（解压即用，内置 ffmpeg），均 x86_64
+#   - Windows: 安装版 Setup.exe（向导安装，首次使用自动下载 ffmpeg）+ 便携版 .zip（解压即用，首次使用自动下载 ffmpeg），均 x86_64
 #   - Linux: AppImage（单文件，赋予执行权限即可运行），按架构拆分 x86_64 / aarch64
 #   - macOS: ad-hoc 签名 .app 的 .dmg / .app.zip，按架构拆分 arm64（Apple Silicon）/ x86_64（Intel）
 # 每个工件名都带平台/架构后缀，release 阶段统一收集后发布（tag 触发发正式版，手动触发发 continuous 预发布）。
@@ -127,7 +127,7 @@ jobs:
           else
             echo "ver=continuous" >> "$GITHUB_OUTPUT"
           fi
-      # 一键脚本：产出 onedir + 内置 ffmpeg，再编译出安装版 Setup.exe（取代原单文件 .exe）
+      # 一键脚本：产出 onedir，再编译出安装版 Setup.exe（取代原单文件 .exe）；ffmpeg 不内置，由应用首次使用自动下载
       - name: Build installer (Setup.exe) with embedded ffmpeg
         run: .\installer\build_installer.ps1 -Version "$env:BD_VERSION"
         env:
@@ -202,7 +202,7 @@ jobs:
               WIN_SETUP_FILE="BilibiliDownloader-Setup-${TAG#v}.exe"
             fi
             WIN_SETUP="$WIN_SETUP_FILE"
-            echo "| Windows | x86_64 | \`$WIN_SETUP\` | 安装版（向导安装，内置 ffmpeg，离线可用）|"
+            echo "| Windows | x86_64 | \`$WIN_SETUP\` | 安装版（向导安装，首次使用自动下载 ffmpeg）|"
             echo "| Windows | x86_64 | \`BilibiliDownloader-portable.zip\` | 便携版（解压即用，无需安装） |"
             echo
             if [[ -n "$PRERELEASE" ]]; then
@@ -213,7 +213,7 @@ jobs:
             echo "> 请右键点击 App/DMG 选择「打开」，或在终端执行："
             echo "> \`xattr -d com.apple.quarantine /Applications/BilibiliDownloader.app\`"
             echo
-            echo "> Windows 安装版 / 便携版均已**内置 FFmpeg**（无需联网即可下载视频）。"
+            echo "> Windows 安装版 / 便携版首次使用会**自动下载 FFmpeg**（仅 ffmpeg.exe），也可手动把 ffmpeg.exe 放入程序目录的 bin/。"
             echo "> Linux AppImage / macOS 仍会在首次使用时自动按平台下载并缓存 FFmpeg。"
           } > "$notes"
           files=(dist/*)

@@ -130,6 +130,14 @@ def main():
     # 关闭逻辑（取消下载 / 销毁托盘 / 退出）统一由 MainWindow 内部处理
     win.run()
 
+    # 启动即检测一次 FFmpeg：缺失则弹窗让用户选择「联网下载 / 手动放入」。
+    # 不阻塞主流程——若选下载则在后台进行；用户也可稍后手动把 ffmpeg.exe 放入 bin/。
+    try:
+        from ui.ffmpeg_dialog import ensure_ffmpeg_prompted
+        ensure_ffmpeg_prompted(logger, on_done=None, parent=win.window)
+    except Exception:
+        pass
+
     # 窗口与托盘已显示，再在后台校验登录态（不阻塞启动）。
     # 校验完成后回到主线程刷新依赖 uid 的启动提示。
     if cookie_str:
