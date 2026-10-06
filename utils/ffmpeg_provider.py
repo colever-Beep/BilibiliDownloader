@@ -239,9 +239,7 @@ def _extract_archive(archive_path, kind, bin_dir):
                 if "/bin/" not in norm:
                     continue
                 base = os.path.basename(name)
-                # 应用只用 ffmpeg.exe（ffprobe/ffplay 从不调用），只解压它，
-                # 既缩小下载体积，也避免把用不到的二进制带进 bin/。
-                if base != "ffmpeg.exe":
+                if not base.endswith(".exe"):
                     continue
                 target = os.path.join(bin_dir, base)
                 with z.open(name) as src:

@@ -86,16 +86,10 @@ class DownloadEngine:
             return
         ffmpeg = self._get_ffmpeg_path()
         if not ffmpeg:
-            # 本地缺失：弹窗让用户选择「联网下载 / 手动放入」，下载完成后自动重试 start()。
-            # 若用户选择手动放入，则不自动开始，等待其放入 ffmpeg 后再次点击。
-            from PySide6.QtWidgets import QApplication
-            from ui.ffmpeg_dialog import ensure_ffmpeg_prompted
-            parent = QApplication.activeWindow()
-            ensure_ffmpeg_prompted(
-                self.logger,
-                on_done=lambda path: self.start() if path else None,
-                parent=parent,
-            )
+            # 本地缺失：_get_ffmpeg_path 已触发后台下载，这里登记回调——
+            # 下载完成后自动重试 start()，无需用户手动再点一次。
+            from utils.ffmpeg_provider import ensure_ffmpeg
+            ensure_ffmpeg(self.logger, on_done=lambda path: self.start() if path else None)
             return
 
         self.is_running = True
@@ -237,19 +231,17 @@ class DownloadEngine:
     def _get_ffmpeg_path(self):
         """返回配置的FFmpeg路径；留空时优先使用同目录 bin/ffmpeg，否则在 PATH 中查找。
 
-        注意：本方法只做路径解析与存在性判断，不触发下载——下载/手动放入的交互统一由
-        ui.ffmpeg_dialog.ensure_ffmpeg_prompted 在「需要 ffmpeg 的操作」入口处弹窗处理，
-        避免静默自动下载与用户「手动放入」的意愿冲突。
+        本地 bin/ 缺失时由 utils.ffmpeg_provider 后台下载（首次使用），下载期间返回 None。
         """
         import shutil
         config_path = self.config.get("ffmpeg_path", "").strip()
         # 1) 用户明确填写了有效路径 -> 直接使用（最高优先级）
         if config_path and os.path.isfile(config_path) and os.access(config_path, os.X_OK):
             return os.path.abspath(config_path)
-        # 2) 留空 -> 本地 bin/ffmpeg（可能尚未下载，不在此触发下载）
-        from utils.ffmpeg_provider import get_ffmpeg_path
-        local = get_ffmpeg_path()
-        if local and os.path.isfile(local):
+        # 2) 留空 -> 优先本地 bin/ffmpeg；缺失则触发运行时下载
+        from utils.ffmpeg_provider import ensure_ffmpeg
+        local = ensure_ffmpeg(self.logger)
+        if local:
             return os.path.abspath(local)
         # 3) 兜底：在系统 PATH 中查找
         found = shutil.which("ffmpeg")

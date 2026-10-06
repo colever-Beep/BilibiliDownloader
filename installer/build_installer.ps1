@@ -4,9 +4,8 @@
 
 .DESCRIPTION
     1) 用 build_portable.py 产出 onedir 便携版（dist\BilibiliDownloader\）。
-    2) 用 iscc 编译 installer\installer.iss -> dist\BilibiliDownloader-Setup-<ver>.exe。
-    注意：ffmpeg 不内置进安装包（避免安装包膨胀）。首次使用时由应用经
-    utils\ffmpeg_provider 运行时下载（仅 ffmpeg.exe）或用户手动放入 bin\，与便携版一致。
+    2) 下载 Windows ffmpeg 到 dist\BilibiliDownloader\bin\（内置，离线可用）。
+    3) 用 iscc 编译 installer\installer.iss -> dist\BilibiliDownloader-Setup-<ver>.exe。
 
 .PARAMETER Version
     安装包版本号。缺省时取 git describe --tags（去掉 v 前缀），再不行回退 0.0.0。
@@ -45,7 +44,7 @@ try {
     Write-Host "==> 版本号: $Version"
 
     # ---- 1. 构建 onedir 便携版 ----
-    Write-Host "==> [1/2] 构建 onedir (build_portable.py)"
+    Write-Host "==> [1/3] 构建 onedir (build_portable.py)"
     python build_portable.py
     $PortableDir = Join-Path $Root "dist\BilibiliDownloader"
     $ExePath = Join-Path $PortableDir "BilibiliDownloader.exe"
@@ -53,9 +52,50 @@ try {
         throw "未找到 $ExePath，便携版构建失败，请检查 build_portable.py 输出。"
     }
 
-    # ---- 2. 编译 Inno Setup 安装程序 ----
-    # 说明：安装版不再内置 ffmpeg（避免安装包膨胀 ~120-150MB）。ffmpeg 由应用首次使用时
-    # 经 utils.ffmpeg_provider 运行时下载（仅 ffmpeg.exe）或用户手动放入 bin/，与便携版一致。
+    # ---- 2. 下载并放入 ffmpeg（内置，离线可用）----
+    $BinDir = Join-Path $PortableDir "bin"
+    $FfmpegExe = Join-Path $BinDir "ffmpeg.exe"
+    if (Test-Path $FfmpegExe) {
+        Write-Host "==> [2/3] ffmpeg 已存在于 bin/，跳过下载"
+    } else {
+        Write-Host "==> [2/3] 下载 Windows ffmpeg (BtbN win64-gpl)"
+        $Url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
+        $Zip = Join-Path $env:TEMP "ffmpeg-win64-gpl.zip"
+        # 兼容 PowerShell 5.1 / 7：优先用 curl（Win10+ 自带），否则回退 Invoke-WebRequest
+        $hasCurl = Get-Command curl.exe -ErrorAction SilentlyContinue
+        if ($hasCurl) {
+            & curl.exe -L -o "$Zip" "$Url"
+            if ($LASTEXITCODE -ne 0) { throw "curl 下载 ffmpeg 失败" }
+        } else {
+            Invoke-WebRequest -Uri $Url -OutFile $Zip -UseBasicParsing
+        }
+        New-Item -ItemType Directory -Force -Path $BinDir | Out-Null
+        # 只提取归档内 bin/*.exe（ffmpeg / ffprobe / ffplay）
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $archive = [System.IO.Compression.ZipFile]::OpenRead($Zip)
+        try {
+            foreach ($entry in $archive.Entries) {
+                if ($entry.FullName -match 'bin/([^/]+\.exe)$') {
+                    $name = $Matches[1]
+                    $dest = Join-Path $BinDir $name
+                    # 注意：ExtractToFile 是 ZipFileExtensions 的扩展方法，PowerShell 无法通过
+                    # [ZipFile]::ExtractToFile(...) 静态语法调用；改用条目流 + Stream.CopyTo 最稳妥。
+                    $inStream = $entry.Open()
+                    try {
+                        $outStream = [System.IO.File]::Create($dest)
+                        try { $inStream.CopyTo($outStream) } finally { $outStream.Dispose() }
+                    } finally { $inStream.Dispose() }
+                    Write-Host "       提取 $name"
+                }
+            }
+        } finally {
+            $archive.Dispose()
+        }
+        Remove-Item $Zip -Force
+        if (-not (Test-Path $FfmpegExe)) { throw "ffmpeg 提取失败，未得到 bin\ffmpeg.exe" }
+    }
+
+    # ---- 3. 编译 Inno Setup 安装程序 ----
     $Iscc = "iscc"
     $IsccDefault = Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"
     if (Test-Path $IsccDefault) {
@@ -96,7 +136,7 @@ try {
         throw "未找到 iscc。请安装 Inno Setup 6 并将 ISCC.exe 加入 PATH，或确认默认安装路径。" +
               "下载：https://jrsoftware.org/isdl.php"
     }
-    Write-Host "==> [2/2] 编译安装程序 (iscc)"
+    Write-Host "==> [3/3] 编译安装程序 (iscc)"
     $env:BD_VERSION = $Version
     $env:BD_VERSION_NUMERIC = $Version
     & "$Iscc" (Join-Path $Root "installer\installer.iss")

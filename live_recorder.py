@@ -112,13 +112,12 @@ class LiveRecorder:
         self._thread_started = False
         self._pending = (stream_url, outpath, auto_reconnect, refetch, title_hint)
 
-        # ---- ffmpeg 解析：弹窗让用户选择「联网下载 / 手动放入」，下载完成后回调 _begin ----
-        from PySide6.QtWidgets import QApplication
-        from ui.ffmpeg_dialog import ensure_ffmpeg_prompted
-        parent = QApplication.activeWindow()
-        ok = ensure_ffmpeg_prompted(self.logger, on_done=self._begin, parent=parent)
-        # ensure_ffmpeg_prompted 会在已存在或下载就绪时回调 on_done（即 _begin）；
-        # 用户选择手动放入则返回 False，录制挂起等待其放入 ffmpeg 后再次点击。
+        # ---- ffmpeg 解析：复用下载引擎同款供应器（本地优先 + 运行时下载）----
+        from utils.ffmpeg_provider import ensure_ffmpeg
+        ffmpeg = ensure_ffmpeg(self.logger, on_done=self._begin)
+        if ffmpeg is not None:
+            # 本地已存在，直接开始（on_done 不会被调用，避免重复启动）
+            self._begin(ffmpeg)
         return outpath
 
     def _begin(self, ffmpeg_path):
