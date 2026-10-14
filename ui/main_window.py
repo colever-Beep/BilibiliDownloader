@@ -19,7 +19,7 @@ from PySide6.QtGui import QIcon
 from utils.main_thread import init_main_thread_bridge, run_on_main
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QMenu, QFrame, QApplication,
+    QMenu, QFrame, QApplication, QStackedWidget,
 )
 from qfluentwidgets import (
     FluentIcon, LineEdit, PrimaryPushButton, ProgressBar, PushButton,
@@ -34,10 +34,13 @@ from ui.download_options_dialog import DownloadOptionsDialog
 from ui.fluent_dialog import (
     ChoiceDialog, msg_info, msg_warn, msg_error, msg_confirm,
 )
-from ui.dialogs import (AboutDialog, LoginDialog, SearchDialog,
+from ui.dialogs import (AboutDialog, LoginDialog,
                        ParseRecordsDialog, BatchParseDialog, LogWindow,
-                       LiveCenterDialog, LiveRecordDialog, FavFolderDialog)
+                       LiveRecordDialog)
 from ui.live_record_window import LiveRecordWindow
+from ui.content_pages import (
+    BrowsePage, FollowingPage, FavFolderPage, LiveCenterPage,
+)
 from ui.theme import (
     set_accent, get_accent, apply_appearance, DEFAULT_ACCENT,
     set_root_window,
@@ -104,6 +107,7 @@ class MainWindow:
 
         self.is_downloading = False
         self._quitting = False
+        self._fitted_once = False  # 高 DPI 适配仅在首次显示时做一次，避免托盘恢复打乱用户摆放
         self._task_speeds = {}
 
         self.build_ui()
@@ -149,7 +153,11 @@ class MainWindow:
         mp = QVBoxLayout(self.main_panel)
         mp.setContentsMargins(0, 0, 0, 0)
         mp.setSpacing(10)
-        root.addWidget(self.main_panel, 1)
+        # 主内容区改为「首页(下载) + 内联页」堆叠：导航点击切换页而非弹窗(2.1.0.0)
+        self.content_stack = QStackedWidget()
+        self.content_stack.setObjectName("contentStack")
+        self.content_stack.addWidget(self.main_panel)  # index 0 = 首页
+        root.addWidget(self.content_stack, 1)
 
         # ---- 顶部操作区：链接解析 + 常用工具 ----
         toolbar = QFrame()
@@ -293,6 +301,71 @@ class MainWindow:
         mp.addWidget(ctrl_frame)
 
         self.apply_theme_from_config()
+        self._build_content_pages()
+
+    # ---------- 内联内容页（2.1.0.0）----------
+    def _build_content_pages(self):
+        """创建内联内容页并加入 content_stack（首页=下载视图在 index 0）。"""
+        self.browse_page = BrowsePage(parent=self.content_stack,
+                                     on_confirm=self._browse_confirm,
+                                     on_back=self._show_home)
+        self.content_stack.addWidget(self.browse_page)
+
+        self.following_page = FollowingPage(parent=self.content_stack,
+                                           on_open_space=self.load_uploader_videos,
+                                           on_back=self._show_home)
+        self.content_stack.addWidget(self.following_page)
+
+        self.favfolder_page = FavFolderPage(parent=self.content_stack,
+                                           api=self.api,
+                                           on_select=self.load_folder_videos,
+                                           on_back=self._show_home)
+        self.content_stack.addWidget(self.favfolder_page)
+
+        self.livecenter_page = LiveCenterPage(parent=self.content_stack,
+                                              api=self.api,
+                                              on_record=self._start_live_record,
+                                              on_open_room=self._open_live_room,
+                                              on_back=self._show_home)
+        self.content_stack.addWidget(self.livecenter_page)
+
+        self.content_stack.setCurrentWidget(self.main_panel)
+
+    def _switch_to(self, widget):
+        """切换到指定内联内容页。"""
+        self.content_stack.setCurrentWidget(widget)
+
+    def _show_home(self):
+        """返回首页（下载视图）；清除导航栏高亮。
+
+        qfluentwidgets 的 NavigationInterface 没有公开的 clearCurrentItem，
+        setCurrentItem(None) 又会原样返回；这里直接清除所有导航项选中态并复位
+        当前路由键，使返回首页时侧边栏无高亮项。
+        """
+        self.content_stack.setCurrentWidget(self.main_panel)
+        try:
+            panel = getattr(self.sidebar, "panel", None)
+            if panel is None:
+                return
+            for _key, item in list(getattr(panel, "items", {}).items()):
+                w = getattr(item, "widget", None)
+                if w is not None and hasattr(w, "setSelected"):
+                    try:
+                        w.setSelected(False)
+                    except Exception:
+                        pass
+            if hasattr(panel, "_currentRouteKey"):
+                try:
+                    panel._currentRouteKey = None
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+    def _browse_confirm(self, selected):
+        """浏览页默认确认：勾选视频/分集 → 下载选项 → 入队 → 回首页。"""
+        self._on_videos_selected(selected)
+        self._show_home()
 
     def _secondary_button(self, text, command):
         """创建 Fluent 次要操作按钮。"""
@@ -488,7 +561,7 @@ class MainWindow:
         dlg = ChoiceDialog(self.window, tr("关闭方式"), tr("关闭程序时："),
                            options=[(tr("直接退出"), "quit"),
                                     (tr("最小化到托盘"), "tray")],
-                           default="tray")
+                           default="tray", radio=True)
         dlg.exec()
         choice = dlg.value or "tray"
         try:
@@ -506,11 +579,54 @@ class MainWindow:
 
     def minimize_to_tray(self):
         try:
+            # 设置窗口已改为独立顶层窗口；隐藏主窗口时一并收起，避免它「孤儿」般悬浮
+            sw = getattr(self, "settings_window", None)
+            if sw is not None:
+                try:
+                    if not sw.isHidden():
+                        sw.hide()
+                except Exception:
+                    pass
             self.window.hide()
             self.tray.hide_window()
             self.logger.log("已最小化到系统托盘，后台继续运行")
         except Exception as e:
             self.logger.log(f"最小化到托盘失败：{e}")
+
+    def _fit_window_to_screen(self):
+        """高分辨率 / 高 DPI（如希沃一体机）适配：把主窗口尺寸与最小尺寸都 clamp 到
+        当前屏幕的「可用工作区」(availableGeometry，已扣除任务栏 /  Dock)，并居中。
+
+        否则在高缩放比下，默认 1100x800 可能超过逻辑分辨率，导致底部被任务栏遮挡；
+        更糟的是 setMinimumSize(900,650) 的下限若大于可用高度，窗口永远塞不下。
+        """
+        win = self.window
+        screen = win.screen()
+        if screen is None:
+            app = QApplication.instance()
+            screen = app.primaryScreen() if app is not None else None
+        if screen is None:
+            return
+        avail = screen.availableGeometry()
+        if avail.isEmpty():
+            return
+
+        margin = 16
+        max_w = max(360, avail.width() - margin * 2)
+        max_h = max(240, avail.height() - margin * 2)
+
+        # 当前期望尺寸（尊重用户已手动缩放后的大小作为上限）
+        cur_w = min(win.width() or 1100, max_w)
+        cur_h = min(win.height() or 800, max_h)
+        # 最小尺寸同样不能超出可用区，否则窗口必然被任务栏遮
+        min_w = min(win.minimumWidth(), max_w)
+        min_h = min(win.minimumHeight(), max_h)
+
+        win.setMinimumSize(min_w, min_h)
+        win.resize(cur_w, cur_h)
+        x = avail.x() + (avail.width() - cur_w) // 2
+        y = avail.y() + (avail.height() - cur_h) // 2
+        win.move(x, y)
 
     def quit_app(self):
         if getattr(self, "_quitting", False):
@@ -1031,6 +1147,9 @@ class MainWindow:
             pw.x() + (pw.width() - self.settings_window.width()) // 2,
             pw.y() + (pw.height() - self.settings_window.height()) // 2)
         self.settings_window.show()
+        # 独立窗口需显式抢焦点，否则 show() 后焦点仍停留在主窗口（设置页被压在下面）
+        self.settings_window.raise_()
+        self.settings_window.activateWindow()
 
     def open_login(self):
         def on_success():
@@ -1125,9 +1244,10 @@ class MainWindow:
         elif nav_type == "live_center":
             self.open_live_center()
 
-    def load_folder_videos(self, media_id):
+    def load_folder_videos(self, media_id, folder_title=None):
         # 未指定具体收藏夹（侧边栏点击「我的收藏夹」时 media_id 为 None）：
         # 先让用户从收藏夹列表里挑一个，再据此拉取其视频。
+        # folder_title：由收藏夹选择页回传的收藏夹名称，用于页头标题（可为 None）。
         if not media_id:
             self._select_favorite_folder()
             return
@@ -1139,40 +1259,19 @@ class MainWindow:
             total = res.get("total", 0)
             total_pages = (total + ps - 1) // ps if total else None
             return items, res.get("has_more", False), total_pages
-        self._pull_all_and_show("收藏夹", fetch, ps=20,
-                                skip_if_empty_msg=tr("收藏夹为空，没有可下载的视频"))
+        self.browse_page.set_on_confirm(self._browse_confirm)
+        self.browse_page.configure_paginated(
+            folder_title or tr("收藏夹"), fetch, ps=20,
+            empty_msg=tr("收藏夹为空，没有可下载的视频"))
+        self._switch_to(self.browse_page)
 
     def _select_favorite_folder(self):
         if not getattr(self.api, 'uid', None):
             msg_warn(self.window, tr("登录后才能查看收藏夹"), tr("未登录"))
             return
-        self.logger.log("加载收藏夹列表...")
-        # 空预检：若用户一个收藏夹都没有，直接提示，不弹选择窗。
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        def _work():
-            try:
-                folders = self.api.get_favorite_folders() or []
-            except Exception as e:
-                run_on_main(lambda err=str(e): self._favfolder_precheck_fail(err))
-                return
-            run_on_main(lambda: self._favfolder_precheck_done(folders))
-        threading.Thread(target=_work, daemon=True).start()
-
-    def _favfolder_precheck_fail(self, err):
-        QApplication.restoreOverrideCursor()
-        self.logger.log(f"收藏夹列表加载失败：{err}")
-        msg_error(self.window, tr("加载收藏夹失败：{}").format(err))
-
-    def _favfolder_precheck_done(self, folders):
-        QApplication.restoreOverrideCursor()
-        if not folders:
-            self.logger.log("无收藏夹，不弹选择窗")
-            msg_info(self.window, tr("你还没有创建任何收藏夹"), tr("提示"))
-            return
-        FavFolderDialog(
-            self.window, self.api,
-            on_select=lambda mid, t: self.load_folder_videos(mid),
-        ).exec()
+        # 2.1.0.0：不再弹子窗口，直接切换到主界面内的收藏夹选择页
+        self.favfolder_page.load()
+        self._switch_to(self.favfolder_page)
 
     def _map_folder_items(self, raw):
         video_list = []
@@ -1205,8 +1304,12 @@ class MainWindow:
             total = res.get("total", 0)
             total_pages = (total + ps - 1) // ps if total else None
             return items, res.get("has_more", False), total_pages
-        self._pull_all_and_show("历史记录", fetch, ps=20,
-                                skip_if_empty_msg=tr("历史记录为空，没有可下载的视频"))
+        # 2.1.0.0：历史记录内联到主界面（不再弹分页选择子窗口）
+        self.browse_page.set_on_confirm(self._browse_confirm)
+        self.browse_page.configure_paginated(
+            tr("历史记录"), fetch, ps=20,
+            empty_msg=tr("历史记录为空，没有可下载的视频"))
+        self._switch_to(self.browse_page)
 
     def _map_history_items(self, raw):
         video_list = []
@@ -1257,11 +1360,9 @@ class MainWindow:
             self.logger.log("关注列表为空")
             msg_info(self.window, tr("关注列表为空"), tr("提示"))
             return
-
-        def on_open_space(mid):
-            self.load_uploader_videos(mid)
-
-        FollowingDialog(self.window, follows, on_open_space).exec()
+        # 2.1.0.0：关注列表内联到主界面
+        self.following_page.set_data(follows)
+        self._switch_to(self.following_page)
 
     def load_uploader_videos(self, mid):
         self.logger.log(f"加载UP主空间视频... (mid={mid})")
@@ -1272,7 +1373,11 @@ class MainWindow:
             total = res.get("total", 0)
             total_pages = (total + ps - 1) // ps if total else None
             return items, res.get("has_more", False), total_pages
-        self._pull_all_and_show(f"UP主空间 {mid}", fetch, ps=30)
+        self.browse_page.set_on_confirm(self._browse_confirm)
+        self.browse_page.configure_paginated(
+            tr("UP主空间"), fetch, ps=30,
+            empty_msg=tr("该UP主暂无可下载视频"))
+        self._switch_to(self.browse_page)
 
     def load_season_list(self):
         if not getattr(self.api, 'uid', None):
@@ -1321,8 +1426,11 @@ class MainWindow:
             total = res.get("total", 0)
             total_pages = (total + ps - 1) // ps if total else None
             return items, res.get("has_more", False), total_pages
-        self._pull_all_and_show("稍后再看", fetch, ps=20,
-                                skip_if_empty_msg=tr("稍后再看列表为空，没有可下载的视频"))
+        self.browse_page.set_on_confirm(self._browse_confirm)
+        self.browse_page.configure_paginated(
+            tr("稍后再看"), fetch, ps=20,
+            empty_msg=tr("稍后再看列表为空，没有可下载的视频"))
+        self._switch_to(self.browse_page)
 
     def _map_toview_items(self, raw):
         video_list = []
@@ -1342,47 +1450,45 @@ class MainWindow:
 
     def load_popular(self):
         self.logger.log("加载每周必看（最新一期）...")
-        # 先弹窗显示「加载中」，再后台拉取，避免弹窗空白造成卡顿错觉
-        dlg = SelectDialog(self.window, None, self._on_videos_selected,
-                           title=tr("每周必看"), loading=True)
-        threading.Thread(target=self._load_popular_thread, args=(dlg,), daemon=True).start()
-        dlg.exec()
-
-    def _load_popular_thread(self, dlg):
-        try:
-            video_list = self.api.get_popular_weekly()
-            if not video_list:
-                run_on_main(lambda: (dlg.set_loading(False, tr("每周必看为空或获取失败")),
-                                              msg_warn(dlg, tr("每周必看为空或获取失败"), tr("提示"))))
-                return
-            self.api.enrich_videos(video_list)
-            run_on_main(lambda n=len(video_list): self.logger.log(f"已加载 {n} 个每周必看视频"))
-            run_on_main(lambda: dlg.fill(video_list))
-        except Exception as e:
-            run_on_main(lambda err=str(e): (dlg.set_loading(False, tr("加载每周必看失败：{}").format(err)),
-                                                 msg_error(dlg, tr("加载每周必看失败：{}").format(err), tr("错误"))))
+        self.browse_page.set_on_confirm(self._browse_confirm)
+        self.browse_page.configure_oneshot(tr("每周必看"))
+        self._switch_to(self.browse_page)
+        def _worker():
+            try:
+                video_list = self.api.get_popular_weekly()
+                if not video_list:
+                    run_on_main(lambda: self.browse_page.set_loading(
+                        False, tr("每周必看为空或获取失败")))
+                    return
+                self.api.enrich_videos(video_list)
+                run_on_main(lambda n=len(video_list): self.logger.log(
+                    f"已加载 {n} 个每周必看视频"))
+                run_on_main(lambda: self.browse_page.fill(video_list))
+            except Exception as e:
+                run_on_main(lambda err=str(e): self.browse_page.show_error(
+                    tr("加载每周必看失败：{}").format(err)))
+        threading.Thread(target=_worker, daemon=True).start()
 
     def load_ranking(self):
         self.logger.log("加载排行榜（全站）...")
-        # 先弹窗显示「加载中」，再后台拉取，避免弹窗空白造成卡顿错觉
-        dlg = SelectDialog(self.window, None, self._on_videos_selected,
-                           title=tr("排行榜"), loading=True)
-        threading.Thread(target=self._load_ranking_thread, args=(dlg,), daemon=True).start()
-        dlg.exec()
-
-    def _load_ranking_thread(self, dlg):
-        try:
-            video_list = self.api.get_ranking(rid=0)
-            if not video_list:
-                run_on_main(lambda: (dlg.set_loading(False, tr("排行榜为空或获取失败")),
-                                              msg_warn(dlg, tr("排行榜为空或获取失败"), tr("提示"))))
-                return
-            self.api.enrich_videos(video_list)
-            run_on_main(lambda n=len(video_list): self.logger.log(f"已加载 {n} 个排行榜视频"))
-            run_on_main(lambda: dlg.fill(video_list))
-        except Exception as e:
-            run_on_main(lambda err=str(e): (dlg.set_loading(False, tr("加载排行榜失败：{}").format(err)),
-                                                 msg_error(dlg, tr("加载排行榜失败：{}").format(err), tr("错误"))))
+        self.browse_page.set_on_confirm(self._browse_confirm)
+        self.browse_page.configure_oneshot(tr("排行榜"))
+        self._switch_to(self.browse_page)
+        def _worker():
+            try:
+                video_list = self.api.get_ranking(rid=0)
+                if not video_list:
+                    run_on_main(lambda: self.browse_page.set_loading(
+                        False, tr("排行榜为空或获取失败")))
+                    return
+                self.api.enrich_videos(video_list)
+                run_on_main(lambda n=len(video_list): self.logger.log(
+                    f"已加载 {n} 个排行榜视频"))
+                run_on_main(lambda: self.browse_page.fill(video_list))
+            except Exception as e:
+                run_on_main(lambda err=str(e): self.browse_page.show_error(
+                    tr("加载排行榜失败：{}").format(err)))
+        threading.Thread(target=_worker, daemon=True).start()
 
     def _record_history(self, video_list, source="manual"):
         try:
@@ -1410,14 +1516,18 @@ class MainWindow:
         self._on_queue_status(self.engine.queue)
 
     def open_search(self):
-        SearchDialog(self.window, self.api.get_search_results,
-                     on_confirm=self._route_search_selected,
-                     title=tr("搜索 B站")).exec()
+        self.browse_page.set_on_confirm(self._route_search_selected)
+        self.browse_page.configure_search(
+            tr("搜索 B站"), self.api.get_search_results,
+            "输入关键词后回车或点击搜索")
+        self._switch_to(self.browse_page)
 
     def open_music_search(self):
-        SearchDialog(self.window, self.api.get_music_search_results,
-                     on_confirm=self._route_search_selected,
-                     title=tr("bilibili音乐")).exec()
+        self.browse_page.set_on_confirm(self._route_search_selected)
+        self.browse_page.configure_search(
+            tr("bilibili音乐"), self.api.get_music_search_results,
+            "输入关键词后回车或点击搜索")
+        self._switch_to(self.browse_page)
 
     def _route_search_selected(self, selected):
         if not selected:
@@ -1431,16 +1541,17 @@ class MainWindow:
                 seasons.append(s)
             else:
                 videos.append(s)
-        # UP主结果 → 展开其空间视频再勾选
+        # UP主结果 → 展开其空间视频（内联切换页）
         for u in users:
             mid = u.get("mid")
             if mid:
                 self.load_uploader_videos(mid)
         if seasons:
             self._expand_seasons_to_episodes(seasons)
-        # 视频结果直接进入下载设置；番剧结果已展开为可选分集。
+        # 视频结果直接入队后回到首页；番剧结果已展开为可选分集。
         if videos:
             self._add_selected_to_queue(videos)
+            self._show_home()
 
     def _add_videos_via_options(self, video_list):
         if not video_list:
@@ -1511,33 +1622,32 @@ class MainWindow:
             self.logger.log("该分类下无视频")
             msg_info(self.window, tr("该分类下无视频"), tr("提示"))
             return
-
-        def on_confirm(selected_items):
-            self._on_videos_selected(selected_items)
-
-        SelectDialog(self.window, video_list, on_confirm).exec()
+        self.browse_page.set_on_confirm(self._browse_confirm)
+        self.browse_page.configure_oneshot(tr("选择视频"))
+        self._switch_to(self.browse_page)
+        self.browse_page.fill(video_list)
 
     def show_episode_select(self, episode_list):
         if not episode_list:
             self.logger.log("该分类下无分集")
             msg_info(self.window, tr("该分类下无分集"), tr("提示"))
             return
-
-        EpisodeSelectDialog(self.window, episode_list,
-                           on_confirm=self._on_videos_selected,
-                           title=tr("选择分集")).exec()
+        # 2.1.0.0：分集选择内联到主界面
+        self.browse_page.set_on_confirm(self._browse_confirm)
+        self.browse_page.configure_oneshot(tr("选择分集"))
+        self._switch_to(self.browse_page)
+        self.browse_page.fill(episode_list)
 
     def show_season_select(self, season_list):
         if not season_list:
             self.logger.log("追番列表为空")
             msg_info(self.window, tr("追番列表为空"), tr("提示"))
             return
-
-        def on_confirm(selected):
-            if selected:
-                self._expand_seasons_to_episodes(selected)
-
-        SelectDialog(self.window, season_list, on_confirm, title=tr("我的追番")).exec()
+        # 2.1.0.0：追番选择内联到主界面；确认后展开分集（再次内联切换）
+        self.browse_page.set_on_confirm(self._expand_seasons_to_episodes)
+        self.browse_page.configure_oneshot(tr("我的追番"))
+        self._switch_to(self.browse_page)
+        self.browse_page.fill(season_list)
 
     def _expand_seasons_to_episodes(self, series_list):
         series_list = list(series_list)
@@ -1663,11 +1773,9 @@ class MainWindow:
         w.show()  # 非模态：不阻塞主窗口
 
     def open_live_center(self):
-        LiveCenterDialog(
-            self.window, api=self.api,
-            on_record=self._start_live_record,
-            on_open_room=self._open_live_room,
-        ).exec()
+        # 2.1.0.0：直播中心内联到主界面
+        self._switch_to(self.livecenter_page)
+        self.livecenter_page.load_hot()
 
     # ---------- 直播录制 ----------
     def _resolve_room_id(self, target):
@@ -1715,12 +1823,30 @@ class MainWindow:
             self.queue_view.retranslate()
         except Exception:
             pass
+        # 2.1.0.0 内联内容页多语言刷新
+        for _pg in (getattr(self, "browse_page", None),
+                    getattr(self, "following_page", None),
+                    getattr(self, "favfolder_page", None),
+                    getattr(self, "livecenter_page", None)):
+            if _pg is not None:
+                try:
+                    _pg.retranslate()
+                except Exception:
+                    pass
         try:
             self.tray.update_menu()
         except Exception:
             pass
 
     def run(self):
+        # 高分辨率 / 高 DPI 屏幕（如希沃一体机）：首次显示前把窗口尺寸/最小尺寸 clamp 到
+        # 可用工作区并居中，避免被任务栏遮挡；仅做一次，托盘恢复时尊重用户已摆放的位置。
+        if not self._fitted_once:
+            try:
+                self._fit_window_to_screen()
+            except Exception as e:
+                self.logger.log(f"窗口自适应屏幕失败：{e}")
+            self._fitted_once = True
         self.window.show()
         # 首次启动（尚未同意《用户协议》）先弹协议，不接受则退出
         if not self.config.get("accepted_terms", False):

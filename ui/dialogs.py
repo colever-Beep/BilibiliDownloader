@@ -29,9 +29,9 @@ from PySide6.QtWidgets import (
 )
 
 from qfluentwidgets import (
-    BodyLabel, CaptionLabel, FluentIcon, FlowLayout, ImageLabel,
-    LargeTitleLabel, LineEdit, ListWidget, PrimaryPushButton, PushButton,
-    SearchLineEdit, TableWidget, TextEdit,
+    BodyLabel, CaptionLabel, FluentIcon, FlowLayout, HyperlinkLabel,
+    ImageLabel, LargeTitleLabel, LineEdit, ListWidget, PrimaryPushButton,
+    PushButton, RadioButton, SearchLineEdit, TableWidget, TextEdit,
 )
 
 from utils.i18n import tr, register
@@ -51,6 +51,7 @@ from ui.select_list_view import SelectListView, _key_of
 from ui.select_dialog import PaginationMixin, SelectDialogBase
 from ui.icons import icon_pixmap
 from ui.theme import palette, get_accent
+from utils.resources import get_app_icon_path
 
 APP_NAME = "BilibiliDownloader"
 
@@ -70,20 +71,61 @@ def _page():
 # --------------------------------------------------------------------------- #
 # 关于
 # --------------------------------------------------------------------------- #
+# 关于窗口的静态文案（同时作为 i18n 注册键，避免 tr() 与 register() 字面量不一致）
+_ABOUT_DESC = ("基于 PySide6 重构的 B 站视频下载工具，支持视频 / 番剧 / 直播录制"
+               "与批量下载、弹幕字幕元数据抓取。")
+_ABOUT_LICENSE = "基于 Bili23-Downloader 二次开发，遵循 GPL-3.0 许可证。"
+_ABOUT_LINK_TEXT = "GitHub 仓库"
+_ABOUT_LINK_URL = "https://github.com/colever-Beep/BilibiliDownloader"
+
+
 class AboutDialog(FluentContentDialog):
+    """关于：使用 qfluentwidgets 原生组件（图标卡片 / 超链接 / 许可证说明）。"""
+
     def __init__(self, parent=None, config=None):
-        super().__init__((460, 320), parent, title=tr("关于"))
+        super().__init__((480, 380), parent, title=tr("关于"))
         self.config = config
 
-        self.add_widget(LargeTitleLabel(APP_NAME, self))
-        self.add_widget(CaptionLabel("v2.0.0 · PySide6 · qfluentwidgets", self))
+        # 头部：应用图标 + 名称 + 版本
+        head = QHBoxLayout()
+        head.setSpacing(16)
+        self.icon_lbl = ImageLabel(self)
+        self.icon_lbl.setFixedSize(64, 64)
+        self.icon_lbl.setBorderRadius(14, 14, 14, 14)
+        self.icon_lbl.setScaledContents(True)
+        try:
+            p = get_app_icon_path()
+            if p and os.path.exists(p):
+                self.icon_lbl.setImage(QPixmap(p))
+        except Exception:
+            pass
+        head.addWidget(self.icon_lbl)
 
-        desc = BodyLabel(tr(
-            "基于 PySide6 重构的 B 站视频下载工具，支持视频 / 番剧 / 直播录制"
-            "与批量下载、弹幕字幕元数据抓取。"
-        ), self)
+        info = QVBoxLayout()
+        info.setSpacing(4)
+        self.name_lbl = LargeTitleLabel(APP_NAME, self)
+        self.ver_lbl = CaptionLabel("v2.1.0.0 · PySide6 · qfluentwidgets", self)
+        info.addWidget(self.name_lbl)
+        info.addWidget(self.ver_lbl)
+        info.addStretch(1)
+        head.addLayout(info, 1)
+        self.add_layout(head)
+
+        # 主页链接（qfluentwidgets 原生超链接，跟随主题强调色）
+        self.link_lbl = HyperlinkLabel(self)
+        self.link_lbl.setText(tr(_ABOUT_LINK_TEXT))
+        self.link_lbl.setUrl(_ABOUT_LINK_URL)
+        self.add_widget(self.link_lbl)
+
+        # 简介
+        desc = BodyLabel(tr(_ABOUT_DESC), self)
         desc.setWordWrap(True)
         self.add_widget(desc, 1)
+
+        # 许可证说明
+        self.lic_lbl = CaptionLabel(tr(_ABOUT_LICENSE), self)
+        self.lic_lbl.setWordWrap(True)
+        self.add_widget(self.lic_lbl)
 
         # 左下角：查看《用户协议》（只读，不接受也不退出程序）
         terms = self.add_button(tr("用户协议"), slot=self._open_terms, right=False)
@@ -91,6 +133,12 @@ class AboutDialog(FluentContentDialog):
 
         ok = self.add_button(tr("确定"), primary=True, slot=self.accept)
         register(ok, "确定")
+
+        # i18n：语言切换时刷新静态文本
+        register(self.name_lbl, APP_NAME)
+        register(self.link_lbl, _ABOUT_LINK_TEXT)
+        register(desc, _ABOUT_DESC)
+        register(self.lic_lbl, _ABOUT_LICENSE)
 
     def _open_terms(self):
         from ui.terms_dialog import TermsOfUseDialog

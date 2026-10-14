@@ -16,7 +16,7 @@ import os
 
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QColor, QDesktopServices
-from PySide6.QtWidgets import QFileDialog, QScrollArea, QWidget, QVBoxLayout
+from PySide6.QtWidgets import QApplication, QFileDialog, QScrollArea, QWidget, QVBoxLayout
 
 from utils.i18n import tr, LANGUAGES, register
 from ui.icons import FluentIcon
@@ -126,7 +126,13 @@ class SettingsWindow(MSFluentWindow):
 
     def __init__(self, parent, config, on_language_change, on_settings_changed, preview_theme,
                  on_open_logs=None, on_stay_on_top=None):
-        super().__init__(parent)
+        # 必须以独立顶层窗口（parent=None）创建，否则在 Windows 下会成为主窗口的
+        # 「被拥有窗口（owned window）」——最小化/关闭/拖动/任务栏都会和主界面耦合同步，
+        # 表现为「设置页与主界面绑定、操作互相影响」。改为独立窗口后拥有自己的任务栏
+        # 入口与独立的关闭/最小化/拖动行为；与主窗口的通信仍通过下方注入的回调完成。
+        # main_window 引用仅用于未来可能需要的居中/对齐，不构成 Qt 父子关系。
+        self.main_window = parent
+        super().__init__(None)
         self.config = config
         self.on_language_change = on_language_change
         self.on_settings_changed = on_settings_changed
@@ -150,6 +156,24 @@ class SettingsWindow(MSFluentWindow):
         self.setWindowTitle(tr("设置"))
         self.resize(900, 640)
         self.setMinimumSize(760, 560)
+        # 高分辨率 / 高 DPI（如希沃一体机）适配：把尺寸与最小尺寸 clamp 到可用工作区
+        # （availableGeometry 已扣除任务栏），避免被任务栏裁切 / 遮挡。
+        try:
+            screen = self.screen()
+            if screen is None:
+                app = QApplication.instance()
+                screen = app.primaryScreen() if app is not None else None
+            if screen is not None:
+                avail = screen.availableGeometry()
+                if not avail.isEmpty():
+                    margin = 16
+                    max_w = max(360, avail.width() - margin * 2)
+                    max_h = max(240, avail.height() - margin * 2)
+                    self.setMinimumSize(min(self.minimumWidth(), max_w),
+                                        min(self.minimumHeight(), max_h))
+                    self.resize(min(self.width(), max_w), min(self.height(), max_h))
+        except Exception:
+            pass
 
         # 构建四个分类子界面
         self._basic = self._build_basic()

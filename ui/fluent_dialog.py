@@ -24,14 +24,16 @@ import os
 
 from PySide6.QtCore import QEventLoop, QSize, QTimer, Qt
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QApplication, QDialog, QHBoxLayout, QVBoxLayout
-
-from qfluentwidgets import (
-    BodyLabel, CaptionLabel, FluentWidget, FluentWidgetTitleBar, MessageBox, Pivot,
-    PopUpAniStackedWidget, PrimaryPushButton, PushButton,
+from PySide6.QtWidgets import (
+    QApplication, QButtonGroup, QDialog, QHBoxLayout, QVBoxLayout,
 )
 
-from utils.i18n import tr
+from qfluentwidgets import (
+    BodyLabel, CaptionLabel, FluentWidget, FluentWidgetTitleBar, MessageBox,
+    Pivot, PopUpAniStackedWidget, PrimaryPushButton, PushButton, RadioButton,
+)
+
+from utils.i18n import tr, register
 from utils.resources import get_app_icon_path
 
 # --------------------------------------------------------------------------- #
@@ -474,25 +476,66 @@ def msg_confirm(parent, content, title=None, ok_text=None, cancel_text=None):
 
 
 class ChoiceDialog(FluentContentDialog):
-    """自定义二选一对话框（例如「直接退出 / 最小化到托盘」）。
+    """自定义选择对话框（例如「直接退出 / 最小化到托盘」）。
 
-    options: [(显示文本, 取值), ...]，第一个为主按钮（primary）。
-    关闭 / 取消时 `value` 保持 `default`。
+    - 默认（radio=False）：每个选项一个按钮，第一个为主按钮（primary）；
+    - 单选模式（radio=True）：qfluentwidgets 原生 ``RadioButton`` 组 + 底部「确定」，
+      选中项即取值；默认选中 ``default`` 对应项。
+
+    关闭 / 点击「取消」时 ``value`` 保持 ``default``。
     """
 
     def __init__(self, parent, title, content="", options=None, default=None,
-                 cancel_text=None):
-        super().__init__((470, 250), parent, title=title)
+                 cancel_text=None, radio=False):
+        super().__init__((480, 300) if radio else (470, 250), parent, title=title)
         self.value = default
+        self._radios = []
+        self._bg = None
+
         if content:
             lab = BodyLabel(content, self)
             lab.setWordWrap(True)
             self.add_widget(lab, 1)
-        for i, (text, value) in enumerate(list(options or [])):
-            self.add_button(text, primary=(i == 0),
-                            slot=(lambda v=value: self.pick(v)))
-        if cancel_text:
-            self.add_button(cancel_text, slot=self.reject)
+            register(lab, content)
+
+        if radio:
+            self._bg = QButtonGroup(self)
+            for text, value in list(options or []):
+                rb = RadioButton(tr(text), self)
+                rb.setProperty("value", value)
+                rb.clicked.connect(lambda _=None, v=value: self._pick_radio(v))
+                self._bg.addButton(rb)
+                self.add_widget(rb)
+                self._radios.append(rb)
+                register(rb, text)
+            # 默认选中 default 对应项（找不到则选第一项）
+            sel = next((r for r in self._radios
+                        if r.property("value") == default), None)
+            if sel is not None:
+                sel.setChecked(True)
+            self.add_stretch(1)
+            ok = self.add_button(tr("确定"), primary=True,
+                                 slot=self._accept_radio)
+            register(ok, "确定")
+            if cancel_text:
+                cb = self.add_button(tr(cancel_text), slot=self.reject)
+                register(cb, cancel_text)
+        else:
+            for i, (text, value) in enumerate(list(options or [])):
+                self.add_button(text, primary=(i == 0),
+                                slot=(lambda v=value: self.pick(v)))
+            if cancel_text:
+                self.add_button(tr(cancel_text), slot=self.reject)
+
+    def _pick_radio(self, value):
+        self.value = value
+
+    def _accept_radio(self):
+        for rb in self._radios:
+            if rb.isChecked():
+                self.value = rb.property("value")
+                break
+        self.accept()
 
     def pick(self, value):
         self.value = value
