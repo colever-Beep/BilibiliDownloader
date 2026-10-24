@@ -81,6 +81,17 @@ class LiveRecordOptionsDialog(TopNavigationDialog):
             g, "LINK", "断流自动重连", "直播中断后自动重连并分段保存",
             c.get("live_record_auto_reconnect", True))
 
+        # ---- 录制起点（Feature 1：下拉选择时长段；Feature 2：从直播开始复选框）----
+        from live_recorder import get_live_start_mode_options
+        _start_opt = [(v, tr(lbl)) for lbl, v in get_live_start_mode_options()]
+        _cur = c.get("live_record_start_mode", "live")
+        _, self.start_combo = _add_combo(
+            g, "HISTORY", "录制起点", "选择从哪个时间点开始录制（直播时移；未开通时移的房间会回退到当前位置）",
+            _start_opt, _cur)
+        _, self.start_sw = _add_switch(
+            g, "PLAY", "从直播开始录制", "勾选后忽略上方下拉，从直播开播时刻开始录制",
+            _cur == "start")
+
         _, self.path_edit = _add_path(
             g, "FOLDER", "保存路径", "录制文件的保存目录",
             c.get("download_path", ""), self._browse_path)
@@ -122,6 +133,11 @@ class LiveRecordOptionsDialog(TopNavigationDialog):
             qn = 10000
         c.set("live_record_qn", qn)
         c.set("live_record_auto_reconnect", self.reconnect_sw.isChecked())
+        # 录制起点：复选框优先（从直播开始），否则取下拉存储值
+        if self.start_sw.isChecked():
+            c.set("live_record_start_mode", "start")
+        else:
+            c.set("live_record_start_mode", _combo_value(self.start_combo))
         c.set("download_path", normalize_download_path(self.path_edit.text()))
         c.set("live_record_options_dialog", self.show_again_sw.isChecked())
 

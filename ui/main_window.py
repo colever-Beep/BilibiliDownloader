@@ -153,7 +153,7 @@ class MainWindow:
         mp = QVBoxLayout(self.main_panel)
         mp.setContentsMargins(0, 0, 0, 0)
         mp.setSpacing(10)
-        # 主内容区改为「首页(下载) + 内联页」堆叠：导航点击切换页而非弹窗(2.1.0.0)
+        # 主内容区改为「首页(下载) + 内联页」堆叠：导航点击切换页而非弹窗(2.1.0)
         self.content_stack = QStackedWidget()
         self.content_stack.setObjectName("contentStack")
         self.content_stack.addWidget(self.main_panel)  # index 0 = 首页
@@ -303,7 +303,7 @@ class MainWindow:
         self.apply_theme_from_config()
         self._build_content_pages()
 
-    # ---------- 内联内容页（2.1.0.0）----------
+    # ---------- 内联内容页（2.1.0）----------
     def _build_content_pages(self):
         """创建内联内容页并加入 content_stack（首页=下载视图在 index 0）。"""
         self.browse_page = BrowsePage(parent=self.content_stack,
@@ -1269,7 +1269,7 @@ class MainWindow:
         if not getattr(self.api, 'uid', None):
             msg_warn(self.window, tr("登录后才能查看收藏夹"), tr("未登录"))
             return
-        # 2.1.0.0：不再弹子窗口，直接切换到主界面内的收藏夹选择页
+        # 2.1.0：不再弹子窗口，直接切换到主界面内的收藏夹选择页
         self.favfolder_page.load()
         self._switch_to(self.favfolder_page)
 
@@ -1304,7 +1304,7 @@ class MainWindow:
             total = res.get("total", 0)
             total_pages = (total + ps - 1) // ps if total else None
             return items, res.get("has_more", False), total_pages
-        # 2.1.0.0：历史记录内联到主界面（不再弹分页选择子窗口）
+        # 2.1.0：历史记录内联到主界面（不再弹分页选择子窗口）
         self.browse_page.set_on_confirm(self._browse_confirm)
         self.browse_page.configure_paginated(
             tr("历史记录"), fetch, ps=20,
@@ -1360,7 +1360,7 @@ class MainWindow:
             self.logger.log("关注列表为空")
             msg_info(self.window, tr("关注列表为空"), tr("提示"))
             return
-        # 2.1.0.0：关注列表内联到主界面
+        # 2.1.0：关注列表内联到主界面
         self.following_page.set_data(follows)
         self._switch_to(self.following_page)
 
@@ -1632,7 +1632,7 @@ class MainWindow:
             self.logger.log("该分类下无分集")
             msg_info(self.window, tr("该分类下无分集"), tr("提示"))
             return
-        # 2.1.0.0：分集选择内联到主界面
+        # 2.1.0：分集选择内联到主界面
         self.browse_page.set_on_confirm(self._browse_confirm)
         self.browse_page.configure_oneshot(tr("选择分集"))
         self._switch_to(self.browse_page)
@@ -1643,7 +1643,7 @@ class MainWindow:
             self.logger.log("追番列表为空")
             msg_info(self.window, tr("追番列表为空"), tr("提示"))
             return
-        # 2.1.0.0：追番选择内联到主界面；确认后展开分集（再次内联切换）
+        # 2.1.0：追番选择内联到主界面；确认后展开分集（再次内联切换）
         self.browse_page.set_on_confirm(self._expand_seasons_to_episodes)
         self.browse_page.configure_oneshot(tr("我的追番"))
         self._switch_to(self.browse_page)
@@ -1773,7 +1773,7 @@ class MainWindow:
         w.show()  # 非模态：不阻塞主窗口
 
     def open_live_center(self):
-        # 2.1.0.0：直播中心内联到主界面
+        # 2.1.0：直播中心内联到主界面
         self._switch_to(self.livecenter_page)
         self.livecenter_page.load_hot()
 
@@ -1823,7 +1823,7 @@ class MainWindow:
             self.queue_view.retranslate()
         except Exception:
             pass
-        # 2.1.0.0 内联内容页多语言刷新
+        # 2.1.0 内联内容页多语言刷新
         for _pg in (getattr(self, "browse_page", None),
                     getattr(self, "following_page", None),
                     getattr(self, "favfolder_page", None),

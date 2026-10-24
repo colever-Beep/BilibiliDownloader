@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
 )
 
 from qfluentwidgets import (
-    BodyLabel, CaptionLabel, LineEdit, PrimaryPushButton,
+    BodyLabel, CaptionLabel, CheckBox, ComboBox, LineEdit, PrimaryPushButton,
 )
 
 from ui.fluent_dialog import FluentContentDialog, msg_error
@@ -99,6 +99,30 @@ class LiveRecordWindow(FluentContentDialog):
         input_row.addWidget(self.toggle_btn)
         self.add_layout(input_row)
 
+        # ---- 录制起点：下拉选择时长段（Feature 1）+ 复选框从直播开始（Feature 2）----
+        from live_recorder import get_live_start_mode_options
+        start_row = QHBoxLayout()
+        start_row.setSpacing(10)
+        start_lab = CaptionLabel(tr("录制起点"), self)
+        start_lab.setMinimumWidth(64)
+        register(start_lab, "录制起点")
+        start_row.addWidget(start_lab)
+        self.start_combo = ComboBox(self)
+        for _text, _val in get_live_start_mode_options():
+            self.start_combo.addItem(tr(_text), userData=_val)
+        self.start_combo.setMinimumWidth(180)
+        start_row.addWidget(self.start_combo, 1)
+        self.from_start_chk = CheckBox(tr("从直播开始录制"), self)
+        self.from_start_chk.setMinimumWidth(120)
+        register(self.from_start_chk, "从直播开始录制")
+        start_row.addWidget(self.from_start_chk)
+        self.add_layout(start_row)
+
+        # 初始化「录制起点」控件为 config 中已保存的值（默认：当前位置）
+        self._sync_start_controls_from_config()
+        self.start_combo.currentIndexChanged.connect(self._on_start_mode_changed)
+        self.from_start_chk.stateChanged.connect(self._on_start_check_changed)
+
         # ---- 分隔线 ----
         sep = QFrame(self)
         sep.setFrameShape(QFrame.HLine)
@@ -158,6 +182,56 @@ class LiveRecordWindow(FluentContentDialog):
         self._vals[attr].setText(text)
 
     # ------------------------------------------------------------------ #
+    # 录制起点（时移）：Feature 1 = 下拉选择时长段；Feature 2 = 从直播开始复选框
+    # ------------------------------------------------------------------ #
+    def _read_start_mode(self):
+        """从 config 读取「录制起点」模式（与录制选项对话框共用同一键）。"""
+        if self.config is not None:
+            try:
+                return self.config.get("live_record_start_mode", "live")
+            except Exception:
+                pass
+        return "live"
+
+    def _write_start_mode(self, mode):
+        if self.config is not None:
+            try:
+                self.config.set("live_record_start_mode", mode)
+            except Exception:
+                pass
+
+    def _sync_start_controls_from_config(self):
+        mode = self._read_start_mode()
+        idx = self.start_combo.findData(mode)
+        if idx < 0:
+            idx = self.start_combo.findData("live")
+        if idx >= 0:
+            self.start_combo.setCurrentIndex(idx)
+        is_start = (mode == "start")
+        self.from_start_chk.setChecked(is_start)
+        self.start_combo.setEnabled(not is_start)
+
+    def _on_start_mode_changed(self, index):
+        val = self.start_combo.itemData(index)
+        # 选择「从直播开始」时同步勾选复选框
+        if val == "start":
+            self.from_start_chk.setChecked(True)
+        else:
+            self.from_start_chk.setChecked(False)
+        self._write_start_mode(val)
+
+    def _on_start_check_changed(self, state):
+        # 复选框勾选 -> 强制「从直播开始」并禁用下拉；取消 -> 恢复下拉可用
+        checked = bool(state)
+        if checked:
+            self.start_combo.setCurrentIndex(self.start_combo.findData("start"))
+            self.start_combo.setEnabled(False)
+            self._write_start_mode("start")
+        else:
+            self.start_combo.setEnabled(True)
+            self._write_start_mode(self.start_combo.currentData())
+
+    # ------------------------------------------------------------------ #
     # 启停
     # ------------------------------------------------------------------ #
     def _on_toggle(self):
@@ -206,20 +280,31 @@ class LiveRecordWindow(FluentContentDialog):
                 qn = 10000
 
         def work():
+            from live_recorder import resolve_record_start_ts
+            mode = self._read_start_mode()
+            ts = resolve_record_start_ts(self.api, rid, mode)
             try:
-                stream = self.api.get_live_playurl(rid, qn=qn)
+                stream = self.api.get_live_playurl(rid, qn=qn, ts=ts)
             except Exception as e:
                 run_on_main(lambda err=str(e): self._on_stream_failed(err))
                 return
+            if not stream and ts is not None:
+                # 时移录制失败（房间未开通时移等）：回退到从当前位置录制
+                self.append_log(tr("时移起点不可用，回退到从当前位置录制"))
+                try:
+                    stream = self.api.get_live_playurl(rid, qn=qn)
+                except Exception as e:
+                    run_on_main(lambda err=str(e): self._on_stream_failed(err))
+                    return
             if not stream:
                 run_on_main(lambda: self._on_stream_failed(
                     tr("未获取到直播流地址（未开播 / 风控拦截）")))
                 return
-            run_on_main(lambda s=stream: self._on_stream_ready(s))
+            run_on_main(lambda s=stream, t=ts: self._on_stream_ready(s, t))
 
         threading.Thread(target=work, daemon=True).start()
 
-    def _on_stream_ready(self, stream):
+    def _on_stream_ready(self, stream, ts=None):
         auto_reconnect = True
         if self.config is not None:
             auto_reconnect = bool(self.config.get("live_record_auto_reconnect", True))
@@ -235,7 +320,8 @@ class LiveRecordWindow(FluentContentDialog):
             outpath = rec.start(
                 stream, title_hint=self._title_hint,
                 auto_reconnect=auto_reconnect,
-                refetch=lambda: self.api.get_live_playurl(self._room_id, qn=qn))
+                refetch=lambda: self.api.get_live_playurl(
+                    self._room_id, qn=qn, ts=ts))
         except Exception as e:
             self._on_stream_failed(str(e))
             return

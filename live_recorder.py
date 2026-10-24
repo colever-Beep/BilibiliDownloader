@@ -6,6 +6,52 @@ import re
 
 from utils.helpers import safe_filename, resolve_filename_collision, send_windows_notification
 from config import normalize_download_path
+from utils.i18n import tr
+
+
+# 直播「录制起点」选项：显示文案 -> 存储值（存储值是不翻译的配置值）。
+# 存储值为 "live"（当前位置）/ 正整数（N 分钟前）/ "start"（从直播开始）。
+def get_live_start_mode_options():
+    return [
+        (tr("当前位置（直播最前沿）"), "live"),
+        (tr("5 分钟前"), 5),
+        (tr("15 分钟前"), 15),
+        (tr("30 分钟前"), 30),
+        (tr("1 小时前"), 60),
+        (tr("2 小时前"), 120),
+        (tr("从直播开始"), "start"),
+    ]
+
+
+def resolve_record_start_ts(api, room_id, mode):
+    """根据「录制起点」模式计算时移时间戳 ts（Unix 秒），返回 None 表示直播最前沿。
+
+    - "live" / None           -> None（不时移，从当前位置录制）
+    - "start"                 -> 开播时间；拿不到则回退到 3 小时前（尽力时移，
+                                 CDN 会钳到可回溯起点）
+    - 正整数 N                -> 当前时间 - N 分钟
+    """
+    if mode is None or mode == "live":
+        return None
+    if mode == "start":
+        start_time = None
+        if api is not None:
+            try:
+                start_time = api.get_live_start_time(room_id)
+            except Exception:
+                start_time = None
+        if start_time:
+            return int(start_time)
+        # 兜底：开播时间未知时尽力往前回溯 3 小时（时移窗口通常有限）
+        return int(time.time()) - 3 * 3600
+    try:
+        minutes = int(mode)
+    except (TypeError, ValueError):
+        return None
+    if minutes <= 0:
+        return None
+    return int(time.time()) - minutes * 60
+
 
 
 class LiveRecorder:

@@ -1937,7 +1937,7 @@ class BiliAPI:
             print(f"[直播搜索] 异常: {e}")
             return []
 
-    def get_live_playurl(self, room_id, qn=10000):
+    def get_live_playurl(self, room_id, qn=10000, ts=None):
         """获取直播间 FLV/HLS 流地址，供 LiveRecorder 录制使用。
 
         关键坑（本次 -400 的根因）：该接口的必填参数名是 ``cid``（真实直播间号），
@@ -1948,6 +1948,10 @@ class BiliAPI:
         bili_ticket 等）会返回 -352（buvid 校验失败）。先 _ensure_buvid 补齐整套
         风控 Cookie；若仍命中 -352/-400，则强制刷新风控 Cookie 并重签名重试一次
         （应对过期/限频）。返回首个可用流地址字符串；失败返回 None。
+
+        ts：时移时间戳（Unix 秒）。传入后可获取从该时刻开始的「直播回放/时移」流，
+        用于「从 N 分钟前 / 从直播开始」录制。部分未开通时移的房间会忽略该参数
+        （退化为直播最前沿）或报错，调用方需自行回退到当前位置。
         """
         try:
             cid = int(room_id)
@@ -1969,6 +1973,11 @@ class BiliAPI:
             "codec": "0,1",
             "web_location": "444.8",  # 对齐 web 客户端，WBI 签名需要
         }
+        if ts is not None:
+            try:
+                params["ts"] = int(ts)
+            except (TypeError, ValueError):
+                pass
         last_code = None
         last_msg = ""
         # 第一次正常补全；失败（风控）时强制刷新再试一次
@@ -2008,4 +2017,39 @@ class BiliAPI:
         elif last_code == -404:
             hint = "（房间未开播或不存在）"
         print(f"[直播流] 获取失败 code:{last_code} msg:{last_msg} {hint}")
+        return None
+
+    def get_live_start_time(self, room_id):
+        """获取直播间开播时间（Unix 秒），用于「从直播开始录制」的时移起点。
+
+        取自 roomInit 接口的 ``data.live_time``（开播时间戳）。该接口不稳定或房间
+        未开播时返回 None，调用方需回退到「尽力时移」或「当前位置」。
+        """
+        try:
+            cid = int(room_id)
+        except Exception:
+            return None
+        headers = {
+            "Referer": f"https://live.bilibili.com/{cid}",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                          "AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/120.0.0.0 Safari/537.36",
+        }
+        try:
+            self._ensure_buvid()
+            params = self.wbi_sign({"id": cid, "room_id": cid})
+            resp = self.session.get(
+                "https://api.live.bilibili.com/room/v1/Room/roomInit",
+                params=params, headers=headers, timeout=12)
+            data = resp.json()
+            if data.get("code") == 0:
+                d = data.get("data") or {}
+                t = d.get("live_time")
+                if not t:
+                    info = (d.get("anchor_info") or {}).get("live_info") or {}
+                    t = info.get("liveStartTime")
+                if t:
+                    return int(t)
+        except Exception as e:
+            print(f"[直播开播时间] 异常: {e}")
         return None

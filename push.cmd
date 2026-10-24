@@ -3,6 +3,13 @@ setlocal
 set "MODE=cli"
 set "PAUSE_AT_END=0"
 
+:: =====================================================================
+::  默认始终排除项（逗号/空格分隔，支持通配符）。
+::  这些一般为运行态/敏感文件；即便以后被误跟踪也不会被提交。
+::  你可以在这里增删，或在 push 时选择「自定义排除项」临时追加。
+:: =====================================================================
+set "DEFAULT_EXCLUDE=cookies*.txt *.log history.txt test.txt download.log"
+
 :: ---------- 前置检查 ----------
 where git >nul 2>&1
 if errorlevel 1 (
@@ -41,16 +48,23 @@ echo   8. 同步远程(fetch+status)    sync
 echo   0. 退出
 echo.
 set /p "CHOICE=请选择操作 [0-8]: "
-if "%CHOICE%"=="1" (call :do_push & goto :menu)
-if "%CHOICE%"=="2" (call :do_tag_prompt & goto :menu)
-if "%CHOICE%"=="3" (call :do_release_prompt & goto :menu)
-if "%CHOICE%"=="4" (call :do_pull & goto :menu)
-if "%CHOICE%"=="5" (call :do_status & goto :menu)
-if "%CHOICE%"=="6" (call :do_log & goto :menu)
-if "%CHOICE%"=="7" (call :do_branch & goto :menu)
-if "%CHOICE%"=="8" (call :do_sync & goto :menu)
+if "%CHOICE%"=="1" (call :do_push_menu & goto :after_action)
+if "%CHOICE%"=="2" (call :do_tag_prompt & goto :after_action)
+if "%CHOICE%"=="3" (call :do_release_prompt & goto :after_action)
+if "%CHOICE%"=="4" (call :do_pull & goto :after_action)
+if "%CHOICE%"=="5" (call :do_status & goto :after_action)
+if "%CHOICE%"=="6" (call :do_log & goto :after_action)
+if "%CHOICE%"=="7" (call :do_branch & goto :after_action)
+if "%CHOICE%"=="8" (call :do_sync & goto :after_action)
 if "%CHOICE%"=="0" goto :end
 echo 无效选择，请重试。
+goto :menu
+
+:: 菜单操作后暂停，避免查看类输出一闪而过
+:after_action
+echo.
+echo 按任意键返回菜单...
+pause >nul
 goto :menu
 
 :: ================= 命令行入口 =================
@@ -68,25 +82,68 @@ echo 未知命令: %CMD%
 echo 用法: push.cmd [push^|tag^|release^|pull^|status^|log^|branch^|sync] [参数]
 echo   示例:
 echo     push.cmd push "修复导航内联化"
-echo     push.cmd tag v2.1.0.0 "Release v2.1.0.0"
-echo     push.cmd release v2.1.0.0 "版本发布说明"
+echo     push.cmd tag v2.1.0 "Release v2.1.0"
+echo     push.cmd release v2.1.0 "版本发布说明"
 goto :end
 
 :: ================= 子程序 =================
+
+:: 交互式提交（带暂存方式选择 + 预览 + 确认 + 排除）
+:do_push_menu
+set "MSG="
+set /p "MSG=提交说明 (可留空自动生成): "
+echo.
+echo [push] 暂存方式:
+echo   1) 全部      (git add -A，遵守 .gitignore)
+echo   2) 仅已跟踪  (git add -u，不新增未跟踪文件)
+echo   3) 全部+自定义排除项
+set /p "ADDSEL=选择 [默认1]: "
+if "%ADDSEL%"=="2" (
+    echo [push] 仅暂存已跟踪文件的改动...
+    git add -u
+) else (
+    echo [push] 暂存所有改动 (受 .gitignore 约束)...
+    git add -A
+    if "%ADDSEL%"=="3" (
+        set /p "EXCL=要额外排除的文件/通配符 (逗号或空格分隔, 如 cache/*.tmp build/): "
+        call :apply_exclude "%EXCL%"
+    )
+)
+call :apply_exclude "%DEFAULT_EXCLUDE%"
+echo.
+echo [push] 以下改动将被提交:
+git status --short
+echo.
+set /p "CONFIRM=确认提交以上改动？[Y/n]: "
+if /i "%CONFIRM%"=="n" (
+    echo [push] 已取消，未提交任何内容。
+    goto :eof
+)
+call :do_commit_push "%MSG%"
+goto :eof
+
+:: 命令行式提交（非交互，直接全部暂存并应用默认排除）
 :do_push
 set "MSG=%~1"
-if "%MSG%"=="" (
-    set /p "MSG=提交说明 (可留空，自动生成): "
-)
+git add -A
+call :apply_exclude "%DEFAULT_EXCLUDE%"
+call :do_commit_push "%MSG%"
+goto :eof
+
+:: 提交并推送（被上面两个入口复用）
+:do_commit_push
+set "MSG=%~1"
 if "%MSG%"=="" (
     for /f "tokens=*" %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyy-MM-dd_HHmm" 2^>nul') do set "MSG=update %%i"
 )
 if "%MSG%"=="" set "MSG=update"
-echo [push] 暂存所有改动...
-git add -A
+git diff --cached --quiet >nul 2>&1
+if not errorlevel 1 (
+    echo [push] 没有已暂存的改动，跳过提交。
+    goto :eof
+)
 echo [push] 提交: %MSG%
 git commit -m "%MSG%"
-echo [push] 获取当前分支...
 for /f "delims=" %%b in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set "BR=%%b"
 if "%BR%"=="" (
     echo [push] 无法确定分支，使用默认推送。
@@ -96,6 +153,15 @@ if "%BR%"=="" (
     git push origin %BR%
 )
 echo [push] 完成。
+goto :eof
+
+:: 将逗号/空格分隔的排除项从暂存区移除（不删文件）
+:apply_exclude
+set "LIST=%~1"
+if "%LIST%"=="" goto :eof
+set "LIST=%LIST:,= %"
+git reset -q -- %LIST% 2>nul
+echo [push] 已对以下项执行排除(若有匹配则不会提交): %LIST%
 goto :eof
 
 :do_tag
@@ -117,7 +183,7 @@ goto :eof
 :do_tag_prompt
 set "VER="
 set "MSG="
-set /p "VER=版本号 (如 v2.1.0.0): "
+set /p "VER=版本号 (如 v2.1.0): "
 if "%VER%"=="" (echo [tag] 已取消。 & goto :eof)
 set /p "MSG=标签备注 (留空用默认): "
 call :do_tag "%VER%" "%MSG%"
@@ -146,7 +212,7 @@ goto :eof
 :do_release_prompt
 set "VER="
 set "MSG="
-set /p "VER=版本号 (如 v2.1.0.0): "
+set /p "VER=版本号 (如 v2.1.0): "
 if "%VER%"=="" (echo [release] 已取消。 & goto :eof)
 set /p "MSG=Release 说明 (留空用默认): "
 call :do_release "%VER%" "%MSG%"

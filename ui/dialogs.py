@@ -104,7 +104,7 @@ class AboutDialog(FluentContentDialog):
         info = QVBoxLayout()
         info.setSpacing(4)
         self.name_lbl = LargeTitleLabel(APP_NAME, self)
-        self.ver_lbl = CaptionLabel("v2.1.0.0 · PySide6 · qfluentwidgets", self)
+        self.ver_lbl = CaptionLabel("v2.1.0 · PySide6 · qfluentwidgets", self)
         info.addWidget(self.name_lbl)
         info.addWidget(self.ver_lbl)
         info.addStretch(1)
