@@ -31,6 +31,7 @@ from utils.media_extras import (
     AUDIO_FORMATS, DANMAKU_FORMATS, METADATA_FORMATS, SUBTITLE_FORMATS, SUBTITLE_LANGS,
 )
 from config import normalize_download_path
+from utils.touch_scroll import enable_touch_scroll
 
 # 选项取值与设置窗口保持一致（同一批 settings.json 键，两处必须同源）
 QUALITY_OPTIONS = ["8K", "4K", "1080p", "720p", "480p", "360p"]
@@ -143,6 +144,7 @@ def _new_page():
         area.enableTransparentBackground()
     except Exception:
         pass
+    enable_touch_scroll(area)
     return area, lay
 
 

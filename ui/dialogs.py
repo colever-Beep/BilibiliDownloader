@@ -31,8 +31,10 @@ from PySide6.QtWidgets import (
 from qfluentwidgets import (
     BodyLabel, CaptionLabel, FluentIcon, FlowLayout, HyperlinkLabel,
     ImageLabel, LargeTitleLabel, LineEdit, ListWidget, PrimaryPushButton,
-    PushButton, RadioButton, SearchLineEdit, TableWidget, TextEdit,
+    PushButton, RadioButton, SearchLineEdit, TableWidget,     TextEdit,
 )
+
+from utils.touch_scroll import enable_touch_scroll
 
 from utils.i18n import tr, register
 from utils.main_thread import run_on_main
@@ -876,6 +878,7 @@ class LiveCenterDialog(FluentContentDialog):
         self._grid_flow.setHorizontalSpacing(12)
         self._grid_flow.setVerticalSpacing(12)
         self.grid_scroll.setWidget(self._grid_container)
+        enable_touch_scroll(self.grid_scroll)
 
         # 精简：列表
         self.list = ListWidget(self)

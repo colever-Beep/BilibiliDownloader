@@ -34,6 +34,7 @@ from utils.helpers import (
     optimize_thumbnail_url, format_duration, format_count, open_in_browser,
 )
 from utils.i18n import tr
+from utils.touch_scroll import enable_touch_scroll
 from ui.theme import palette, is_dark, get_accent
 from ui.list_icons import (
     draw_check, draw_placeholder, category_badge_color,
@@ -442,6 +443,7 @@ class SelectListView(QListView):
         self._delegate = SelectItemDelegate(self)
         self.setItemDelegate(self._delegate)
         self.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        enable_touch_scroll(self)
         self.setSpacing(0)
         self.setMouseTracking(True)
         self._start_loaders()

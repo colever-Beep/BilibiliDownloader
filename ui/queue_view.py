@@ -38,6 +38,7 @@ from qfluentwidgets import InfoBadge, Pivot
 
 from utils.helpers import optimize_thumbnail_url, format_duration, format_count
 from utils.i18n import tr
+from utils.touch_scroll import enable_touch_scroll
 from utils.main_thread import run_on_main
 from ui.theme import palette, is_dark, get_accent
 from ui.list_icons import (
@@ -801,6 +802,7 @@ class QueueView(QWidget):
         self._list.setMouseTracking(True)
         self._list.installEventFilter(self)
         lay.addWidget(self._list, 1)
+        enable_touch_scroll(self._list)
         # 滚动条出现/消失会让 viewport 变窄，需同步表头右侧偏移，保证列对齐
         try:
             self._list.verticalScrollBar().rangeChanged.connect(

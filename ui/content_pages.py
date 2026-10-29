@@ -33,6 +33,7 @@ from utils.i18n import tr
 from utils.main_thread import run_on_main
 from utils.helpers import optimize_thumbnail_url, open_in_browser
 from ui.list_layout import LayoutModeToggle, manager, is_compact
+from utils.touch_scroll import enable_touch_scroll
 from ui.select_list_view import SelectListView, _key_of
 from ui.fluent_dialog import msg_error
 from ui.dialogs import _LiveRoomCard
@@ -856,6 +857,7 @@ class LiveCenterPage(QWidget):
 
         self._stack = QStackedWidget(self)
         self.grid_scroll = QScrollArea(self)
+        enable_touch_scroll(self.grid_scroll)
         self.grid_scroll.setWidgetResizable(True)
         self.grid_scroll.setFrameShape(QFrame.NoFrame)
         self.grid_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)

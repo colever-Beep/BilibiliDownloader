@@ -19,6 +19,7 @@ from PySide6.QtGui import QColor, QDesktopServices
 from PySide6.QtWidgets import QApplication, QFileDialog, QScrollArea, QWidget, QVBoxLayout
 
 from utils.i18n import tr, LANGUAGES, register
+from utils.touch_scroll import enable_touch_scroll
 from ui.icons import FluentIcon
 from ui.theme import get_accent, is_dark, set_accent, resolve_appearance
 
@@ -117,6 +118,7 @@ class _SubInterface(QScrollArea):
         self.vbox.setContentsMargins(26, 16, 26, 16)
         self.vbox.setAlignment(Qt.AlignTop)
         self.setWidget(self.view)
+        enable_touch_scroll(self)
 
     def add_group(self, group):
         self.vbox.addWidget(group)

@@ -27,6 +27,7 @@ from PIL import Image, ImageDraw
 
 from PySide6.QtCore import Qt, QByteArray, QPoint
 from PySide6.QtGui import QPixmap, QImage
+from PySide6.QtWidgets import QSizePolicy
 
 from qfluentwidgets import (
     NavigationInterface, NavigationItemPosition, FluentIcon, RoundMenu, Action,
@@ -131,6 +132,15 @@ class NavigationBar(NavigationInterface):
 
         # 折叠状态持久化
         self.displayModeChanged.connect(self._on_display_mode_changed)
+
+        # 覆盖 qfluentwidgets 的强制最小高度：每次 addItem / insertSeparator 都会把
+        # NavigationInterface 的最小高度撑成「全部导航项自然高度之和」（约 700px）。
+        # 高 DPI / 小屏下主窗口被 _fit_window_to_screen clamp 到可用区高度（典型 ~680）后，
+        # sidebar 最小高度 > 窗口高度会导致底部 BOTTOM 项（设置 / 关于）被窗口底边裁切、
+        # 即「挤出」可视区、无法使用。改为允许 sidebar 随父布局压缩：内部 scrollArea 负责
+        # 滚动，BOTTOM 始终固定在底部可见。minimumHeight 只保留能显示菜单 + BOTTOM 三项的下限。
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.setMinimumHeight(220)
 
     # ---------- 构建 ----------
     def _build(self):
