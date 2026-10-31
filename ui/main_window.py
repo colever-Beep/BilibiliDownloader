@@ -36,12 +36,9 @@ from ui.fluent_dialog import (
 )
 from utils.window_helpers import bring_to_foreground
 from ui.dialogs import (AboutDialog, LoginDialog,
-                       ParseRecordsDialog, BatchParseDialog, LogWindow,
-                       LiveRecordDialog)
+                       ParseRecordsDialog, BatchParseDialog, LogWindow)
 from ui.live_record_window import LiveRecordWindow
-from ui.content_pages import (
-    BrowsePage, FollowingPage, FavFolderPage, LiveCenterPage,
-)
+from ui.content_pages import BrowsePage, FollowingPage, FavFolderPage
 from ui.theme import (
     set_accent, get_accent, apply_appearance, DEFAULT_ACCENT,
     set_root_window,
@@ -92,8 +89,8 @@ class MainWindow:
         self._season_list_loading = False
         self.window = _AppMainWindow(self)
         self.window.setWindowTitle("BilibiliDownloader")
-        self.window.resize(1100, 800)
-        self.window.setMinimumSize(900, 650)
+        self.window.resize(1000, 720)
+        self.window.setMinimumSize(840, 600)
         # 窗口置顶（设置窗口可实时切换；启动时按配置恢复）
         self._apply_stay_on_top(bool(config.get("stay_on_top", False)))
 
@@ -322,13 +319,6 @@ class MainWindow:
                                            on_select=self.load_folder_videos,
                                            on_back=self._show_home)
         self.content_stack.addWidget(self.favfolder_page)
-
-        self.livecenter_page = LiveCenterPage(parent=self.content_stack,
-                                              api=self.api,
-                                              on_record=self._start_live_record,
-                                              on_open_room=self._open_live_room,
-                                              on_back=self._show_home)
-        self.content_stack.addWidget(self.livecenter_page)
 
         self.content_stack.setCurrentWidget(self.main_panel)
 
@@ -598,8 +588,8 @@ class MainWindow:
         """高分辨率 / 高 DPI（如希沃一体机）适配：把主窗口尺寸与最小尺寸都 clamp 到
         当前屏幕的「可用工作区」(availableGeometry，已扣除任务栏 /  Dock)，并居中。
 
-        否则在高缩放比下，默认 1100x800 可能超过逻辑分辨率，导致底部被任务栏遮挡；
-        更糟的是 setMinimumSize(900,650) 的下限若大于可用高度，窗口永远塞不下。
+        否则在高缩放比下，窗口可能超过逻辑分辨率，导致底部被任务栏遮挡；
+        最小尺寸若大于可用高度，窗口永远塞不下。
         """
         win = self.window
         screen = win.screen()
@@ -617,8 +607,8 @@ class MainWindow:
         max_h = max(240, avail.height() - margin * 2)
 
         # 当前期望尺寸（尊重用户已手动缩放后的大小作为上限）
-        cur_w = min(win.width() or 1100, max_w)
-        cur_h = min(win.height() or 800, max_h)
+        cur_w = min(win.width() or 1000, max_w)
+        cur_h = min(win.height() or 720, max_h)
         # 最小尺寸同样不能超出可用区，否则窗口必然被任务栏遮
         min_w = min(win.minimumWidth(), max_w)
         min_h = min(win.minimumHeight(), max_h)
@@ -1322,17 +1312,6 @@ class MainWindow:
             self.load_following()
         elif nav_type == "season":
             self.load_season_list()
-        elif nav_type == "popular":
-            self.load_popular()
-        elif nav_type == "ranking":
-            self.load_ranking()
-        elif nav_type == "search":
-            self.open_search()
-        elif nav_type == "music":
-            self.open_music_search()
-        elif nav_type == "live_center":
-            self.open_live_center()
-
     def load_folder_videos(self, media_id, folder_title=None):
         # 未指定具体收藏夹（侧边栏点击「我的收藏夹」时 media_id 为 None）：
         # 先让用户从收藏夹列表里挑一个，再据此拉取其视频。
@@ -1537,48 +1516,6 @@ class MainWindow:
             })
         return video_list
 
-    def load_popular(self):
-        self.logger.log("加载每周必看（最新一期）...")
-        self.browse_page.set_on_confirm(self._browse_confirm)
-        self.browse_page.configure_oneshot(tr("每周必看"))
-        self._switch_to(self.browse_page)
-        def _worker():
-            try:
-                video_list = self.api.get_popular_weekly()
-                if not video_list:
-                    run_on_main(lambda: self.browse_page.set_loading(
-                        False, tr("每周必看为空或获取失败")))
-                    return
-                self.api.enrich_videos(video_list)
-                run_on_main(lambda n=len(video_list): self.logger.log(
-                    f"已加载 {n} 个每周必看视频"))
-                run_on_main(lambda: self.browse_page.fill(video_list))
-            except Exception as e:
-                run_on_main(lambda err=str(e): self.browse_page.show_error(
-                    tr("加载每周必看失败：{}").format(err)))
-        threading.Thread(target=_worker, daemon=True).start()
-
-    def load_ranking(self):
-        self.logger.log("加载排行榜（全站）...")
-        self.browse_page.set_on_confirm(self._browse_confirm)
-        self.browse_page.configure_oneshot(tr("排行榜"))
-        self._switch_to(self.browse_page)
-        def _worker():
-            try:
-                video_list = self.api.get_ranking(rid=0)
-                if not video_list:
-                    run_on_main(lambda: self.browse_page.set_loading(
-                        False, tr("排行榜为空或获取失败")))
-                    return
-                self.api.enrich_videos(video_list)
-                run_on_main(lambda n=len(video_list): self.logger.log(
-                    f"已加载 {n} 个排行榜视频"))
-                run_on_main(lambda: self.browse_page.fill(video_list))
-            except Exception as e:
-                run_on_main(lambda err=str(e): self.browse_page.show_error(
-                    tr("加载排行榜失败：{}").format(err)))
-        threading.Thread(target=_worker, daemon=True).start()
-
     def _record_history(self, video_list, source="manual"):
         try:
             for item in video_list:
@@ -1603,49 +1540,6 @@ class MainWindow:
         add_cnt = self.engine.add_tasks_batch(tasks)
         self.logger.log(f"已添加 {add_cnt} 个视频到下载队列")
         self._on_queue_status(self.engine.queue)
-
-    def open_search(self):
-        self.browse_page.set_on_confirm(self._route_search_selected)
-        self.browse_page.configure_search(
-            tr("搜索 B站"), self.api.get_search_results,
-            "输入关键词后回车或点击搜索")
-        self._switch_to(self.browse_page)
-
-    def open_music_search(self):
-        self.browse_page.set_on_confirm(self._route_search_selected)
-        self.browse_page.configure_search(
-            tr("bilibili音乐"), self.api.get_music_search_results,
-            "输入关键词后回车或点击搜索")
-        self._switch_to(self.browse_page)
-
-    def _route_search_selected(self, selected):
-        if not selected:
-            self.logger.log("未勾选任何结果")
-            return
-        videos, users, seasons = [], [], []
-        for s in selected:
-            if s.get("type") == "user":
-                users.append(s)
-            elif s.get("type") == "bangumi":
-                seasons.append(s)
-            else:
-                videos.append(s)
-        # UP主结果 → 展开其空间视频（内联切换页）
-        for u in users:
-            mid = u.get("mid")
-            if mid:
-                self.load_uploader_videos(mid)
-        if seasons:
-            self._expand_seasons_to_episodes(seasons)
-        # 视频结果直接入队后回到首页；番剧结果已展开为可选分集。
-        if videos:
-            self._add_selected_to_queue(videos)
-            self._show_home()
-
-    def _add_videos_via_options(self, video_list):
-        if not video_list:
-            return
-        self._on_videos_selected(video_list)
 
     # ========== 选择对话框 ==========
     def _pull_all_and_show(self, title, fetch, ps=30, skip_if_empty_msg=None):
@@ -1860,11 +1754,6 @@ class MainWindow:
             self._live_manual.append(w)  # 保活，避免局部变量回收导致窗口闪退
         w.show()  # 非模态：不阻塞主窗口
 
-    def open_live_center(self):
-        # 2.1.0：直播中心内联到主界面
-        self._switch_to(self.livecenter_page)
-        self.livecenter_page.load_hot()
-
     # ---------- 直播录制 ----------
     def _resolve_room_id(self, target):
         """从房间链接或纯数字房间号里提取 roomid。"""
@@ -1877,16 +1766,6 @@ class MainWindow:
             return int(m.group(1))
         m = re.search(r"(\d+)", target)
         return int(m.group(1)) if m else None
-
-    def _start_live_record(self, target):
-        """直播中心「录制」按钮的回调：打开监控窗口并自动开始（不弹确认框）。"""
-        self._open_live_record_window(target)
-
-    def _open_live_room(self, room):
-        room_id = room.get("roomid") if isinstance(room, dict) else None
-        if room_id:
-            import webbrowser
-            webbrowser.open(f"https://live.bilibili.com/{room_id}")
 
     # ---------- 语言切换 ----------
     def on_language_change(self, lang):
@@ -1914,8 +1793,7 @@ class MainWindow:
         # 2.1.0 内联内容页多语言刷新
         for _pg in (getattr(self, "browse_page", None),
                     getattr(self, "following_page", None),
-                    getattr(self, "favfolder_page", None),
-                    getattr(self, "livecenter_page", None)):
+                    getattr(self, "favfolder_page", None)):
             if _pg is not None:
                 try:
                     _pg.retranslate()

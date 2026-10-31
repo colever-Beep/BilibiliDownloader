@@ -8,7 +8,7 @@
 
 结构：
   - 用户卡片（addUserCard）：头像 + 昵称 / 状态，点击触发登录 / 登出；
-  - 分组标题（addItemHeader）：我的 / 发现；
+  - 分组标题（addItemHeader）：我的；
   - 导航项（addItem，可点击选中）；
   - 底部分组（BOTTOM）：界面语言（点击弹 RoundMenu）/ 设置 / 关于。
 
@@ -42,36 +42,26 @@ from utils.resources import resource_path
 
 
 # 导航结构定义（routeKey, 显示名函数, 图标名）
-_NAV_GROUPS = [
-    (lambda: tr("我的"), [
-        ("folder", lambda: tr("我的收藏夹"), "folder"),
-        ("toview", lambda: tr("稍后再看"), "toview"),
-        ("history", lambda: tr("历史记录"), "history"),
-        ("following", lambda: tr("我的关注"), "following"),
-        ("season", lambda: tr("我的追番"), "season"),
-    ]),
-    (lambda: tr("发现"), [
-        ("popular", lambda: tr("每周必看"), "popular"),
-        ("ranking", lambda: tr("排行榜"), "ranking"),
-        ("search", lambda: tr("搜索 B站"), "search"),
-        ("music", lambda: tr("bilibili音乐"), "music"),
-        ("live_center", lambda: tr("直播中心"), "live_center"),
-    ]),
+_NAV_ITEMS = [
+    ("folder", lambda: tr("我的收藏夹"), "folder"),
+    ("toview", lambda: tr("稍后再看"), "toview"),
+    ("history", lambda: tr("历史记录"), "history"),
+    ("following", lambda: tr("我的关注"), "following"),
+    ("season", lambda: tr("我的追番"), "season"),
 ]
 
 
 def _nav_fluent_icon(name):
     """导航语义名 -> FluentIcon 成员。
 
-    qfluentwidgets 1.11.2 的 FluentIcon 没有 STAR/FIRE/TROPHY 等，缺失项用存在的
-    近似成员替代（season->LIBRARY / popular->TAG / ranking->PEOPLE），保证每一项都随
+    qfluentwidgets 1.11.2 的 FluentIcon 没有部分语义图标，缺失项用存在的
+    近似成员替代，保证每一项都随
     明暗与选中态自动着色，与设置窗口的 MSFluentWindow 同一套视觉。
     """
     mapping = {
         "folder": "FOLDER", "toview": "CALENDAR", "history": "HISTORY",
-        "following": "HEART", "season": "LIBRARY", "popular": "TAG",
-        "ranking": "PEOPLE", "search": "SEARCH", "music": "MUSIC",
-        "live_center": "VIDEO", "settings": "SETTING", "about": "INFO",
+        "following": "HEART", "season": "LIBRARY",
+        "settings": "SETTING", "about": "INFO",
         "language": "LANGUAGE",
     }
     member = mapping.get(name, "TAG")
@@ -153,13 +143,7 @@ class NavigationBar(NavigationInterface):
 
         # 分组：我的
         self._header_my = self.addItemHeader(tr("我的"))
-        for route_key, text_fn, icon in _NAV_GROUPS[0][1]:
-            self._add_nav_item(route_key, text_fn, icon)
-
-        # 分隔 + 分组：发现
-        self.addSeparator()
-        self._header_discover = self.addItemHeader(tr("发现"))
-        for route_key, text_fn, icon in _NAV_GROUPS[1][1]:
+        for route_key, text_fn, icon in _NAV_ITEMS:
             self._add_nav_item(route_key, text_fn, icon)
 
         # 底部：界面语言 / 设置 / 关于
@@ -269,10 +253,9 @@ class NavigationBar(NavigationInterface):
 
         # 分组标题
         self._header_my.setText(tr("我的"))
-        self._header_discover.setText(tr("发现"))
 
         # 导航项
-        for route_key, text_fn, _icon in _NAV_GROUPS[0][1] + _NAV_GROUPS[1][1]:
+        for route_key, text_fn, _icon in _NAV_ITEMS:
             w = self._items.get(route_key)
             if w is not None:
                 w.setText(text_fn())

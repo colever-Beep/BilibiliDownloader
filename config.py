@@ -155,13 +155,6 @@ DEFAULT_CONFIG = {
     "update_channel": "stable",       # 更新通道：stable（稳定版）/ beta（测试版）
     "update_mode": "notify",          # 发现更新后的行为：never（从不自动更新）/ notify（通知）/ download（下载）/ install（下载并提示安装）
 
-    # ---- 百宝箱（设置 → 高级）娱乐功能，与下载主流程无关 ----
-    "toolbox_download_dir": "",           # 自定义链接下载的保存目录（空 = 跟随 download_path）
-    "toolbox_download_quality": "best",   # best / 1080p / 720p / audio
-    "toolbox_luck_seed": "",              # 今日人品的名字 / 种子（空 = 当前系统用户名）
-    "toolbox_luck_bonus": 0,              # 今日人品彩蛋加成（「千万别点」每次 +5，上限 20）
-    "toolbox_dnc_clicks": 0,              # 「千万别点」累计点击次数
-
     "quality_rules": {
         "8K":  "bestvideo[height<=4320][vcodec^=avc]+bestaudio[acodec^=mp4a]/best[height<=4320]",
         "4K":  "bestvideo[height<=2160][vcodec^=avc]+bestaudio[acodec^=mp4a]/best[height<=2160]",

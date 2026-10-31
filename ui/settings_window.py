@@ -543,30 +543,6 @@ class SettingsWindow(MSFluentWindow):
         g.addSettingCard(log_card)
         self._register_card(log_card, "日志", "查看应用运行日志")
 
-        # ---- 百宝箱：娱乐功能，与下载主流程无关（懒加载弹窗，避免拖慢设置窗口）----
-        g2 = self._group("百宝箱")
-        w.add_group(g2)
-
-        dl_card = PushSettingCard(
-            tr("打开"), _icon("DOWNLOAD"), tr("自定义链接下载"),
-            tr("用 yt-dlp 下载任意链接（支持非 B 站站点）"), self)
-        dl_card.clicked.connect(self._open_custom_download)
-        g2.addSettingCard(dl_card)
-        self._register_card(dl_card, "自定义链接下载", "用 yt-dlp 下载任意链接（支持非 B 站站点）")
-
-        luck_card = PushSettingCard(
-            tr("打开"), _icon("HEART"), tr("今日人品"),
-            tr("测一测今天的手气（纯娱乐）"), self)
-        luck_card.clicked.connect(self._open_luck)
-        g2.addSettingCard(luck_card)
-        self._register_card(luck_card, "今日人品", "测一测今天的手气（纯娱乐）")
-
-        dnc_card = PushSettingCard(
-            tr("打开"), _icon("FINGERPRINT"), tr("千万别点"),
-            tr("一个不该点的按钮"), self)
-        dnc_card.clicked.connect(self._open_dnc)
-        g2.addSettingCard(dnc_card)
-        self._register_card(dnc_card, "千万别点", "一个不该点的按钮")
         return w
 
     # ------------------------------------------------------------------ #
@@ -880,21 +856,6 @@ class SettingsWindow(MSFluentWindow):
             self._update.ensureWidgetVisible(self._update_browser, 0, 0)
         except Exception:
             pass
-
-    # ------------------------------------------------------------------ #
-    # 百宝箱（娱乐功能）入口：全部懒加载，未使用时零开销
-    # ------------------------------------------------------------------ #
-    def _open_custom_download(self):
-        from ui.toolbox import CustomDownloadDialog
-        CustomDownloadDialog(self, self.config).exec()
-
-    def _open_luck(self):
-        from ui.toolbox import LuckDialog
-        LuckDialog(self, self.config).exec()
-
-    def _open_dnc(self):
-        from ui.toolbox import DoNotClickDialog
-        DoNotClickDialog(self, self.config).exec()
 
     def _build_proxy_expand(self):
         """代理设置展开卡：类型 / 地址 / 端口 / 用户名 / 密码 收进一张卡片。"""
