@@ -16,18 +16,25 @@ import os
 
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QColor, QDesktopServices
-from PySide6.QtWidgets import QApplication, QFileDialog, QScrollArea, QWidget, QVBoxLayout
+from PySide6.QtWidgets import (QApplication, QFileDialog, QScrollArea, QWidget,
+                             QVBoxLayout, QHBoxLayout, QLabel)
 
 from utils.i18n import tr, LANGUAGES, register
 from utils.touch_scroll import enable_touch_scroll
-from ui.icons import FluentIcon
+from ui.icons import FluentIcon, icon_pixmap
 from ui.theme import get_accent, is_dark, set_accent, resolve_appearance
+from utils.updater import (
+    UpdateService, UpdateStatus, CHANNEL_STABLE, CHANNEL_BETA,
+    UPDATE_MODE_NEVER, UPDATE_MODE_NOTIFY, UPDATE_MODE_DOWNLOAD, UPDATE_MODE_INSTALL,
+)
+from utils.version import APP_VERSION, GITHUB_HOMEPAGE
 
 # qfluentwidgets 是本窗口的必需依赖；缺失时本窗口不可用（与 ui.icons 的降级策略一致）。
 from qfluentwidgets import (
     MSFluentWindow, NavigationItemPosition, SettingCard, SettingCardGroup,
-    SwitchButton, ComboBox, PushButton, SpinBox, LineEdit, ColorPickerButton,
-    PushSettingCard, ExpandGroupSettingCard, setTheme, setThemeColor, Theme,
+    SwitchButton, ComboBox, PushButton, PrimaryPushButton, SpinBox, LineEdit,
+    ColorPickerButton, PushSettingCard, ExpandGroupSettingCard, setTheme,
+    setThemeColor, Theme, ProgressBar, TextBrowser, InfoBar, InfoBarPosition,
 )
 from qfluentwidgets.components.settings.expand_setting_card import GroupWidget
 
@@ -146,6 +153,7 @@ class SettingsWindow(MSFluentWindow):
         self._groups = []       # (group, title_key)
         self._expand_cards = [] # _ExpandCard（可展开分组卡，多语言刷新）
         self._nav = []          # (routeKey, title_key)
+        self._update_retrans = []  # 更新页需随语言刷新的静态文本控件
         self._lang_rev = {v: k for k, v in LANGUAGES.items()}
 
         # 同步 Fluent 主题（明暗 + 强调色）与主程序一致
@@ -177,11 +185,12 @@ class SettingsWindow(MSFluentWindow):
         except Exception:
             pass
 
-        # 构建四个分类子界面
+        # 构建五个分类子界面
         self._basic = self._build_basic()
         self._download = self._build_download()
         self._options = self._build_options()
         self._advanced = self._build_advanced()
+        self._update = self._build_update()
 
         # MSFluentWindow 用 interface.objectName() 作为导航项的 routeKey，
         # 因此必须在 addSubInterface 之前设置好。
@@ -189,6 +198,7 @@ class SettingsWindow(MSFluentWindow):
         self._download.setObjectName("download")
         self._options.setObjectName("options")
         self._advanced.setObjectName("advanced")
+        self._update.setObjectName("update")
 
         self.addSubInterface(self._basic, _icon("SETTING"), tr("基本设置"),
                              position=NavigationItemPosition.SCROLL)
@@ -198,10 +208,12 @@ class SettingsWindow(MSFluentWindow):
                              position=NavigationItemPosition.SCROLL)
         self.addSubInterface(self._advanced, _icon("DEVELOPER_TOOLS"), tr("高级"),
                              position=NavigationItemPosition.SCROLL)
+        self.addSubInterface(self._update, _icon("UPDATE"), tr("更新"),
+                             position=NavigationItemPosition.SCROLL)
 
         self._nav.extend([
             ("basic", "基本设置"), ("download", "下载"),
-            ("options", "附加文件"), ("advanced", "高级"),
+            ("options", "附加文件"), ("advanced", "高级"), ("update", "更新"),
         ])
 
         try:
@@ -331,7 +343,7 @@ class SettingsWindow(MSFluentWindow):
             else:
                 self.config.set(
                     "accent_color",
-                    self.config.get("accent_color_custom", "") or "#1f8a4c")
+                    self.config.get("accent_color_custom", "") or "#f07090")
         except Exception:
             pass
         try:
@@ -558,6 +570,318 @@ class SettingsWindow(MSFluentWindow):
         return w
 
     # ------------------------------------------------------------------ #
+    # 更新（参照 ClassIsland 的更新逻辑与界面）
+    # ------------------------------------------------------------------ #
+    def _build_update(self):
+        """构建「更新」分类子界面，复刻 ClassIsland UpdateSettingsPage 的布局：
+
+        - 状态头部：图标 + 状态消息（已是最新 / 发现新版本 / 检查中）+ 副文本；
+        - 操作区：检查更新 / 下载并安装 / 打开下载文件 / 查看更新日志；
+        - 进度区：进度条 + 速度/ETA + 取消；
+        - 错误区：错误提示 + 重试；
+        - 更新设置：更新模式（4 档）+ 更新通道（稳定版/测试版）；
+        - 更新日志：Markdown 渲染的 Release 说明。
+        """
+        from PySide6.QtGui import QColor, QDesktopServices
+
+        w = _SubInterface(self)
+
+        # 更新服务（懒加载，避免无谓 import requests）
+        if getattr(self, "_update_svc", None) is None:
+            self._update_svc = UpdateService(self.config)
+        self._update_info = None
+        self._update_downloaded_path = None
+
+        # ---- 状态头部卡片（复刻 ClassIsland 的「图标 + 状态消息 + 副文本」）----
+        header = SettingCard(_icon("UPDATE"), tr("正在初始化…"), tr(""), self)
+        self._update_header = header
+        self._update_icon_lbl = header.iconLabel
+        w.vbox.addWidget(header)
+
+        # ---- 操作卡片 ----
+        act = SettingCard(_icon("DOWNLOAD"), tr("更新操作"), tr("检查并安装最新版本"), self)
+        self._update_act_card = act
+        btn_row = QHBoxLayout()
+        btn_row.setSpacing(10)
+        self._btn_check = PrimaryPushButton(tr("检查更新"), self)
+        self._btn_check.clicked.connect(self._update_check)
+        self._btn_download = PrimaryPushButton(tr("下载并安装"), self)
+        self._btn_download.clicked.connect(lambda: self._update_download())
+        self._btn_download.setVisible(False)
+        self._btn_open = PushButton(tr("打开下载文件"), self)
+        self._btn_open.clicked.connect(self._update_open_file)
+        self._btn_open.setVisible(False)
+        self._btn_log = PushButton(tr("查看更新日志"), self)
+        self._btn_log.clicked.connect(self._update_scroll_to_log)
+        btn_row.addStretch(1)
+        btn_row.addWidget(self._btn_check)
+        btn_row.addWidget(self._btn_download)
+        btn_row.addWidget(self._btn_open)
+        btn_row.addWidget(self._btn_log)
+        act.hBoxLayout.addLayout(btn_row)
+        w.vbox.addWidget(act)
+        self._register_card(act, "更新操作", "检查并安装最新版本")
+
+        # ---- 进度卡片（检查 / 下载时显示）----
+        prog = SettingCard(_icon("SYNC"), tr("正在检查更新…"), tr(""), self)
+        self._update_prog_card = prog
+        self._update_prog_bar = ProgressBar(self)
+        self._update_prog_bar.setRange(0, 0)
+        self._update_prog_bar.setVisible(False)
+        self._update_prog_text = QLabel("", self)
+        self._btn_cancel = PushButton(tr("取消"), self)
+        self._btn_cancel.clicked.connect(self._update_cancel)
+        self._btn_cancel.setVisible(False)
+        _pl = QHBoxLayout()
+        _pl.setSpacing(10)
+        _pl.addWidget(self._update_prog_bar, 1)
+        _pl.addWidget(self._update_prog_text)
+        _pl.addWidget(self._btn_cancel)
+        prog.hBoxLayout.addLayout(_pl)
+        prog.setVisible(False)
+        w.vbox.addWidget(prog)
+        self._register_card(prog, "正在检查更新…", "")
+
+        # ---- 错误卡片（失败时显示）----
+        # qfluentwidgets 的 FluentIcon 没有 WARNING 成员，用 INFO 代替
+        # （_icon 的 getattr 兜底会退化成 SETTING 图标，语义不符）。
+        err = SettingCard(_icon("INFO"), tr("更新时发生错误"), tr(""), self)
+        self._update_err_card = err
+        self._update_err_text = QLabel("", self)
+        self._update_err_text.setWordWrap(True)
+        self._btn_retry = PushButton(tr("重试"), self)
+        self._btn_retry.clicked.connect(self._update_check)
+        _el = QHBoxLayout()
+        _el.setSpacing(10)
+        _el.addWidget(self._update_err_text, 1)
+        _el.addWidget(self._btn_retry)
+        err.hBoxLayout.addLayout(_el)
+        err.setVisible(False)
+        w.vbox.addWidget(err)
+        self._register_card(err, "更新时发生错误", "")
+
+        # ---- 更新设置（复刻 ClassIsland 的「更新模式 / 更新通道」）----
+        g = self._group("更新设置")
+        w.add_group(g)
+        self._combo_card(
+            g, "SYNC", "更新模式", "发现新版本后的自动行为", "update_mode",
+            [tr("从不自动更新"), tr("自动检查并通知"), tr("自动检查并下载"), tr("自动检查并安装")],
+            {tr("从不自动更新"): UPDATE_MODE_NEVER,
+             tr("自动检查并通知"): UPDATE_MODE_NOTIFY,
+             tr("自动检查并下载"): UPDATE_MODE_DOWNLOAD,
+             tr("自动检查并安装"): UPDATE_MODE_INSTALL},
+            UPDATE_MODE_NOTIFY)
+        self._combo_card(
+            g, "GLOBE", "更新通道", "稳定版更可靠，测试版含新功能但可能不稳定", "update_channel",
+            [tr("稳定版"), tr("测试版")],
+            {tr("稳定版"): CHANNEL_STABLE, tr("测试版"): CHANNEL_BETA},
+            CHANNEL_STABLE)
+
+        # ---- 更新日志（Markdown）----
+        log_title = QLabel(tr("更新日志"))
+        w.vbox.addWidget(log_title)
+        self._update_browser = TextBrowser(self)
+        self._update_browser.setMarkdown(tr("尚未检查更新，点击「检查更新」获取最新动态。"))
+        self._update_browser.setMinimumHeight(200)
+        w.vbox.addWidget(self._update_browser, 1)
+
+        # 随语言切换刷新的静态文本
+        self._update_retrans.extend([
+            (self._btn_check, "检查更新"),
+            (self._btn_download, "下载并安装"),
+            (self._btn_open, "打开下载文件"),
+            (self._btn_log, "查看更新日志"),
+            (self._btn_cancel, "取消"),
+            (self._btn_retry, "重试"),
+            (log_title, "更新日志"),
+        ])
+        return w
+
+    # ------------------------------------------------------------------ #
+    # 更新：状态/交互回调
+    # ------------------------------------------------------------------ #
+    def _update_set_header(self, title, content="", icon_name="UPDATE"):
+        try:
+            self._update_header.titleLabel.setText(title)
+        except Exception:
+            pass
+        try:
+            self._update_header.contentLabel.setText(content)
+        except Exception:
+            pass
+        try:
+            self._update_icon_lbl.setFixedSize(28, 28)
+            self._update_icon_lbl.setPixmap(
+                icon_pixmap(_icon(icon_name), 28, QColor(get_accent())))
+        except Exception:
+            pass
+
+    def _update_check(self):
+        svc = getattr(self, "_update_svc", None)
+        if svc is None:
+            svc = self._update_svc = UpdateService(self.config)
+        channel = self.config.get("update_channel", CHANNEL_STABLE)
+        self._update_set_header(tr("正在检查更新…"), "", "SYNC")
+        self._update_prog_card.setVisible(True)
+        self._update_prog_bar.setRange(0, 0)
+        self._update_prog_bar.setVisible(True)
+        self._update_prog_text.setText(tr("正在连接更新服务器…"))
+        self._btn_cancel.setVisible(True)
+        self._update_err_card.setVisible(False)
+        self._btn_check.setEnabled(False)
+        self._btn_download.setVisible(False)
+        self._btn_open.setVisible(False)
+        try:
+            svc.check_for_updates(channel,
+                                  on_result=self._on_check_result,
+                                  on_error=self._on_check_error)
+        except Exception as e:  # noqa: BLE001
+            self._on_check_error(e)
+
+    def _on_check_result(self, status, info):
+        self._btn_check.setEnabled(True)
+        self._update_prog_card.setVisible(False)
+        self._btn_cancel.setVisible(False)
+        self._update_info = info
+        if status == UpdateStatus.AVAILABLE and info is not None:
+            self._update_set_header(tr("发现新版本 {}").format(info.version),
+                                   tr("点击「下载并安装」获取此版本"), "DOWNLOAD")
+            self._btn_download.setVisible(True)
+            self._btn_open.setVisible(False)
+            self._update_browser.setMarkdown(info.body or tr("该版本未提供更新说明。"))
+            mode = self.config.get("update_mode", UPDATE_MODE_NOTIFY)
+            if mode in (UPDATE_MODE_DOWNLOAD, UPDATE_MODE_INSTALL):
+                self._update_download()
+        elif status == UpdateStatus.UP_TO_DATE:
+            self._update_set_header(tr("已是最新版本"),
+                                   tr("当前版本 v{}").format(APP_VERSION), "CHECK")
+            self._btn_download.setVisible(False)
+            self._btn_open.setVisible(False)
+            if info is not None:
+                self._update_browser.setMarkdown(info.body or tr("您已在使用最新版本。"))
+            else:
+                self._update_browser.setMarkdown(tr("您已在使用最新版本，无需更新。"))
+        else:
+            self._update_set_header(tr("检查更新完成"), "", "INFO")
+
+    def _on_check_error(self, e):
+        self._btn_check.setEnabled(True)
+        self._update_prog_card.setVisible(False)
+        self._btn_cancel.setVisible(False)
+        self._update_set_header(tr("检查更新失败"), "", "WARNING")
+        msg = str(e) or tr("未知错误")
+        if len(msg) > 200:
+            msg = msg[:200] + "…"
+        self._update_err_text.setText(tr("错误：{}").format(msg))
+        self._update_err_card.setVisible(True)
+        self._update_browser.setMarkdown(
+            tr("检查更新时出现问题，请检查网络连接后重试。"))
+
+    def _update_download(self):
+        info = getattr(self, "_update_info", None)
+        if info is None:
+            self._update_check()
+            return
+        asset = info.default_asset
+        if asset is None:
+            try:
+                InfoBar.warning(tr("无法更新"), tr("未找到可下载的更新文件。"), parent=self)
+            except Exception:
+                pass
+            return
+        import os
+        import tempfile
+        dest = os.path.join(tempfile.gettempdir(), "BilibiliDownloaderUpdate")
+        self._update_downloaded_path = None
+        self._update_prog_card.setVisible(True)
+        self._update_prog_bar.setRange(0, 100)
+        self._update_prog_bar.setValue(0)
+        self._update_prog_bar.setVisible(True)
+        self._update_prog_text.setText(tr("准备下载…"))
+        self._btn_cancel.setVisible(True)
+        self._btn_download.setEnabled(False)
+        try:
+            self._update_svc.download_asset(
+                asset, dest,
+                on_progress=self._on_dl_progress,
+                on_done=self._on_dl_done,
+                on_error=self._on_dl_error)
+        except Exception as e:  # noqa: BLE001
+            self._on_dl_error(e)
+
+    def _on_dl_progress(self, downloaded, total, speed, eta):
+        if total > 0:
+            self._update_prog_bar.setRange(0, total)
+            self._update_prog_bar.setValue(downloaded)
+        else:
+            self._update_prog_bar.setRange(0, 0)
+        sp = downloaded / (1024 * 1024)
+        tot = (total / (1024 * 1024)) if total else 0.0
+        spd = speed / (1024 * 1024)
+        self._update_prog_text.setText(
+            tr("下载中：{:.1f} / {:.1f} MB（{:.2f} MB/s，剩余 {:.0f}s）").format(
+                sp, tot, spd, eta))
+
+    def _on_dl_done(self, path):
+        self._update_downloaded_path = path
+        self._update_prog_card.setVisible(False)
+        self._btn_cancel.setVisible(False)
+        self._btn_download.setEnabled(True)
+        self._btn_download.setVisible(False)
+        self._update_set_header(tr("下载完成"), tr("点击「打开下载文件」进行安装"), "CHECK")
+        self._btn_open.setVisible(True)
+        if path.lower().endswith(".exe"):
+            self._btn_open.setText(tr("运行安装程序"))
+        else:
+            self._btn_open.setText(tr("打开下载文件夹"))
+        try:
+            InfoBar.success(tr("更新已下载"), tr("已下载到本地，点击操作完成更新。"),
+                           parent=self)
+        except Exception:
+            pass
+
+    def _on_dl_error(self, e):
+        self._update_prog_card.setVisible(False)
+        self._btn_cancel.setVisible(False)
+        self._btn_download.setEnabled(True)
+        self._update_set_header(tr("下载失败"), "", "INFO")
+        msg = str(e) or tr("未知错误")
+        if len(msg) > 200:
+            msg = msg[:200] + "…"
+        self._update_err_text.setText(tr("错误：{}").format(msg))
+        self._update_err_card.setVisible(True)
+
+    def _update_cancel(self):
+        try:
+            self._update_svc.cancel_download()
+        except Exception:
+            pass
+        self._update_prog_card.setVisible(False)
+        self._btn_cancel.setVisible(False)
+        self._btn_download.setEnabled(True)
+        self._update_set_header(tr("已取消"), "", "INFO")
+
+    def _update_open_file(self):
+        import os
+        from PySide6.QtGui import QDesktopServices
+        path = getattr(self, "_update_downloaded_path", None)
+        if not path or not os.path.exists(path):
+            return
+        if path.lower().endswith(".exe") and os.name == "nt":
+            try:
+                os.startfile(path)  # Windows：直接运行安装程序
+                return
+            except Exception:
+                pass
+        QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.dirname(path)))
+
+    def _update_scroll_to_log(self):
+        try:
+            self._update.ensureWidgetVisible(self._update_browser, 0, 0)
+        except Exception:
+            pass
+
+    # ------------------------------------------------------------------ #
     # 百宝箱（娱乐功能）入口：全部懒加载，未使用时零开销
     # ------------------------------------------------------------------ #
     def _open_custom_download(self):
@@ -744,5 +1068,11 @@ class SettingsWindow(MSFluentWindow):
         for rk, key in self._nav:
             try:
                 self.navigationInterface.widget(rk).setText(tr(key))
+            except Exception:
+                pass
+        # 更新页静态文本（按钮 / 分区标题）随语言刷新
+        for wgt, key in self._update_retrans:
+            try:
+                wgt.setText(tr(key))
             except Exception:
                 pass

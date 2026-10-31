@@ -148,8 +148,12 @@ DEFAULT_CONFIG = {
     "list_layout": "detailed",       # 所有视频/选择类列表的密度：detailed（详细）/ compact（精简，仅标题+UP+时长）
 
     # ---- 主题 ----
-    "accent_color": "#1f8a4c",       # 强调色（主题色）；"system" 表示跟随 Windows 系统强调色
-    "accent_color_custom": "#1f8a4c",  # 上一次自定义强调色（跟随系统开关关闭时恢复用）
+    "accent_color": "#f07090",       # 强调色（主题色，软件图标粉色）；"system" 表示跟随 Windows 系统强调色
+    "accent_color_custom": "#f07090",  # 上一次自定义强调色（跟随系统开关关闭时恢复用）
+
+    # ---- 更新（参照 ClassIsland 更新逻辑）----
+    "update_channel": "stable",       # 更新通道：stable（稳定版）/ beta（测试版）
+    "update_mode": "notify",          # 发现更新后的行为：never（从不自动更新）/ notify（通知）/ download（下载）/ install（下载并提示安装）
 
     # ---- 百宝箱（设置 → 高级）娱乐功能，与下载主流程无关 ----
     "toolbox_download_dir": "",           # 自定义链接下载的保存目录（空 = 跟随 download_path）
@@ -183,6 +187,22 @@ class ConfigManager:
                 # 确保 quality_rules 存在
                 if "quality_rules" not in result or not result["quality_rules"]:
                     result["quality_rules"] = DEFAULT_CONFIG["quality_rules"]
+                # ---- 强调色默认值迁移（v2.1.1）----
+                # 旧版本默认强调色是绿色 #1f8a4c，v2.1.1 起改为软件图标粉色 #f07090。
+                # 仅当用户配置里的强调色与「旧默认绿」完全一致（即用户从未手动改过
+                # 强调色）时才迁移；若用户自定义过颜色则原样保留，避免覆盖用户选择。
+                _old_default_accent = "#1f8a4c"
+                _new_default_accent = "#f07090"
+                _cur = str(result.get("accent_color", "") or "").strip().lower()
+                _cus = str(result.get("accent_color_custom", "") or "").strip().lower()
+                if _cur == _old_default_accent and _cus == _old_default_accent:
+                    result["accent_color"] = _new_default_accent
+                    result["accent_color_custom"] = _new_default_accent
+                    try:
+                        with open(self.config_file, "w", encoding="utf-8") as f:
+                            json.dump(result, f, indent=2, ensure_ascii=False)
+                    except Exception:
+                        pass
                 # ---- 下载路径自愈 ----
                 # 跨电脑/跨用户时 settings.json 可能残留旧用户名路径，这里自动
                 # 归一到当前用户真正可用、可写的视频文件夹（仅在确有损坏时回写，

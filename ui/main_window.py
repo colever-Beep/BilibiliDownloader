@@ -633,9 +633,15 @@ class MainWindow:
         if getattr(self, "_quitting", False):
             return
         self._quitting = True
-        # 退出流程必须"绝不阻塞、绝不抛异常"：任何异常上抛都会进 sys.excepthook
-        # 弹出模态错误框，界面就会冻住等用户点击，且 os._exit 永远到不了
-        # （用户表现为"点击退出后卡很久"）。故全部包 try，os._exit 放 finally 兜底。
+        # 先隐藏窗口并让托盘菜单的当前事件返回，避免同步清理期间主界面/菜单卡住。
+        try:
+            self.window.hide()
+        except Exception:
+            pass
+        QTimer.singleShot(0, self._finish_quit)
+
+    def _finish_quit(self):
+        """完成退出清理；由事件循环调度，避免阻塞关闭/托盘菜单回调。"""
         try:
             try:
                 self.logger.log("程序退出中...")
@@ -650,17 +656,11 @@ class MainWindow:
                 self.tray.stop()
             except Exception:
                 pass
-            try:
-                app = QApplication.instance()
-                if app is not None:
-                    app.quit()
-            except Exception:
-                pass
+            app = QApplication.instance()
+            if app is not None:
+                app.quit()
         finally:
-            try:
-                os._exit(0)
-            except Exception:
-                pass
+            os._exit(0)
 
     # ---------- 通知 ----------
     def _alert(self, title, message, level="warning"):
@@ -1151,6 +1151,94 @@ class MainWindow:
         # 用 bring_to_foreground 替代裸 raise_()/activateWindow()，避免 Windows 前台锁
         # 导致「看得见点不动」并播放系统提示音（叮）。
         bring_to_foreground(self.settings_window)
+
+    # ---------- 开机自动检查更新（参照 ClassIsland 更新逻辑与界面）----------
+    def _maybe_auto_check_update(self):
+        """按 update_mode 配置在后台静默检查更新（never 模式跳过）。"""
+        from utils.updater import UpdateService, UpdateStatus, UPDATE_MODE_NEVER
+        if self.config.get("update_mode", "notify") == UPDATE_MODE_NEVER:
+            return
+        svc = UpdateService(self.config)
+        try:
+            svc.check_for_updates(
+                self.config.get("update_channel", "stable"),
+                on_result=self._on_auto_update_result,
+                on_error=self._on_auto_update_error)
+        except Exception:
+            pass
+
+    def _on_auto_update_result(self, status, info):
+        from utils.updater import UpdateStatus, UPDATE_MODE_DOWNLOAD, UPDATE_MODE_INSTALL
+        if status != UpdateStatus.AVAILABLE or info is None:
+            return
+        mode = self.config.get("update_mode", "notify")
+        # 通知：顶部提示条 + 「查看」动作打开更新详情对话框
+        try:
+            from qfluentwidgets import InfoBar, InfoBarPosition
+            from PySide6.QtWidgets import QPushButton
+            bar = InfoBar.info(
+                tr("发现新版本 {}").format(info.version),
+                tr("点击查看更新详情或下载。"),
+                parent=self.window, position=InfoBarPosition.TOP, duration=8000)
+            btn = QPushButton(tr("查看"))
+            btn.clicked.connect(lambda: self._open_update_dialog(info))
+            bar.addWidget(btn)
+        except Exception:
+            pass
+        # 下载 / 安装模式：发现即自动下载，完成后再次提示
+        if mode in (UPDATE_MODE_DOWNLOAD, UPDATE_MODE_INSTALL):
+            self._auto_download_update(info)
+
+    def _on_auto_update_error(self, e):
+        # 静默失败：自动检查不应打扰用户
+        pass
+
+    def _open_update_dialog(self, info):
+        from ui.update_dialog import UpdateDialog
+        from utils.updater import UpdateService
+        svc = UpdateService(self.config)
+        UpdateDialog(self.window, info, svc).exec()
+
+    def _auto_download_update(self, info):
+        import os
+        import tempfile
+        from utils.updater import UpdateService
+        asset = info.default_asset
+        if asset is None:
+            return
+        dest = os.path.join(tempfile.gettempdir(), "BilibiliDownloaderUpdate")
+        try:
+            svc = UpdateService(self.config)
+            svc.download_asset(asset, dest,
+                               on_done=self._on_auto_download_done,
+                               on_error=lambda e: None)
+        except Exception:
+            pass
+
+    def _on_auto_download_done(self, path):
+        try:
+            from qfluentwidgets import InfoBar, InfoBarPosition
+            from PySide6.QtWidgets import QPushButton
+            bar = InfoBar.success(
+                tr("更新已下载"), tr("点击运行安装程序完成更新。"),
+                parent=self.window, position=InfoBarPosition.TOP, duration=10000)
+            btn = QPushButton(tr("运行安装程序") if path.lower().endswith(".exe")
+                             else tr("打开下载文件夹"))
+            btn.clicked.connect(lambda: self._update_open_path(path))
+            bar.addWidget(btn)
+        except Exception:
+            pass
+
+    def _update_open_path(self, path):
+        import os
+        from PySide6.QtGui import QDesktopServices, QUrl
+        if path.lower().endswith(".exe") and os.name == "nt":
+            try:
+                os.startfile(path)
+                return
+            except Exception:
+                pass
+        QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.dirname(path)))
 
     def open_login(self):
         def on_success():
@@ -1856,6 +1944,9 @@ class MainWindow:
         # （覆盖通过 cookies.txt 持久登录、未走「登录」弹窗的情况；仅首次）
         if getattr(self.api, "uid", None):
             QTimer.singleShot(0, self._maybe_show_login_api_warning)
+        # 开机自动检查更新（update_mode 为「从不自动更新」时跳过）；延迟启动，
+        # 避免与登录态校验、首屏渲染抢占资源（参照 ClassIsland 后台静默检查）。
+        QTimer.singleShot(2000, self._maybe_auto_check_update)
 
     def show_terms_of_use(self):
         """弹出《用户协议》窗口；不接受则退出程序（首次启动场景）。

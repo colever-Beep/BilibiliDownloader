@@ -404,7 +404,11 @@ def _message(parent, title, content, with_cancel=False,
         parent = _resolve_parent(parent)
         if parent is None:
             return int(bool(_MessageDialog(None, title, content, with_cancel).exec()))
-        mb = _MaskMessageBox(title, content, parent)
+        mb = MessageBox(title, content, parent)
+        try:
+            mb.setWindowIcon(_child_window_icon(parent))
+        except Exception:
+            pass
         try:
             mb.yesButton.setText(ok_text or tr("确定"))
             mb.cancelButton.setText(cancel_text or tr("取消"))
@@ -412,46 +416,11 @@ def _message(parent, title, content, with_cancel=False,
                 mb.hideCancelButton()
         except Exception:
             pass
-        ret = mb.exec()
-        # exec() 返回后对话框已隐藏但仍存活（QDialog 默认只 hide，不销毁），
-        # 用 deleteLater() 安全销毁——既不踩 exec() 的返回语义，也避免隐藏的
-        # 对话框（含 windowMask 遮罩层、淡入动画）在主窗口子树里累积残留，
-        # 否则连续第二次弹窗会出现「点不动 / 异常」。绝不在 exec() 返回前/内
-        # 依赖 WA_DeleteOnClose 来销毁。
-        mb.deleteLater()
-        return int(bool(ret))
+        # Match qfluentwidgets' standard usage: let QDialog.exec() own modal activation
+        # and focus restoration instead of activating the masked window from showEvent.
+        return int(bool(mb.exec()))
     finally:
         _message_dialog_active = False
-
-
-class _MaskMessageBox(MessageBox):
-    """遮罩式消息框（qfluentwidgets 原版封装，参照 bili23 的 MessageBox）。
-
-    保持简洁：**不重写 done()、不设 WA_DeleteOnClose**，避免与 exec() 的返回
-    时序冲突——那正是「连续第二次弹窗抛 C++ 对象已销毁异常」的根因。
-
-    关闭后在 `_message()` 里显式 `deleteLater()` 释放，既不踩 exec() 语义，也不
-    会让隐藏对话框（含 windowMask 遮罩层、淡入动画）在主窗口子树里累积。
-
-    不再使用 WindowStaysOnTopHint 全局置顶（会盖住其它程序窗口，用户反馈的 bug）；
-    保持模态即可位于本应用窗口之上，showEvent 内延迟 raise_/activateWindow 保证
-    Windows 下必定可点击、不被前台锁卡成「看得见点不动」。
-    """
-
-    def __init__(self, title, content, parent=None):
-        super().__init__(title, content, parent)
-        # 子窗口图标：遮罩式消息框覆盖在父窗口上，继承父窗口图标（避免任务栏/
-        # 切换窗口时显示空白图标），父窗口无图标时回退到根目录 icon.ico。
-        try:
-            self.setWindowIcon(_child_window_icon(parent))
-        except Exception:
-            pass
-
-    def showEvent(self, e):
-        super().showEvent(e)
-        # 延迟到首帧后用 bring_to_foreground 抢焦点：替代裸 raise_()/activateWindow()，
-        # 避免 Windows 前台锁导致弹窗「看得见点不动」并播放系统提示音（叮）。
-        QTimer.singleShot(0, lambda: bring_to_foreground(self))
 
 
 def msg_info(parent, content, title=None, ok_text=None):

@@ -2,17 +2,24 @@
 
 设计目标（与「两者都要」需求一致）：
 1. 本地优先：同目录 bin/<ffmpeg>（开发态为项目根 bin/；冻结后为 exe 所在目录 bin/）。
-2. 缺失则后台下载：首次用到时按当前平台从 BtbN 官方构建下载对应压缩包，
-   解压 bin/ 下的 ffmpeg / ffprobe（Windows 另含 ffplay.exe）到本地 bin/，之后离线可用。
+2. 缺失则后台下载：首次用到时按当前平台下载对应压缩包，
+   解压 bin/ 下的 ffmpeg / ffprobe 到本地 bin/，之后离线可用。
 3. 手动回退：用户也可自行把 ffmpeg 放进 bin/（或「设置」里指定绝对路径），优先级最高。
 
+只分发两个可执行文件（ffmpeg / ffprobe），**不分发 ffplay**：
+- ffplay 是纯播放器，本项目与 yt-dlp 全程都不调用它，纯属浪费体积
+  （静态构建里单个 ffplay.exe 就有 160MB+）。
+- ffprobe 必须保留：yt-dlp 的 FFmpegMetadata 后处理器（内嵌元数据）会直接调用它，
+  缺失时抛 PostProcessingError('ffprobe not found') 而中断下载流程。
+
 跨平台适配：
-- 二进制名：Windows 为 ffmpeg.exe / ffprobe.exe / ffplay.exe；Linux / macOS 为无扩展名的
+- 二进制名：Windows 为 ffmpeg.exe / ffprobe.exe；Linux / macOS 为无扩展名的
   ffmpeg / ffprobe（下载后赋予可执行权限）。
-- 下载源（BtbN FFmpeg-Builds，latest 标签稳定可用）：
-  - Windows -> win64 gpl zip（bin/*.exe）
-  - Linux x86_64 -> linux64 gpl tar.xz；Linux aarch64 -> linuxarm64 gpl tar.xz
-  - macOS x86_64 -> macos64 gpl tar.xz；macOS Apple Silicon -> macosarm64 gpl tar.xz
+- 下载源：
+  - Windows 优先 gyan.dev 的 release essentials 构建（只含常用编解码器，
+    体积远小于 full 构建），失败时回退 BtbN 的 win64 GPL 构建；
+  - Linux x86_64 -> BtbN linux64 gpl tar.xz；Linux aarch64 -> BtbN linuxarm64 gpl tar.xz；
+  - macOS x86_64 -> BtbN macos64 gpl tar.xz；macOS Apple Silicon -> BtbN macosarm64 gpl tar.xz。
 
 冻结（PyInstaller onefile）说明：
 - 程序文件位于 _MEIPASS 临时目录（只读、退出即清），不能把下载的 ffmpeg 写回那里；
@@ -68,25 +75,32 @@ def ffmpeg_exe_name():
 
 
 def _download_spec():
-    """返回 (下载 URL, 归档类型) 或 None（未知平台 -> 不支持自动下载）。
+    """返回 ``[(下载 URL, 归档类型), ...]``（按优先级排列）。
 
     归档类型：'zip'（Windows）或 'tarxz'（Linux / macOS）。
+    Windows 给多个候选源：gyan 的 essentials 构建优先（体积小、无用库少），
+    BtbN 的 GPL 构建作为兜底（gyan 不可达时仍能装上）。
     """
     sysname, mach = _platform_key()
     if sysname == "windows":
-        return ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
-                "ffmpeg-master-latest-win64-gpl.zip", "zip")
+        return [
+            ("https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip", "zip"),
+            ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
+             "ffmpeg-master-latest-win64-gpl.zip", "zip"),
+        ]
     if sysname == "linux":
         name = ("ffmpeg-master-latest-linuxarm64-gpl.tar.xz"
                 if mach == "arm64"
                 else "ffmpeg-master-latest-linux64-gpl.tar.xz")
-        return ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/" + name, "tarxz")
+        return [("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/" + name,
+                 "tarxz")]
     if sysname == "macos":
         name = ("ffmpeg-master-latest-macosarm64-gpl.tar.xz"
                 if mach == "arm64"
                 else "ffmpeg-master-latest-macos64-gpl.tar.xz")
-        return ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/" + name, "tarxz")
-    return None
+        return [("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/" + name,
+                 "tarxz")]
+    return []
 
 
 # --------------------------------------------------------------------------- #
@@ -168,23 +182,49 @@ def _fire(path):
 def _download(logger):
     global _in_progress
     try:
-        spec = _download_spec()
-        if spec is None:
+        specs = _download_spec()
+        if not specs:
             raise RuntimeError("当前平台不支持自动下载 ffmpeg（请手动放入 bin/ 或安装系统 ffmpeg）")
-        url, kind = spec
         bin_dir = get_ffmpeg_dir()
         os.makedirs(bin_dir, exist_ok=True)
         if requests is None:
             raise RuntimeError("缺少 requests 库，无法自动下载 ffmpeg（请手动放入 bin/）")
+        last_err = None
+        for idx, (url, kind) in enumerate(specs):
+            if idx and logger:
+                logger.log(f"主下载源失败，尝试备用源…")
+            try:
+                _download_one(url, kind, bin_dir, logger)
+                if is_available():
+                    if logger:
+                        logger.log("ffmpeg 下载完成 ✅（已保存到 bin/，下次启动免下载）")
+                    _fire(get_ffmpeg_path())
+                    return
+                last_err = RuntimeError("解压后未在 bin/ 中找到 ffmpeg")
+            except Exception as e:
+                last_err = e
+        raise last_err or RuntimeError("ffmpeg 下载失败")
+    except Exception as e:
         if logger:
-            logger.log("开始下载 ffmpeg…")
-        resp = requests.get(url, stream=True, timeout=30)
-        resp.raise_for_status()
-        total = int(resp.headers.get("content-length", 0)) or 0
-        downloaded = 0
-        last_pct = -1
-        ext = ".zip" if kind == "zip" else ".tar.xz"
-        tmp = get_ffmpeg_path() + ext + ".download.tmp"
+            logger.log(f"ffmpeg 自动下载失败：{e}；可将平台对应的 ffmpeg 手动放入 bin/ 后重试")
+        _fire(None)
+    finally:
+        with _lock:
+            _in_progress = False
+
+
+def _download_one(url, kind, bin_dir, logger=None):
+    """从单个源下载并解压 ffmpeg/ffprobe；失败时抛异常（由调用方回退到下一源）。"""
+    if logger:
+        logger.log("开始下载 ffmpeg…")
+    resp = requests.get(url, stream=True, timeout=30)
+    resp.raise_for_status()
+    total = int(resp.headers.get("content-length", 0)) or 0
+    downloaded = 0
+    last_pct = -1
+    ext = ".zip" if kind == "zip" else ".tar.xz"
+    tmp = get_ffmpeg_path() + ext + ".download.tmp"
+    try:
         with open(tmp, "wb") as f:
             for chunk in resp.iter_content(chunk_size=1024 * 1024):
                 if not chunk:
@@ -198,23 +238,11 @@ def _download(logger):
                         if logger:
                             logger.log(f"ffmpeg 下载中… {pct}%")
         _extract_archive(tmp, kind, bin_dir)
+    finally:
         try:
             os.remove(tmp)
         except Exception:
             pass
-        if is_available():
-            if logger:
-                logger.log("ffmpeg 下载完成 ✅（已保存到 bin/，下次启动免下载）")
-            _fire(get_ffmpeg_path())
-        else:
-            raise RuntimeError("解压后未在 bin/ 中找到 ffmpeg")
-    except Exception as e:
-        if logger:
-            logger.log(f"ffmpeg 自动下载失败：{e}；可将平台对应的 ffmpeg 手动放入 bin/ 后重试")
-        _fire(None)
-    finally:
-        with _lock:
-            _in_progress = False
 
 
 # --------------------------------------------------------------------------- #
@@ -226,12 +254,16 @@ def _copy_member(src, dst):
 
 
 def _extract_archive(archive_path, kind, bin_dir):
-    """从官方压缩包中提取 ffmpeg / ffprobe（Windows 另含 ffplay.exe）到本地 bin_dir。
+    """从官方压缩包中提取 ffmpeg / ffprobe 到本地 bin_dir。
 
-    - zip（Windows）：取归档内 bin/ 下所有 .exe。
-    - tar.xz（Linux / macOS）：取归档内名为 ffmpeg / ffprobe / ffplay 的文件
-      （不限层级，自动适配 BtbN 不同平台的内部布局），Linux / macOS 下额外赋予 0o755。
+    - zip（Windows）：取归档内 bin/ 下名为 ffmpeg / ffprobe 的可执行文件。
+    - tar.xz（Linux / macOS）：取归档内名为 ffmpeg / ffprobe 的文件
+      （不限层级，自动适配 BtbN 不同平台的内部布局），额外赋予 0o755。
+
+    刻意**不提取 ffplay**：它是纯播放器，本项目与 yt-dlp 都不会调用，
+    而静态构建中它比 ffmpeg 本体还大，白白占用数百 MB。
     """
+    wanted = ("ffmpeg", "ffprobe")
     if kind == "zip":
         with zipfile.ZipFile(archive_path) as z:
             for name in z.namelist():
@@ -239,19 +271,19 @@ def _extract_archive(archive_path, kind, bin_dir):
                 if "/bin/" not in norm:
                     continue
                 base = os.path.basename(name)
-                if not base.endswith(".exe"):
+                stem = base[:-4] if base.lower().endswith(".exe") else base
+                if stem.lower() not in wanted:
                     continue
                 target = os.path.join(bin_dir, base)
                 with z.open(name) as src:
                     _copy_member(src, target)
     elif kind == "tarxz":
-        wanted = ("ffmpeg", "ffprobe", "ffplay")
         with tarfile.open(archive_path, "r:*") as z:
             for m in z.getmembers():
                 if not m.isfile():
                     continue
                 base = os.path.basename(m.name)
-                if base not in wanted:
+                if base.lower() not in wanted:
                     continue
                 target = os.path.join(bin_dir, base)
                 with z.extractfile(m) as src:

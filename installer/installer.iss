@@ -61,8 +61,10 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "创建快速启动栏快捷方式"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-; 整个 onedir 目录（exe + _internal + bin/ffmpeg.exe 等）安装到 {app}
-Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; 整个 onedir 目录（exe + _internal + bin/ffmpeg.exe、bin/ffprobe.exe 等）安装到 {app}。
+; 显式排除 bin\ffplay.exe：ffplay 只是播放器，本项目与 yt-dlp 都不调用它，
+; 静态构建里单个就有 160MB+，不必随安装包分发（Excludes 也兜住旧构建残留）。
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "bin\ffplay.exe"
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

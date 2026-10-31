@@ -53,46 +53,68 @@ try {
     }
 
     # ---- 2. 下载并放入 ffmpeg（内置，离线可用）----
+    # 只分发 ffmpeg.exe + ffprobe.exe 两个文件：
+    #   - ffprobe：yt-dlp 的 FFmpegMetadata（内嵌元数据）强依赖，缺失会直接报错中断下载；
+    #   - ffmpeg：音视频合并 / 格式转换必需。
+    # 刻意不分发 ffplay.exe：它只是播放器，本项目与 yt-dlp 全程不调用，
+    # 而静态构建里单个 ffplay.exe 就有 160MB+，白白撑大安装包。
     $BinDir = Join-Path $PortableDir "bin"
     $FfmpegExe = Join-Path $BinDir "ffmpeg.exe"
-    if (Test-Path $FfmpegExe) {
+    $FfprobeExe = Join-Path $BinDir "ffprobe.exe"
+    if ((Test-Path $FfmpegExe) -and (Test-Path $FfprobeExe)) {
         Write-Host "==> [2/3] ffmpeg 已存在于 bin/，跳过下载"
     } else {
-        Write-Host "==> [2/3] 下载 Windows ffmpeg (BtbN win64-gpl)"
-        $Url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
-        $Zip = Join-Path $env:TEMP "ffmpeg-win64-gpl.zip"
-        # 兼容 PowerShell 5.1 / 7：优先用 curl（Win10+ 自带），否则回退 Invoke-WebRequest
+        Write-Host "==> [2/3] 下载 Windows ffmpeg"
+        # 候选源按优先级排列：gyan 的 essentials 构建体积小得多（不含 whisper/CUDA/
+        # vmaf 等本项目用不到的库），BtbN 的 GPL 构建作为兜底。
+        $Sources = @(
+            @{ Url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"; Label = "gyan essentials" },
+            @{ Url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"; Label = "BtbN win64-gpl" }
+        )
         $hasCurl = Get-Command curl.exe -ErrorAction SilentlyContinue
-        if ($hasCurl) {
-            & curl.exe -L -o "$Zip" "$Url"
-            if ($LASTEXITCODE -ne 0) { throw "curl 下载 ffmpeg 失败" }
-        } else {
-            Invoke-WebRequest -Uri $Url -OutFile $Zip -UseBasicParsing
-        }
-        New-Item -ItemType Directory -Force -Path $BinDir | Out-Null
-        # 只提取归档内 bin/*.exe（ffmpeg / ffprobe / ffplay）
         Add-Type -AssemblyName System.IO.Compression.FileSystem
-        $archive = [System.IO.Compression.ZipFile]::OpenRead($Zip)
-        try {
-            foreach ($entry in $archive.Entries) {
-                if ($entry.FullName -match 'bin/([^/]+\.exe)$') {
-                    $name = $Matches[1]
-                    $dest = Join-Path $BinDir $name
-                    # 注意：ExtractToFile 是 ZipFileExtensions 的扩展方法，PowerShell 无法通过
-                    # [ZipFile]::ExtractToFile(...) 静态语法调用；改用条目流 + Stream.CopyTo 最稳妥。
-                    $inStream = $entry.Open()
-                    try {
-                        $outStream = [System.IO.File]::Create($dest)
-                        try { $inStream.CopyTo($outStream) } finally { $outStream.Dispose() }
-                    } finally { $inStream.Dispose() }
-                    Write-Host "       提取 $name"
+        $Ok = $false
+        foreach ($src in $Sources) {
+            $Zip = Join-Path $env:TEMP "ffmpeg-win64.zip"
+            try {
+                Write-Host "       从 $($src.Label) 下载…"
+                if ($hasCurl) {
+                    & curl.exe -L -f -o "$Zip" "$($src.Url)"
+                    if ($LASTEXITCODE -ne 0) { throw "curl 下载 ffmpeg 失败（退出码 $LASTEXITCODE）" }
+                } else {
+                    Invoke-WebRequest -Uri $src.Url -OutFile $Zip -UseBasicParsing
                 }
+                New-Item -ItemType Directory -Force -Path $BinDir | Out-Null
+                # 只提取归档内 bin/ffmpeg.exe 与 bin/ffprobe.exe（跳过 ffplay.exe）
+                $archive = [System.IO.Compression.ZipFile]::OpenRead($Zip)
+                try {
+                    foreach ($entry in $archive.Entries) {
+                        if ($entry.FullName -notmatch 'bin/([^/]+\.exe)$') { continue }
+                        $name = $Matches[1]
+                        if ($name -notin @("ffmpeg.exe", "ffprobe.exe")) { continue }
+                        $dest = Join-Path $BinDir $name
+                        # 注意：ExtractToFile 是 ZipFileExtensions 的扩展方法，PowerShell 无法通过
+                        # [ZipFile]::ExtractToFile(...) 静态语法调用；改用条目流 + Stream.CopyTo 最稳妥。
+                        $inStream = $entry.Open()
+                        try {
+                            $outStream = [System.IO.File]::Create($dest)
+                            try { $inStream.CopyTo($outStream) } finally { $outStream.Dispose() }
+                        } finally { $inStream.Dispose() }
+                        Write-Host "       提取 $name"
+                    }
+                } finally { $archive.Dispose() }
+                if ((Test-Path $FfmpegExe) -and (Test-Path $FfprobeExe)) {
+                    $Ok = $true
+                    break
+                }
+                throw "归档中未找到 ffmpeg.exe / ffprobe.exe"
+            } catch {
+                Write-Host "       源 $($src.Label) 失败：$($_.Exception.Message)"
+            } finally {
+                if (Test-Path $Zip) { Remove-Item $Zip -Force }
             }
-        } finally {
-            $archive.Dispose()
         }
-        Remove-Item $Zip -Force
-        if (-not (Test-Path $FfmpegExe)) { throw "ffmpeg 提取失败，未得到 bin\ffmpeg.exe" }
+        if (-not $Ok) { throw "ffmpeg 下载失败，所有候选源均不可用" }
     }
 
     # ---- 3. 编译 Inno Setup 安装程序 ----

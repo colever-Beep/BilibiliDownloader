@@ -10,9 +10,7 @@
 
 - 经典绕过法：用 ``AttachThreadInput`` 把**本线程**与**当前前台线程**的输入
   队列接起来，使随后的 ``SetForegroundWindow`` 被视为「同一前台线程」而放行
-  （不再响叮），再把窗口真正置顶并抢焦点。``SetWindowPos(HWND_TOPMOST)`` 再
-  复位到 ``HWND_NOTOPMOST`` 作为兜底——即使前台切换仍被拒，窗口也已位于 Z
-  序最前、可见可点，不再出现「被压在下面点不动」。
+  （不再响叮），再把窗口提升到普通窗口 Z 序顶端并请求激活。
 
 非 Windows 平台（或取不到句柄 / 调用异常）优雅回退到 Qt 原生
 ``raise_()`` / ``activateWindow()``。
@@ -22,15 +20,39 @@ from __future__ import annotations
 import sys
 
 _user32 = None
+_kernel32 = None
 
 
 def _get_user32():
-    global _user32
+    global _user32, _kernel32
     if _user32 is None and sys.platform == "win32":
         try:
-            _user32 = __import__("ctypes").windll.user32
+            import ctypes
+            from ctypes import wintypes
+
+            user32 = ctypes.WinDLL("user32", use_last_error=True)
+            kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+            user32.GetForegroundWindow.restype = wintypes.HWND
+            user32.GetWindowThreadProcessId.argtypes = (
+                wintypes.HWND, ctypes.POINTER(wintypes.DWORD))
+            user32.GetWindowThreadProcessId.restype = wintypes.DWORD
+            user32.AttachThreadInput.argtypes = (
+                wintypes.DWORD, wintypes.DWORD, wintypes.BOOL)
+            user32.AttachThreadInput.restype = wintypes.BOOL
+            user32.SetWindowPos.argtypes = (
+                wintypes.HWND, wintypes.HWND, ctypes.c_int, ctypes.c_int,
+                ctypes.c_int, ctypes.c_int, wintypes.UINT)
+            user32.SetWindowPos.restype = wintypes.BOOL
+            user32.SetForegroundWindow.argtypes = (wintypes.HWND,)
+            user32.SetForegroundWindow.restype = wintypes.BOOL
+            user32.SetFocus.argtypes = (wintypes.HWND,)
+            user32.SetFocus.restype = wintypes.HWND
+            kernel32.GetCurrentThreadId.restype = wintypes.DWORD
+            _user32 = user32
+            _kernel32 = kernel32
         except Exception:
             _user32 = None
+            _kernel32 = None
     return _user32
 
 
@@ -56,12 +78,11 @@ def bring_to_foreground(widget):
     try:
         SWP_NOMOVE = 0x0002
         SWP_NOSIZE = 0x0001
+        SWP_NOACTIVATE = 0x0010
         SWP_SHOWWINDOW = 0x0040
-        HWND_TOPMOST = -1
-        HWND_NOTOPMOST = -2
-
         foreground_hwnd = u.GetForegroundWindow()
-        my_thread = u.GetCurrentThreadId()
+        # GetCurrentThreadId is exported by kernel32, not user32.
+        my_thread = _kernel32.GetCurrentThreadId()
         fg_thread = 0
         if foreground_hwnd:
             try:
@@ -70,34 +91,31 @@ def bring_to_foreground(widget):
                 fg_thread = 0
 
         attached = False
-        if fg_thread and fg_thread != my_thread:
-            try:
+        activated = False
+        try:
+            if fg_thread and fg_thread != my_thread:
                 # 接上前台线程输入队列：让 SetForegroundWindow 被放行（不响叮）
-                if u.AttachThreadInput(my_thread, fg_thread, True):
-                    attached = True
-            except Exception:
-                attached = False
+                attached = bool(u.AttachThreadInput(my_thread, fg_thread, True))
 
-        # 兜底：先置顶再复位，确保位于 Z 序最前、可见可点
-        try:
-            u.SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0,
-                           SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
-            u.SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0,
-                           SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
+            # 先提升到普通窗口 Z 序顶端，避免全局置顶窗口影响其它应用。
+            u.SetWindowPos(
+                hwnd, 0, 0, 0, 0, 0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOACTIVATE)
+            activated = bool(u.SetForegroundWindow(hwnd))
+            if activated:
+                u.SetFocus(hwnd)
+                _qt_raise(widget)
         except Exception:
-            pass
+            activated = False
+        finally:
+            if attached:
+                try:
+                    u.AttachThreadInput(my_thread, fg_thread, False)
+                except Exception:
+                    pass
 
-        try:
-            u.SetForegroundWindow(hwnd)
-            u.SetFocus(hwnd)
-        except Exception:
-            pass
-
-        if attached:
-            try:
-                u.AttachThreadInput(my_thread, fg_thread, False)
-            except Exception:
-                pass
+        if not activated:
+            _qt_raise(widget)
     except Exception:
         _qt_raise(widget)
 

@@ -14,18 +14,18 @@ import sys
 from PySide6.QtGui import QColor
 from PySide6.QtCore import QTimer
 
-DEFAULT_ACCENT = "#1f8a4c"
+DEFAULT_ACCENT = "#f07090"  # 软件图标粉色
 
 # 预设强调色（色板）
 PRESET_ACCENTS = [
-    "#1f8a4c",  # 绿（默认）
+    "#f07090",  # 粉（默认，软件图标色）
     "#2f80ed",  # 蓝
     "#9b51e0",  # 紫
     "#eb5757",  # 红
     "#f2994a",  # 橙
     "#219653",  # 翠绿
     "#1abc9c",  # 青
-    "#e91e63",  # 粉
+    "#1f8a4c",  # 绿
 ]
 
 # 明暗调色板
@@ -92,7 +92,7 @@ def set_root_window(window):
 def _norm_color(c):
     """把任意来源的颜色归一化为合法的 #rrggbb；非法则返回 None。
 
-    用于防御：旧配置 / 脏值可能把 accent 存成 "1f8a4c"（缺 #）、
+    用于防御：旧配置 / 脏值可能把 accent 存成 "f07090"（缺 #）、
     "abc"（3 位）、或 RGB 元组字符串等。一旦这种非法值被注入全局 QSS 的
     `selection-background-color:{accent}`，整段样式表会解析失败，进而所有控件
     回退默认字体（pointSize=-1）并批量报 "Could not parse stylesheet"。

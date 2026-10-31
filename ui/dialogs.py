@@ -55,7 +55,7 @@ from ui.icons import icon_pixmap
 from ui.theme import palette, get_accent
 from utils.resources import get_app_icon_path
 
-APP_NAME = "BilibiliDownloader"
+from utils.version import APP_NAME, APP_VERSION
 
 # FluentIcon 简写
 FIF = FluentIcon
@@ -106,7 +106,7 @@ class AboutDialog(FluentContentDialog):
         info = QVBoxLayout()
         info.setSpacing(4)
         self.name_lbl = LargeTitleLabel(APP_NAME, self)
-        self.ver_lbl = CaptionLabel("v2.1.0 · PySide6 · qfluentwidgets", self)
+        self.ver_lbl = CaptionLabel(f"v{APP_VERSION} · PySide6 · qfluentwidgets", self)
         info.addWidget(self.name_lbl)
         info.addWidget(self.ver_lbl)
         info.addStretch(1)

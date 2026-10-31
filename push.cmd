@@ -82,8 +82,8 @@ echo 未知命令: %CMD%
 echo 用法: push.cmd [push^|tag^|release^|pull^|status^|log^|branch^|sync] [参数]
 echo   示例:
 echo     push.cmd push "修复导航内联化"
-echo     push.cmd tag v2.1.0 "Release v2.1.0"
-echo     push.cmd release v2.1.0 "版本发布说明"
+echo     push.cmd tag v2.1.1 "Release v2.1.1"
+echo     push.cmd release v2.1.1 "版本发布说明"
 goto :end
 
 :: ================= 子程序 =================
@@ -183,7 +183,7 @@ goto :eof
 :do_tag_prompt
 set "VER="
 set "MSG="
-set /p "VER=版本号 (如 v2.1.0): "
+set /p "VER=版本号 (如 v2.1.1): "
 if "%VER%"=="" (echo [tag] 已取消。 & goto :eof)
 set /p "MSG=标签备注 (留空用默认): "
 call :do_tag "%VER%" "%MSG%"
@@ -212,7 +212,7 @@ goto :eof
 :do_release_prompt
 set "VER="
 set "MSG="
-set /p "VER=版本号 (如 v2.1.0): "
+set /p "VER=版本号 (如 v2.1.1): "
 if "%VER%"=="" (echo [release] 已取消。 & goto :eof)
 set /p "MSG=Release 说明 (留空用默认): "
 call :do_release "%VER%" "%MSG%"
