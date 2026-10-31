@@ -35,6 +35,7 @@ from qfluentwidgets import (
 
 from utils.i18n import tr, register
 from utils.resources import get_app_icon_path
+from utils.window_helpers import bring_to_foreground
 
 # --------------------------------------------------------------------------- #
 # qframelesswindow 兼容性补丁
@@ -202,10 +203,10 @@ class FluentModalDialog(FluentWidget):
     def exec(self):
         """等效 QDialog.exec()：阻塞到窗口关闭，返回是否点了「确定」。"""
         self.show()
-        # 提升并激活到本应用最前（不含 WindowStaysOnTopHint，不会盖住其它程序窗口），
-        # 解决 Windows 下模态弹窗「看得见点不动」的前台锁问题。
-        self.raise_()
-        self.activateWindow()
+        # 提升并激活到本应用最前（不含 WindowStaysOnTopHint，不会盖住其它程序窗口）。
+        # 用 bring_to_foreground 替代裸 raise_()/activateWindow()：后者在进程非前台时
+        # 会触发 Windows 前台锁，弹窗「看得见点不动」且播放系统提示音（叮）。
+        bring_to_foreground(self)
         self._loop = QEventLoop(self)
         self._loop.exec()
         self._loop = None
@@ -448,10 +449,9 @@ class _MaskMessageBox(MessageBox):
 
     def showEvent(self, e):
         super().showEvent(e)
-        # 延迟到首帧后提升并激活（不含全局置顶），避免盖住其它程序窗口的同时
-        # 解决 Windows 模态弹窗「看得见点不动」的前台锁问题。
-        QTimer.singleShot(0, self.raise_)
-        QTimer.singleShot(0, self.activateWindow)
+        # 延迟到首帧后用 bring_to_foreground 抢焦点：替代裸 raise_()/activateWindow()，
+        # 避免 Windows 前台锁导致弹窗「看得见点不动」并播放系统提示音（叮）。
+        QTimer.singleShot(0, lambda: bring_to_foreground(self))
 
 
 def msg_info(parent, content, title=None, ok_text=None):

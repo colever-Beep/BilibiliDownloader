@@ -34,6 +34,7 @@ from ui.download_options_dialog import DownloadOptionsDialog
 from ui.fluent_dialog import (
     ChoiceDialog, msg_info, msg_warn, msg_error, msg_confirm,
 )
+from utils.window_helpers import bring_to_foreground
 from ui.dialogs import (AboutDialog, LoginDialog,
                        ParseRecordsDialog, BatchParseDialog, LogWindow,
                        LiveRecordDialog)
@@ -1131,8 +1132,7 @@ class MainWindow:
         if getattr(self, "settings_window", None) is not None:
             try:
                 if not self.settings_window.isHidden():
-                    self.settings_window.raise_()
-                    self.settings_window.activateWindow()
+                    bring_to_foreground(self.settings_window)
                     return
             except Exception:
                 pass
@@ -1147,9 +1147,10 @@ class MainWindow:
             pw.x() + (pw.width() - self.settings_window.width()) // 2,
             pw.y() + (pw.height() - self.settings_window.height()) // 2)
         self.settings_window.show()
-        # 独立窗口需显式抢焦点，否则 show() 后焦点仍停留在主窗口（设置页被压在下面）
-        self.settings_window.raise_()
-        self.settings_window.activateWindow()
+        # 独立窗口需显式抢焦点，否则 show() 后焦点仍停留在主窗口（设置页被压在下面）。
+        # 用 bring_to_foreground 替代裸 raise_()/activateWindow()，避免 Windows 前台锁
+        # 导致「看得见点不动」并播放系统提示音（叮）。
+        bring_to_foreground(self.settings_window)
 
     def open_login(self):
         def on_success():
@@ -1755,8 +1756,7 @@ class MainWindow:
         if rid is not None and rid in self._live_windows:
             w = self._live_windows[rid]
             if w.isVisible():
-                w.activateWindow()
-                w.raise_()
+                bring_to_foreground(w)
                 return
         w = LiveRecordWindow(parent=self.window, api=self.api,
                              config=self.config, logger=self.logger, target=target)
