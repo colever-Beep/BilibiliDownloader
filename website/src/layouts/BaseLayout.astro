@@ -5,6 +5,12 @@ import '../styles/global.css';
 
 const { title = 'BilibiliDownloader', active = '', prose = false } = Astro.props;
 const favicon = import.meta.env.BASE_URL + '/favicon.ico';
+// 社交预览图：避免外链/聚合站回退到 GitHub 头像，统一用软件图标
+const _base = new URL(import.meta.env.BASE_URL, Astro.site);
+if (!_base.pathname.endsWith('/')) _base.pathname += '/';
+const ogImage = new URL('icon.png', _base).toString();
+const ogUrl = _base.toString();
+const description = 'BilibiliDownloader — 开源 B 站内容下载器，支持 Windows / macOS / Linux，视频、番剧、直播、音频一键解析下载。';
 ---
 <!doctype html>
 <html lang="zh-CN">
@@ -12,8 +18,19 @@ const favicon = import.meta.env.BASE_URL + '/favicon.ico';
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href={favicon} />
-    <meta name="description" content="BilibiliDownloader — 开源 B 站内容下载器，支持 Windows / macOS / Linux，视频、番剧、直播、音频一键解析下载。" />
+    <meta name="description" content={description} />
     <title>{title}</title>
+    {/* Open Graph / 社交分享卡片：用软件图标，不回退 GitHub 头像 */}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="BilibiliDownloader" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={ogUrl} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
     {/* 无闪烁主题初始化：优先 localStorage，否则跟随系统偏好 */}
     <script is:inline>
       (function () {
