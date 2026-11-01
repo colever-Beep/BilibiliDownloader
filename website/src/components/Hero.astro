@@ -11,23 +11,41 @@ const github = 'https://github.com/colever-Beep/BilibiliDownloader';
     <div class="cta">
       <a class="btn primary lg" href={releases} target="_blank" rel="noopener">下载最新版</a>
       <a class="btn ghost lg" href={base + '/docs'}>使用文档</a>
-      <a class="btn ghost lg" href={github} target="_blank" rel="noopener">GitHub</a>
     </div>
-    <p class="platforms-text">支持 Windows · macOS · Linux</p>
+
+    <!-- 产品预览：真实界面截图（浅/深主题各一张，随站点主题切换） -->
+    <figure class="showcase">
+      <div class="shot-frame">
+        <img
+          class="shot shot-light"
+          src={base + '/shots/main-light.png'}
+          width="2880" height="1640"
+          alt="BilibiliDownloader 主界面：左侧导航、顶部链接解析框、下载队列与总进度条（浅色主题）"
+          loading="eager" decoding="async"
+        />
+        <img
+          class="shot shot-dark"
+          src={base + '/shots/main-dark.png'}
+          width="2880" height="1640"
+          alt="BilibiliDownloader 主界面：左侧导航、顶部链接解析框、下载队列与总进度条（深色主题）"
+          loading="eager" decoding="async"
+        />
+      </div>
+    </figure>
   </div>
 </section>
 
 <style>
-  .hero { padding: 72px 0 40px; text-align: center; }
+  .hero { padding: 64px 0 40px; text-align: center; }
   .badge {
     display: inline-block; padding: 4px 14px; border-radius: 999px;
     background: var(--accent-weak); color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 18px;
   }
-  .hero h1 { font-size: 46px; margin: 0 0 12px; letter-spacing: -1px; }
+  .hero h1 { font-size: 48px; margin: 0 0 12px; letter-spacing: -1px; }
   .sub { font-size: 18px; color: var(--text-soft); margin: 0 auto 26px; max-width: 640px; }
   .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .platforms-text { margin-top: 22px; color: var(--text-soft); font-size: 14px; }
   @media (max-width: 600px) {
+    .hero { padding: 44px 0 28px; }
     .hero h1 { font-size: 34px; }
   }
 </style>

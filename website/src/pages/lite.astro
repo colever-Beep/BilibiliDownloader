@@ -1,0 +1,122 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+
+const releases = 'https://github.com/colever-Beep/BilibiliDownloader/releases';
+const slimBranch = 'https://github.com/colever-Beep/BilibiliDownloader/tree/slim';
+const github = 'https://github.com/colever-Beep/BilibiliDownloader';
+
+const keep = [
+  { name: '核心解析下载', desc: '视频 / 番剧 / 直播 / 音频 / 歌单 / 收藏夹 / UP 主 / 合集 / 课程，一键解析。' },
+  { name: '直播录制', desc: '原画 / 4K / 杜比清晰度，断流自动重连并分段保存。' },
+  { name: '登录与 cookies', desc: '放入 cookies.txt 提升解析成功率、解锁更高清晰度。' },
+  { name: '系统托盘', desc: '最小化到托盘后台运行，随用随点。' },
+];
+const trimmed = [
+  { name: '发现页', desc: '移除首页信息流浏览入口，专注下载本身。' },
+  { name: '百宝箱', desc: '移除进阶小工具集合（自定义链接下载等）。' },
+  { name: '部分高级设置', desc: '精简侧边栏与设置项，配置更直给。' },
+  { name: '更大窗口', desc: '缩小默认窗口尺寸，占用桌面空间更少。' },
+];
+---
+<BaseLayout title="精简版 — BilibiliDownloader" active="精简版">
+  <section class="hero slim-hero">
+    <div class="container hero-inner">
+      <span class="badge">轻量 · 专注 · 开箱即下</span>
+      <h1>BilibiliDownloader 精简版</h1>
+      <p class="sub">面向「粘贴链接 → 立即下载」的用户：砍掉进阶入口，保留核心能力，更轻、更快、更省心。</p>
+      <div class="hero-panel">
+        <div class="cta">
+          <a class="btn primary lg" href={releases} target="_blank" rel="noopener">下载精简版</a>
+          <a class="btn ghost lg" href={slimBranch} target="_blank" rel="noopener">查看源码（slim 分支）</a>
+        </div>
+        <p class="platforms-text">Windows · macOS · Linux 全平台</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">保留的核心能力</h2>
+      <p class="section-sub">精简，但不缩水 —— 下载该有的都在。</p>
+      <div class="card-grid">
+        {keep.map((k) => (
+          <div class="winui-card">
+            <h3 class="card-title">{k.name}</h3>
+            <p class="card-desc">{k.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="container">
+      <h2 class="section-title">相比完整版，少了什么</h2>
+      <p class="section-sub">把不常用的进阶入口移走，让主界面更清爽。</p>
+      <div class="card-grid">
+        {trimmed.map((t) => (
+          <div class="winui-card trimmed">
+            <h3 class="card-title">{t.name}</h3>
+            <p class="card-desc">{t.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container prose compare">
+      <h2>精简版 vs 完整版</h2>
+      <table>
+        <thead>
+          <tr><th>维度</th><th>完整版</th><th>精简版</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>侧边栏</td><td>完整导航（含发现页、百宝箱）</td><td>精简导航，直达下载</td></tr>
+          <tr><td>默认窗口</td><td>标准尺寸</td><td>更小，省桌面空间</td></tr>
+          <tr><td>核心下载 / 直播录制</td><td>✅</td><td>✅ 完全一致</td></tr>
+          <tr><td>登录 / cookies / 托盘</td><td>✅</td><td>✅ 完全一致</td></tr>
+          <tr><td>主题与强调色</td><td>✅</td><td>✅ 完全一致</td></tr>
+          <tr><td>适用人群</td><td>需要进阶工具与浏览的用户</td><td>只想快速下载的轻度用户</td></tr>
+        </tbody>
+      </table>
+      <p class="cta-center">
+        <a class="btn primary" href={releases} target="_blank" rel="noopener">前往 GitHub Releases 下载</a>
+        <a class="btn ghost" href={github} target="_blank" rel="noopener">GitHub 主页</a>
+      </p>
+      <p class="note">
+        精简版源码与构建位于 <code>slim</code> 分支；安装包随 GitHub Releases 发布（包名含 <code>lite</code> 标识），
+        与完整版共享同一套解析内核，下载体验一致。
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .slim-hero { padding: 64px 0 40px; text-align: center; }
+  .hero-panel {
+    display: inline-block; padding: 22px 30px; border-radius: var(--radius-l);
+    background: color-mix(in srgb, var(--card) 72%, transparent);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    box-shadow: var(--shadow-md);
+  }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .platforms-text { margin: 18px 0 0; color: var(--text-soft); font-size: 14px; }
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 22px; }
+  .card-title { font-size: 16px; margin: 0 0 8px; color: var(--text); }
+  .card-title::before {
+    content: ''; display: inline-block; width: 5px; height: 14px;
+    background: var(--accent); border-radius: 3px; margin-right: 7px; vertical-align: -2px;
+  }
+  .card-desc { color: var(--text-soft); font-size: 14px; margin: 0; }
+  .trimmed .card-title::before { background: var(--text-muted); }
+  .compare { margin: 0 auto; }
+  .cta-center { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 24px 0 8px; }
+  .note { text-align: center; color: var(--text-soft); font-size: 13px; line-height: 1.8; }
+  @media (max-width: 600px) {
+    .hero-panel { padding: 18px 16px; }
+  }
+</style>

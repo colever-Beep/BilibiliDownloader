@@ -3,26 +3,53 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import DownloadSection from '../components/DownloadSection.astro';
 
-const groups = [
+const ic = (p: string) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+
+const features = [
   {
-    title: '解析与下载',
-    items: [
-      { name: '多类型解析', desc: '视频、番剧、直播、音频、歌单、收藏夹、UP 主、合集、课程一键解析下载。' },
-      { name: '批量解析', desc: '一次粘贴多个链接，各来源分页选择框各自处理。' },
-      { name: '直播录制', desc: '支持 B 站直播录制，实时保存为本地视频文件。' },
-      { name: '自动归类', desc: '按视频种类自动分文件夹存放，下载路径整洁有序。' },
-      { name: '浏览器跳转', desc: '列表项一键在浏览器打开对应页面（视频 / UP 主空间等）。' },
-    ],
+    title: '多类型解析',
+    desc: '视频、番剧、直播、音频、歌单、收藏夹、UP 主、合集、课程一键解析下载。',
+    icon: ic('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16M16 4v16"/><path d="M11 12l3-2v4z" fill="currentColor" stroke="none"/>'),
   },
   {
-    title: '界面与体验',
-    items: [
-      { name: '统一分页选择', desc: '搜索 / 收藏夹 / 历史等列表统一分页弹窗，支持跳页与总页数显示。' },
-      { name: '主题与强调色', desc: '明暗主题 + 可自定义强调色，切换做了防抖优化更顺滑。' },
-      { name: '多语言', desc: '界面支持简体中文、繁体中文、English、日本語。' },
-      { name: '高 DPI 适配', desc: '完美适配高分屏与不同缩放，界面元素清晰不模糊。' },
-    ],
+    title: '批量解析',
+    desc: '一次粘贴多个链接，各来源分页选择框各自处理，省去重复操作。',
+    icon: ic('<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>'),
   },
+  {
+    title: '直播录制',
+    desc: '支持 B 站直播实时录制，保存为本地视频文件，不漏掉任何精彩瞬间。',
+    icon: ic('<circle cx="12" cy="12" r="3"/><path d="M7 7a7 7 0 000 10M17 7a7 7 0 010 10M4.5 4.5a11 11 0 000 15M19.5 4.5a11 11 0 010 15"/>'),
+  },
+  {
+    title: '自动归类',
+    desc: '按视频种类自动分文件夹存放，下载路径整洁有序，秒找文件。',
+    icon: ic('<path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>'),
+  },
+  {
+    title: '主题与强调色',
+    desc: '明暗主题 + 可自定义强调色（默认品牌粉），切换做了防抖优化更顺滑。',
+    icon: ic('<circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1.3" fill="currentColor" stroke="none"/><circle cx="14.5" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="14.5" r="1.3" fill="currentColor" stroke="none"/>'),
+  },
+  {
+    title: '多语言',
+    desc: '界面支持简体中文、繁体中文、English、日本語，全球用户无障碍使用。',
+    icon: ic('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'),
+  },
+];
+
+const platforms = [
+  { name: 'Windows', icon: '<svg viewBox="0 0 22 22" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="12" y="2" width="8" height="8" rx="1"/><rect x="2" y="12" width="8" height="8" rx="1"/><rect x="12" y="12" width="8" height="8" rx="1"/></svg>' },
+  { name: 'macOS', icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 12.04c-.03-2.6 2.12-3.85 2.22-3.91-1.21-1.77-3.09-2.01-3.76-2.04-1.6-.16-3.12.94-3.93.94-.81 0-2.06-.92-3.39-.89-1.74.03-3.35 1.01-4.25 2.57-1.81 3.14-.46 7.79 1.3 10.34.86 1.25 1.88 2.65 3.22 2.6 1.29-.05 1.78-.83 3.34-.83 1.56 0 2 .83 3.37.81 1.39-.03 2.27-1.27 3.12-2.53.98-1.45 1.39-2.85 1.41-2.92-.03-.01-2.71-1.04-2.74-4.13zM14.6 4.84c.71-.86 1.19-2.06 1.06-3.25-1.02.04-2.26.68-2.99 1.54-.65.76-1.22 1.98-1.07 3.15 1.14.09 2.3-.58 3-1.44z"/></svg>' },
+  { name: 'Linux', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M12 15h5"/></svg>' },
+];
+
+const stats = [
+  { num: '3', label: '支持平台（Win / macOS / Linux）' },
+  { num: '9+', label: '可解析的内容类型' },
+  { num: '100%', label: '开源免费（GPL-3.0）' },
+  { num: '∞', label: '批量下载无数量限制' },
 ];
 ---
 <BaseLayout title="BilibiliDownloader — B 站内容下载器">
@@ -32,16 +59,30 @@ const groups = [
     <div class="container">
       <h2 class="section-title">功能特性</h2>
       <p class="section-sub">一个工具，覆盖 B 站绝大多数内容类型的解析与下载。</p>
-      <div class="feat-groups">
-        {groups.map((g) => (
-          <div class="feat-group">
-            <h3 class="feat-group-title">{g.title}</h3>
-            <ul class="feat-list">
-              {g.items.map((it) => (
-                <li><b>{it.name}</b><span>{it.desc}</span></li>
-              ))}
-            </ul>
+      <div class="feature-grid">
+        {features.map((f) => (
+          <div class="feature-card">
+            <span class="feature-icon" set:html={f.icon} />
+            <h3>{f.title}</h3>
+            <p>{f.desc}</p>
           </div>
+        ))}
+      </div>
+      <div class="platforms">
+        {platforms.map((p) => (
+          <span class="platform"><span class="p-ico" set:html={p.icon} />{p.name}</span>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="container">
+      <h2 class="section-title">为什么选择我们</h2>
+      <p class="section-sub">开源、跨平台、无广告，专注把「下载」这件事做好。</p>
+      <div class="stats">
+        {stats.map((s) => (
+          <div class="stat"><b>{s.num}</b><span>{s.label}</span></div>
         ))}
       </div>
     </div>
@@ -51,15 +92,6 @@ const groups = [
 </BaseLayout>
 
 <style>
-  .feat-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 28px 44px; }
-  .feat-group-title { font-size: 17px; margin: 0 0 12px; color: var(--text); }
-  .feat-group-title::before {
-    content: ''; display: inline-block; width: 6px; height: 16px;
-    background: var(--accent); border-radius: 3px; margin-right: 8px; vertical-align: -2px;
-  }
-  .feat-list { list-style: none; margin: 0; padding: 0; }
-  .feat-list li { padding: 9px 0; border-bottom: 1px solid var(--border); }
-  .feat-list li:last-child { border-bottom: none; }
-  .feat-list b { color: var(--text); font-weight: 600; }
-  .feat-list span { display: block; color: var(--text-soft); font-size: 14px; margin-top: 2px; }
+  .platforms .p-ico { display: inline-flex; }
+  .platforms .p-ico svg { width: 22px; height: 22px; }
 </style>

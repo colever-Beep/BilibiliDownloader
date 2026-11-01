@@ -1,96 +1,211 @@
-/* ===== 主题 token（仿 bili23：B 站粉 #FB7299 + 极简浅色 / 深色） ===== */
+/* =====================================================================
+   BilibiliDownloader 网站 · WinUI 3 / Windows 11 Fluent 设计语言
+   参考：https://furry-xiyi.github.io/WinUIonWeb/ 的视觉风格
+   - Mica 背景（桌面着色质感）
+   - Acrylic 半透明材质（导航 / 命令栏）
+   - Segoe UI Variable 字体
+   - 强调色取软件图标粉色 #f07090（与桌面端 v2.1.1 默认强调色一致）
+   ===================================================================== */
+
 :root {
-  --accent: #FB7299;
-  --accent-hover: #fc8bad;
-  --accent-weak: #fff0f5;
-  --bg: #ffffff;
-  --bg-soft: #f7f8fa;
+  /* 强调色系统（品牌粉） */
+  --accent: #f07090;
+  --accent-hover: #f589a3;
+  --accent-pressed: #d95c7c;
+  --accent-weak: #fde7ee;
+
+  /* 浅色（Mica 浅） */
+  --bg: #f3f3f3;
+  --bg-soft: #ececec;        /* 交替区块 */
+  --bg-elevated: #fafafa;
   --card: #ffffff;
-  --text: #18191c;
-  --text-soft: #61666d;
-  --border: #e3e5e7;
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  --radius: 14px;
+  --card-hover: #fbfbfb;
+  --text: #1b1b1b;
+  --text-soft: #5e5e5e;
+  --text-muted: #8a8a8a;
+  --border: #e3e3e3;
+  --border-strong: #d1d1d1;
+  --control: #ffffff;        /* 控件底色 */
+  --control-hover: #f5f5f5;
+  --control-pressed: #ebebeb;
+  --track-off: #8a8a8a;      /* ToggleSwitch 关闭态 */
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .08), 0 2px 8px rgba(0, 0, 0, .04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, .10), 0 8px 28px rgba(0, 0, 0, .06);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, .14);
+
+  --radius-s: 4px;
+  --radius-m: 8px;
+  --radius-l: 12px;
   --maxw: 1120px;
-  --nav-h: 60px;
+  --nav-h: 58px;
+
+  --font: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont,
+    "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* 手动深色（Nav 主题切换写入 html[data-theme="dark"]） */
+/* 手动深色（Nav 主题开关写入 html[data-theme="dark"]） */
 :root[data-theme="dark"] {
-  --accent: #FB7299;
-  --accent-hover: #ff8fb3;
+  --accent: #f07090;
+  --accent-hover: #ff8bab;
+  --accent-pressed: #d95c7c;
   --accent-weak: #3a2230;
-  --bg: #0f0f12;
-  --bg-soft: #16181d;
-  --card: #1a1d23;
-  --text: #e3e5e7;
-  --text-soft: #9aa0a8;
-  --border: #272b32;
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+
+  --bg: #202020;
+  --bg-soft: #262626;
+  --bg-elevated: #2a2a2a;
+  --card: #2b2b2b;
+  --card-hover: #303030;
+  --text: #f3f3f3;
+  --text-soft: #c8c8c8;
+  --text-muted: #9a9a9a;
+  --border: #3a3a3a;
+  --border-strong: #4a4a4a;
+  --control: #2b2b2b;
+  --control-hover: #353535;
+  --control-pressed: #1f1f1f;
+  --track-off: #6e6e6e;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .45);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, .55);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, .6);
 }
 
 /* 无 JS / 脚本执行前：跟随系统偏好 */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) {
-    --accent: #FB7299;
-    --accent-hover: #ff8fb3;
+    --accent: #f07090;
+    --accent-hover: #ff8bab;
+    --accent-pressed: #d95c7c;
     --accent-weak: #3a2230;
-    --bg: #0f0f12;
-    --bg-soft: #16181d;
-    --card: #1a1d23;
-    --text: #e3e5e7;
-    --text-soft: #9aa0a8;
-    --border: #272b32;
-    --shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    --bg: #202020;
+    --bg-soft: #262626;
+    --bg-elevated: #2a2a2a;
+    --card: #2b2b2b;
+    --card-hover: #303030;
+    --text: #f3f3f3;
+    --text-soft: #c8c8c8;
+    --text-muted: #9a9a9a;
+    --border: #3a3a3a;
+    --border-strong: #4a4a4a;
+    --control: #2b2b2b;
+    --control-hover: #353535;
+    --control-pressed: #1f1f1f;
+    --track-off: #6e6e6e;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .45);
+    --shadow-md: 0 4px 14px rgba(0, 0, 0, .55);
+    --shadow-lg: 0 12px 40px rgba(0, 0, 0, .6);
   }
 }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 12px); }
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-    "Microsoft YaHei", Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg);
+  font-family: var(--font);
+  /* Mica：底色 + 一抹强调色桌面着色，模拟 Win11 Mica 质感 */
+  background:
+    radial-gradient(1200px 620px at 82% -12%,
+      color-mix(in srgb, var(--accent) 10%, transparent), transparent 62%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
-  line-height: 1.65;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  transition: background 0.2s ease, color 0.2s ease;
+  text-rendering: optimizeLegibility;
+  transition: background-color .25s ease, color .25s ease;
 }
+
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 img { max-width: 100%; }
+::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--text); }
+
+/* 细滚动条（WinUI 风格） */
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong); border-radius: 999px;
+  border: 2px solid transparent; background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--text-muted); background-clip: content-box; }
 
 .container { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
 .main { min-height: 62vh; }
 
-/* ===== 按钮 ===== */
+/* ============================ 按钮（WinUI） ============================ */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 11px 22px; border-radius: 10px; font-size: 15px; font-weight: 600;
-  cursor: pointer; border: 1px solid transparent; transition: 0.15s;
+  padding: 9px 20px; border-radius: var(--radius-m); font-size: 14px; font-weight: 600;
+  font-family: var(--font); cursor: pointer; border: 1px solid transparent;
+  background: var(--control); color: var(--text);
+  transition: background .12s ease, border-color .12s ease, color .12s ease, transform .04s ease;
+  -webkit-tap-highlight-color: transparent;
 }
-.btn:hover { text-decoration: none; }
-.btn.primary { background: var(--accent); color: #fff; }
-.btn.primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
-.btn.ghost { background: var(--bg-soft); color: var(--text); border-color: var(--border); }
-.btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
-.btn.lg { padding: 13px 30px; font-size: 16px; }
+.btn:hover { background: var(--control-hover); text-decoration: none; }
+.btn:active { background: var(--control-pressed); transform: translateY(1px); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* ===== 区块 ===== */
+/* 强调按钮（WinUI 主操作） */
+.btn.primary { background: var(--accent); color: #fff; border-color: transparent; }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.primary:active { background: var(--accent-pressed); }
+
+/* 幽灵 / 文字按钮 */
+.btn.ghost { background: transparent; color: var(--text); border-color: var(--border-strong); }
+.btn.ghost:hover { background: var(--control-hover); border-color: var(--accent); color: var(--accent); }
+.btn.ghost:active { background: var(--control-pressed); }
+
+.btn.lg { padding: 12px 28px; font-size: 15px; }
+
+/* ============================ 卡片（WinUI） ============================ */
+.winui-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-l);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+}
+.winui-card:hover { box-shadow: var(--shadow-md); border-color: var(--border-strong); }
+
+/* ============================ 区块 ============================ */
 .section { padding: 60px 0; }
 .section.alt { background: var(--bg-soft); }
 .section-title { font-size: 28px; text-align: center; margin: 0 0 6px; letter-spacing: -0.3px; }
 .section-sub { text-align: center; color: var(--text-soft); margin: 0 0 36px; font-size: 15px; }
 
-code { background: var(--bg-soft); padding: 2px 6px; border-radius: 6px; font-size: 13px; }
+/* 标签 / 徽章（WinUI 药丸） */
+.badge {
+  display: inline-block; padding: 4px 14px; border-radius: 999px;
+  background: var(--accent-weak); color: var(--accent); font-size: 13px; font-weight: 600;
+}
+.tag {
+  display: inline-block; padding: 2px 10px; border-radius: 999px;
+  background: var(--control-hover); color: var(--text-soft); font-size: 12px; font-weight: 600;
+}
 
-/* ===== 主题切换图标显隐（由 html[data-theme] 控制） ===== */
-.theme-toggle .i-sun { display: none; }
-[data-theme="dark"] .theme-toggle .i-sun { display: inline-grid; }
-[data-theme="dark"] .theme-toggle .i-moon { display: none; }
+code { background: var(--bg-soft); padding: 2px 6px; border-radius: 6px; font-size: 13px;
+  font-family: "Cascadia Code", "Consolas", "SF Mono", Menlo, monospace; }
 
-/* ===== 文档排版（.prose） ===== */
+/* ====================== 主题切换：WinUI ToggleSwitch ====================== */
+.winui-switch { display: inline-flex; align-items: center; gap: 8px; user-select: none; }
+.winui-switch .switch-label { font-size: 14px; color: var(--text-soft); }
+.switch {
+  position: relative; width: 40px; height: 20px; flex: none;
+  border-radius: 999px; border: 1px solid transparent;
+  background: var(--track-off); cursor: pointer; padding: 0; transition: background .2s ease;
+}
+.switch .switch-knob {
+  position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .35); transition: left .2s ease;
+}
+.switch[aria-checked="true"] { background: var(--accent); }
+.switch[aria-checked="true"] .switch-knob { left: 22px; }
+.switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ============================ 文档排版（.prose） ============================ */
 .prose { max-width: 840px; margin: 0 auto; }
 .prose h1 { font-size: 30px; margin: 8px 0 16px; }
 .prose h2 { font-size: 22px; margin: 32px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
@@ -100,9 +215,157 @@ code { background: var(--bg-soft); padding: 2px 6px; border-radius: 6px; font-si
 .prose ul, .prose ol { padding-left: 22px; }
 .prose li { margin: 6px 0; }
 .prose code { background: var(--bg-soft); padding: 2px 6px; border-radius: 6px; font-size: 13px; }
-.prose pre { background: var(--bg-soft); padding: 14px; border-radius: 10px; overflow: auto; }
+.prose pre { background: var(--bg-soft); padding: 14px; border-radius: var(--radius-m); overflow: auto; border: 1px solid var(--border); }
 .prose pre code { background: none; padding: 0; }
 .prose table { width: 100%; border-collapse: collapse; margin: 14px 0; }
 .prose th, .prose td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
 .prose a { color: var(--accent); }
 .prose blockquote { margin: 12px 0; padding: 8px 14px; border-left: 3px solid var(--accent); background: var(--bg-soft); color: var(--text-soft); }
+
+/* ======================================================================
+   产品站增强（参考 ClassIsland 落地页的视觉语言）
+   - Hero 产品预览（CSS 绘制的应用窗口「截图」）
+   - 带图标的特性卡片网格
+   - 平台支持条 / 开源数据带
+   ====================================================================== */
+
+/* 强调按钮增加柔和辉光，强化品牌色存在感 */
+.btn.primary {
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.btn.primary:hover {
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 45%, transparent);
+  transform: translateY(-1px);
+}
+.btn.primary:active { transform: translateY(0); }
+
+/* ====================== Hero 产品预览（应用窗口） ====================== */
+.showcase {
+  position: relative;
+  max-width: 1060px;
+  margin: 56px auto 0;
+  padding: 0 4px;
+}
+/* 背后的粉色辉光 */
+.showcase::before {
+  content: "";
+  position: absolute;
+  inset: -8% -6% 6%;
+  background:
+    radial-gradient(60% 70% at 30% 20%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 70%),
+    radial-gradient(50% 60% at 80% 30%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
+  filter: blur(38px);
+  z-index: 0;
+  pointer-events: none;
+}
+.shot-frame {
+  position: relative;
+  z-index: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-elevated);
+  line-height: 0;              /* 去掉 img 底部基线间隙 */
+}
+.shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2880 / 1640;
+}
+/* 默认浅色图；深色图隐藏 */
+.shot-dark { display: none; }
+:root[data-theme="dark"] .shot-light { display: none; }
+:root[data-theme="dark"] .shot-dark { display: block; }
+/* 未显式选择主题时跟随系统偏好 */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .shot-light { display: none; }
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .shot-dark { display: block; }
+}
+
+@media (max-width: 560px) {
+  .showcase { margin-top: 36px; }
+}
+
+/* ====================== 特性卡片网格 ====================== */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+.feature-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-l);
+  padding: 24px 24px 22px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+}
+.feature-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+.feature-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: 12px;
+  background: var(--accent-weak); color: var(--accent);
+  margin-bottom: 14px;
+}
+.feature-icon svg { width: 24px; height: 24px; }
+.feature-card h3 { font-size: 16px; margin: 0 0 6px; color: var(--text); }
+.feature-card p { margin: 0; color: var(--text-soft); font-size: 14px; line-height: 1.65; }
+
+/* ====================== 平台支持条 ====================== */
+.platforms {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 14px;
+  margin-top: 30px;
+}
+.platform {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 12px 22px; border-radius: 999px;
+  background: var(--card); border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  font-size: 15px; font-weight: 600; color: var(--text);
+}
+.platform svg { width: 22px; height: 22px; color: var(--text); }
+
+/* ====================== 开源数据带 ====================== */
+.stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 18px; max-width: 880px; margin: 0 auto;
+}
+.stat {
+  text-align: center; padding: 22px 14px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-l); box-shadow: var(--shadow-sm);
+}
+.stat b { display: block; font-size: 30px; color: var(--accent); letter-spacing: -.5px; line-height: 1.1; }
+.stat span { font-size: 13px; color: var(--text-soft); }
+
+/* 区段之间的细分隔线 */
+.section + .section { border-top: 1px solid var(--border); }
+
+/* 导航里的下载按钮 */
+.nav-cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 16px; border-radius: 999px;
+  background: var(--accent); color: #fff; font-size: 14px; font-weight: 600;
+  transition: background .12s ease, transform .08s ease, box-shadow .12s ease;
+}
+.nav-cta:hover { background: var(--accent-hover); text-decoration: none; color: #fff; box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 40%, transparent); }
+.nav-cta:active { transform: translateY(1px); }
+
+/* 入场动画（仅首屏，无 JS；尊重减少动画偏好） */
+@keyframes riseIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.hero .badge, .hero h1, .hero .sub, .hero .cta, .showcase {
+  animation: riseIn .6s ease both;
+}
+.hero h1 { animation-delay: .05s; }
+.hero .sub { animation-delay: .12s; }
+.hero .cta { animation-delay: .19s; }
+.showcase { animation-delay: .26s; }
+@media (prefers-reduced-motion: reduce) {
+  .hero .badge, .hero h1, .hero .sub, .hero .cta, .showcase { animation: none; }
+}
