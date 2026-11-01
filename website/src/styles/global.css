@@ -222,6 +222,66 @@ code { background: var(--bg-soft); padding: 2px 6px; border-radius: 6px; font-si
 .prose a { color: var(--accent); }
 .prose blockquote { margin: 12px 0; padding: 8px 14px; border-left: 3px solid var(--accent); background: var(--bg-soft); color: var(--text-soft); }
 
+/* ===== 文档页 H1 品牌色下划线 ===== */
+.prose h1 { position: relative; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.prose h1::after {
+  content: ""; position: absolute; left: 0; bottom: -1px;
+  width: 56px; height: 3px; border-radius: 2px; background: var(--accent);
+}
+
+/* ===== 常见问题：问题(Q)→答案 卡片分组 ===== */
+.prose.faq h3 {
+  position: relative;
+  margin: 20px 0 0;
+  padding: 13px 16px 13px 44px;
+  font-size: 16px; font-weight: 600; color: var(--text);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-m) var(--radius-m) 0 0;
+}
+.prose.faq h3::before {
+  content: "Q";
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  width: 20px; height: 20px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
+  background: var(--accent); border-radius: 6px;
+}
+.prose.faq h3 + p {
+  margin: 0 0 20px;
+  padding: 14px 16px 14px 44px;
+  color: var(--text-soft); line-height: 1.75;
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg));
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-m) var(--radius-m);
+}
+.prose.faq h3 + p code { background: var(--bg); }
+
+/* ===== 更新日志：每条变更做成卡片 + 粉色圆点 ===== */
+.prose.changelog ul { list-style: none; padding: 0; }
+.prose.changelog li {
+  position: relative;
+  margin: 12px 0;
+  padding: 13px 16px 13px 42px;
+  line-height: 1.7;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-m);
+}
+.prose.changelog li::before {
+  content: ""; position: absolute; left: 18px; top: 19px;
+  width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+}
+.prose.changelog a[href*="releases"] {
+  display: inline-flex; align-items: center;
+  margin: 4px 0 18px; padding: 9px 16px;
+  font-weight: 600; color: #fff; text-decoration: none;
+  background: var(--accent); border-radius: var(--radius-m);
+}
+.prose.changelog a[href*="releases"]:hover { filter: brightness(1.06); }
+
 /* ======================================================================
    产品站增强（参考 ClassIsland 落地页的视觉语言）
    - Hero 产品预览（CSS 绘制的应用窗口「截图」）

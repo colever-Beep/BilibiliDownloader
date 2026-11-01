@@ -3,6 +3,7 @@ layout: ../../layouts/BaseLayout.astro
 title: 常见问题 - BilibiliDownloader
 active: 常见问题
 prose: true
+pageClass: faq
 ---
 
 # 常见问题

@@ -1,0 +1,114 @@
+---
+const base = import.meta.env.BASE_URL;
+
+const shots = [
+  {
+    title: '设置中心',
+    desc: '语言、外观、强调色、托盘行为与下载选项集中在同一页，改完即生效。',
+    light: '/shots/settings-light.png',
+    dark: '/shots/settings-dark.png',
+    alt: '设置中心：界面语言、外观、强调色、关闭时最小化到托盘等开关项',
+  },
+  {
+    title: '内置更新',
+    desc: '稳定版 / 测试版双通道检查，发现新版本可查看更新日志并一键下载安装。',
+    light: '/shots/update-light.png',
+    dark: '/shots/update-dark.png',
+    alt: '内置更新：发现新版本提示、更新通道选择与 Markdown 更新日志',
+  },
+];
+---
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">界面预览</h2>
+    <p class="section-sub">真实软件截图，浅色 / 深色随站点主题自动切换。</p>
+
+    <div class="gallery">
+      {shots.map((s) => (
+        <figure class="g-card">
+          <div class="g-frame">
+            <img
+              class="g-shot g-light"
+              src={base + s.light}
+              width="1960" height="1304"
+              alt={s.alt + '（浅色主题）'}
+              loading="lazy" decoding="async"
+            />
+            <img
+              class="g-shot g-dark"
+              src={base + s.dark}
+              width="1960" height="1304"
+              alt={s.alt + '（深色主题）'}
+              loading="lazy" decoding="async"
+            />
+          </div>
+          <figcaption>
+            <h3>{s.title}</h3>
+            <p>{s.desc}</p>
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 24px;
+  }
+
+  .g-card {
+    margin: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow .22s ease, transform .22s ease, border-color .22s ease;
+  }
+  .g-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  }
+
+  .g-frame {
+    position: relative;
+    line-height: 0;
+    background: var(--bg-soft);
+    border-bottom: 1px solid var(--border);
+  }
+  .g-shot {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1960 / 1304;
+    object-fit: cover;
+  }
+
+  /* 默认浅色图；深色图隐藏 —— 与 Hero 截图同一套切换逻辑 */
+  .g-dark { display: none; }
+  :global(:root[data-theme="dark"]) .g-light { display: none; }
+  :global(:root[data-theme="dark"]) .g-dark { display: block; }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"]):not([data-theme="dark"])) .g-light { display: none; }
+    :global(:root:not([data-theme="light"]):not([data-theme="dark"])) .g-dark { display: block; }
+  }
+
+  figcaption { padding: 18px 22px 20px; }
+  figcaption h3 {
+    margin: 0 0 6px;
+    font-size: 17px;
+    font-weight: 650;
+    letter-spacing: -0.2px;
+  }
+  figcaption p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-soft);
+  }
+</style>

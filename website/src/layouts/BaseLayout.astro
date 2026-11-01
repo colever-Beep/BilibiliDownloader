@@ -3,7 +3,7 @@ import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
 
-const { title = 'BilibiliDownloader', active = '', prose = false } = Astro.props;
+const { title = 'BilibiliDownloader', active = '', prose = false, pageClass = '' } = Astro.props;
 const favicon = import.meta.env.BASE_URL + '/favicon.ico';
 // 社交预览图：避免外链/聚合站回退到 GitHub 头像，统一用软件图标
 const _base = new URL(import.meta.env.BASE_URL, Astro.site);
@@ -45,7 +45,7 @@ const description = 'BilibiliDownloader — 开源 B 站内容下载器，支持
   <body>
     <Nav active={active} />
     <main class="main">
-      {prose ? <div class="container"><div class="prose"><slot /></div></div> : <slot />}
+      {prose ? <div class="container"><div class:list={['prose', pageClass]}><slot /></div></div> : <slot />}
     </main>
     <Footer />
   </body>

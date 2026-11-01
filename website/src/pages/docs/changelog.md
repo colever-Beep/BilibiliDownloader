@@ -3,13 +3,14 @@ layout: ../../layouts/BaseLayout.astro
 title: 更新日志 - BilibiliDownloader
 active: 更新日志
 prose: true
+pageClass: changelog
 ---
 
 # 更新日志
 
 完整的版本更新记录请查看 GitHub Releases：
 
-👉 [github.com/colever-Beep/BilibiliDownloader/releases](https://github.com/colever-Beep/BilibiliDownloader/releases)
+[github.com/colever-Beep/BilibiliDownloader/releases](https://github.com/colever-Beep/BilibiliDownloader/releases)
 
 近期重要变更：
 

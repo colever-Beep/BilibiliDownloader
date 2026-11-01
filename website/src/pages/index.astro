@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import DownloadSection from '../components/DownloadSection.astro';
+import Screens from '../components/Screens.astro';
 
 const ic = (p: string) =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
@@ -75,6 +76,8 @@ const stats = [
       </div>
     </div>
   </section>
+
+  <Screens />
 
   <section class="section alt">
     <div class="container">
