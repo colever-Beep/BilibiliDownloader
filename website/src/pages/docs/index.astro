@@ -1,0 +1,152 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const base = import.meta.env.BASE_URL;
+
+const features = [
+  { t: '多类型解析', d: '视频、番剧、直播、音频、歌单、收藏夹、UP 主、合集、课程一键解析。' },
+  { t: '统一分页选择', d: '搜索 / 收藏夹 / 历史 / 稍后再看等列表统一分页弹窗，支持跳页与总页数显示。' },
+  { t: '批量解析', d: '一次粘贴多个链接，可翻页来源各自走统一分页选择框。' },
+  { t: '直播录制', d: '支持 B 站直播录制，实时保存为本地视频。' },
+  { t: '下载选项丰富', d: '清晰度、音质、弹幕、字幕、封面、合集 / 分 P 处理等可选。' },
+  { t: '自动归类', d: '按视频种类自动分文件夹存放，下载路径整洁有序。' },
+  { t: '列表项一键跳转', d: '在浏览器中打开对应视频 / UP 主空间页面。' },
+  { t: '主题与强调色', d: '明暗主题 + 可自定义强调色，切换带防抖优化。' },
+  { t: '多语言', d: '简体中文、繁体中文、English、日本語等。' },
+  { t: '高 DPI 适配', d: '高分屏下界面清晰不模糊。' },
+];
+
+const env = [
+  { k: '操作系统', v: 'Windows 10 / 11、macOS（Apple Silicon / Intel）、Linux（x86_64 / ARM64）' },
+  { k: 'Python', v: '3.10+（已验证 3.13 / 3.14）' },
+  { k: 'FFmpeg', v: '首次运行自动下载，也可手动放置' },
+];
+---
+
+<BaseLayout title="使用文档 - BilibiliDownloader" active="使用文档" prose={false}>
+  <div class="container">
+    <div class="doc">
+      <div class="doc-hero">
+        <h1>使用文档</h1>
+        <p>BilibiliDownloader 是一款基于 <b>PySide6 + qfluentwidgets</b> 的 B 站内容下载桌面工具，Fluent / WinUI 风格界面，支持多种内容的解析与下载。</p>
+      </div>
+
+      <div class="doc-callout">
+        <span>ℹ</span>
+        <div>本项目为开源学习工具，所有下载内容版权归原作者与 B 站所有。使用者应自行承担因使用本工具产生的一切法律责任与风险。</div>
+      </div>
+
+      <div class="doc-card">
+        <h2>功能特性</h2>
+        <div class="doc-grid">
+          {features.map((f) => (
+            <div class="feat">
+              <h3>{f.t}</h3>
+              <p>{f.d}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div class="doc-card">
+        <h2>运行环境</h2>
+        <div class="doc-rows">
+          {env.map((r) => (
+            <div class="row"><span class="k">{r.k}</span><span class="v">{r.v}</span></div>
+          ))}
+        </div>
+      </div>
+
+      <div class="doc-card">
+        <h2>快速开始（源码运行）</h2>
+        <p>克隆仓库并安装依赖后直接运行：</p>
+        <div class="doc-code">
+          <span class="lang">bash</span>
+          <pre><code>git clone https://github.com/colever-Beep/BilibiliDownloader.git
+cd BilibiliDownloader
+pip install PySide6 qfluentwidgets requests Pillow qrcode segno numpy yt-dlp pyperclip win10toast
+python main.py</code></pre>
+        </div>
+      </div>
+
+      <div class="doc-card">
+        <h2>登录（可选但推荐）</h2>
+        <p>部分内容（如高清画质、会员视频）需要登录后的 Cookie：</p>
+        <ol class="doc-steps">
+          <li>浏览器登录 B 站后，用开发者工具复制 Cookie 字符串；</li>
+          <li>保存到项目根目录的 <span class="inline-code">cookies.txt</span>（纯文本，一行 Cookie）；</li>
+          <li>重启程序即可生效。</li>
+        </ol>
+      </div>
+
+      <div class="doc-card">
+        <h2>打包为可执行文件</h2>
+        <p>项目提供跨平台打包脚本（基于 PyInstaller）：</p>
+        <div class="doc-code">
+          <span class="lang">bash</span>
+          <pre><code>python build_portable.py        # Windows：便携版文件夹
+# 安装版（向导安装，内置 FFmpeg）：需先装 Inno Setup 6，再运行
+#   ./installer/build_installer.ps1
+python build_macos_dmg.py      # macOS：arm64 / x86_64 的 .dmg 与 .app.zip
+python build_linux_appimage.py # Linux：x86_64 / aarch64 的 AppImage</code></pre>
+        </div>
+        <p style="margin-top:12px">GitHub Actions 会在推送 <span class="inline-code">v*</span> tag 或手动触发时自动构建上述全部平台的安装包，并发布到 GitHub Releases。</p>
+        <ul style="color:var(--text-soft);line-height:1.8;margin:8px 0 0;padding-left:20px">
+          <li>FFmpeg <b>不内置</b>到包中：首次运行自动下载，或手动将 <span class="inline-code">ffmpeg.exe</span> 放入 <span class="inline-code">bin/</span> 目录。</li>
+          <li>打包产物位于 <span class="inline-code">dist/</span>（已在 <span class="inline-code">.gitignore</span> 中忽略）。</li>
+        </ul>
+      </div>
+
+      <div class="doc-card">
+        <h2>配置说明</h2>
+        <p>配置保存在 <span class="inline-code">settings.json</span>，常用字段如下：</p>
+        <div class="doc-table">
+          <table>
+            <thead><tr><th>字段</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>download_path</code></td><td>下载根目录</td></tr>
+              <tr><td><code>create_folder</code></td><td>是否按视频种类自动分类到子文件夹</td></tr>
+              <tr><td><code>quality</code> / <code>audio_quality</code></td><td>视频清晰度 / 音频音质</td></tr>
+              <tr><td><code>download_danmaku</code></td><td>是否下载弹幕</td></tr>
+              <tr><td><code>download_subtitle</code></td><td>是否下载字幕</td></tr>
+              <tr><td><code>download_cover</code></td><td>是否下载封面</td></tr>
+              <tr><td><code>auto_rename</code></td><td>同名文件处理策略</td></tr>
+              <tr><td><code>proxy</code></td><td>网络代理（如 <code>http://127.0.0.1:7890</code>）</td></tr>
+              <tr><td><code>theme</code> / <code>accent</code></td><td>明暗主题 / 强调色（<code>system</code> 可跟随系统）</td></tr>
+              <tr><td><code>language</code></td><td>界面语言</td></tr>
+              <tr><td><code>live_record_*</code></td><td>直播录制相关选项</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="doc-card">
+        <h2>目录结构</h2>
+        <div class="doc-table">
+          <table>
+            <thead><tr><th>路径</th><th>作用</th></tr></thead>
+            <tbody>
+              <tr><td><code>main.py</code></td><td>程序入口</td></tr>
+              <tr><td><code>bili_api.py</code></td><td>B 站 API 封装</td></tr>
+              <tr><td><code>download_engine.py</code></td><td>下载引擎（基于 yt-dlp）</td></tr>
+              <tr><td><code>live_recorder.py</code></td><td>直播录制</td></tr>
+              <tr><td><code>ui/</code></td><td>界面（主窗口、对话框、设置、侧边栏、主题）</td></tr>
+              <tr><td><code>utils/</code></td><td>工具（分类、i18n、qfluentwidgets 兼容补丁等）</td></tr>
+              <tr><td><code>translations/</code></td><td>gettext 翻译文件</td></tr>
+              <tr><td><code>build_portable.py</code> / <code>installer/build_installer.ps1</code></td><td>打包脚本</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="doc-card">
+        <h2>许可证</h2>
+        <p>本项目是 GitHub 开源项目 <a href="https://github.com/ScottSloan/Bili23-Downloader" target="_blank" rel="noopener">Bili23-Downloader</a>（Scott Sloan，GPL-3.0）的衍生 / 二次开发版本，同样以 <b>GPL-3.0</b> 发布，保留原作者版权与署名。新增源码可标注 <span class="inline-code">SPDX-License-Identifier: GPL-3.0-or-later</span>。</p>
+        <ul style="color:var(--text-soft);line-height:1.8;margin:8px 0 0;padding-left:20px">
+          <li>许可证全文见仓库 <span class="inline-code">LICENSE</span></li>
+          <li>署名与衍生声明见 <span class="inline-code">NOTICE</span></li>
+        </ul>
+        <p style="margin-top:12px">更多常见问题见 <a href={base + '/docs/faq'}>常见问题</a>。</p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
