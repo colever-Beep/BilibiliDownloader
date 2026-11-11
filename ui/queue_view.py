@@ -801,6 +801,8 @@ class QueueView(QWidget):
         self._list.setSpacing(0)
         self._list.setMouseTracking(True)
         self._list.installEventFilter(self)
+        self._press_pos = None        # 鼠标/触摸按下位置（用于区分点击与滑动）
+        self._dragging = False
         lay.addWidget(self._list, 1)
         enable_touch_scroll(self._list)
         # 滚动条出现/消失会让 viewport 变窄，需同步表头右侧偏移，保证列对齐
@@ -877,11 +879,33 @@ class QueueView(QWidget):
         """恢复默认列宽（供设置/菜单调用）。"""
         self.column_layout.reset()
 
-    # ---------- 事件过滤：列表离开时清除悬停 ----------
+    # ---------- 事件过滤：列表离开时清除悬停 + 触屏滑动不误选 ----------
     def eventFilter(self, obj, ev):
-        if obj is self._list and ev.type() == QEvent.Type.Leave:
-            self._delegate._clear_hover()
-            return False
+        if obj is self._list:
+            et = ev.type()
+            if et == QEvent.Type.Leave:
+                self._delegate._clear_hover()
+                return False
+            # 触屏滚动保护：手指按下后若发生明显位移（视为滑动列表），
+            # 释放时不保留该行的高亮选中态，避免「本想滚动却选中了视频」。
+            if et == QEvent.Type.MouseButtonPress and \
+                    ev.button() == Qt.MouseButton.LeftButton:
+                self._press_pos = ev.pos()
+                self._dragging = False
+            elif et == QEvent.Type.MouseMove and \
+                    ev.buttons() & Qt.MouseButton.LeftButton:
+                pp = getattr(self, "_press_pos", None)
+                if pp is not None and (ev.pos() - pp).manhattanLength() > 8:
+                    self._dragging = True
+            elif et == QEvent.Type.MouseButtonRelease and \
+                    ev.button() == Qt.MouseButton.LeftButton:
+                if getattr(self, "_dragging", False):
+                    try:
+                        self._list.clearSelection()
+                    except Exception:
+                        pass
+                self._press_pos = None
+                self._dragging = False
         return super().eventFilter(obj, ev)
 
     # ---------- 数据更新 ----------

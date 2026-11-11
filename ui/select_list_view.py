@@ -115,6 +115,7 @@ class SelectItemDelegate(QStyledItemDelegate):
         self._hover_row = -1
         self._icon_hover_row = -1   # 当前鼠标悬停在「在浏览器中打开」图标上的行
         self._press_on_icon = -1    # 在图标上按下、等待释放的行的行号（-1 表示无）
+        self._press_global = None   # 鼠标/触摸按下时的全局坐标（用于区分点击与滑动）
         self._link_cache = {}       # 链接图标按颜色缓存的 QPixmap
 
     # ------------------------------------------------------------------ #
@@ -158,6 +159,8 @@ class SelectItemDelegate(QStyledItemDelegate):
                     self._icon_rect(option.rect).contains(event.pos()):
                 self._press_on_icon = index.row()
                 return True
+            # 记录按下位置：用于区分「点击勾选」与「触屏滑动列表」
+            self._press_global = event.globalPos()
             return False
         # ---- 鼠标释放：图标上释放→打开浏览器；否则整行切换勾选 ----
         if etype == QEvent.Type.MouseButtonRelease and \
@@ -167,6 +170,11 @@ class SelectItemDelegate(QStyledItemDelegate):
                 url = self._url_for(index.data(Qt.UserRole))
                 if url:
                     open_in_browser(url)
+                return True
+            # 触屏滚动保护：按下到释放位移过大（视为滑动列表而非点击），不切换整行勾选
+            pg = getattr(self, "_press_global", None)
+            self._press_global = None
+            if pg is not None and (event.globalPos() - pg).manhattanLength() > 12:
                 return True
             self._view.rowClicked.emit(index)
             return True

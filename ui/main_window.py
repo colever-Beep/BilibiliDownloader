@@ -354,9 +354,90 @@ class MainWindow:
             pass
 
     def _browse_confirm(self, selected):
-        """浏览页默认确认：勾选视频/分集 → 下载选项 → 入队 → 回首页。"""
+        """浏览页默认确认：勾选视频/分集 → 下载选项 → 入队 → 回首页。
+
+        番剧 / 影视 / 课程 / 合集等多分集容器：不直接入队（否则会拉取整季 / 全部分集，
+        表现为「未选分集却下载全部、或与后续挑选的分集重复下载」）。改为先解析分集、
+        打开选集界面，由用户挑选具体分集后再入队。
+        """
+        if not selected:
+            self._show_home()
+            return
+        containers = [it for it in selected if self._is_episode_container(it)]
+        if containers:
+            for it in containers:
+                self._resolve_container_to_episodes(it)
+            normals = [it for it in selected if it not in containers]
+            if normals:
+                self._on_videos_selected(normals)
+            return
         self._on_videos_selected(selected)
         self._show_home()
+
+    def _is_episode_container(self, item):
+        """判断列表项是否为「多分集容器」（番剧 / 影视 / 课程 / 合集），需先选集再下载。"""
+        if not item:
+            return False
+        if item.get("type") == "bangumi":
+            return True
+        if item.get("season_id"):
+            return True
+        url = item.get("url", "") or ""
+        if re.search(r"bangumi/(?:play|media)/(?:ss|md|ep)\d+", url):
+            return True
+        if re.search(r"(?:cheese|bilibili\.com/cheese)", url):
+            return True
+        return False
+
+    def _resolve_container_to_episodes(self, item):
+        """解析容器（番剧等）的分集；解析完成后在主线程打开选集界面（复用既有逻辑）。"""
+        url = item.get("url") or ""
+        if not url:
+            return
+        try:
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+        except Exception:
+            pass
+
+        def worker():
+            try:
+                video_list, title, err, episode_like, fetch = self._resolve_videos(url)
+            except Exception as e:  # noqa: BLE001
+                run_on_main(self._end_container_cursor)
+                self.logger.log(f"容器解析异常: {e}")
+                return
+            run_on_main(lambda: self._on_container_resolved(
+                video_list, title, err, episode_like, fetch))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    @staticmethod
+    def _end_container_cursor():
+        try:
+            QApplication.restoreOverrideCursor()
+        except Exception:
+            pass
+
+    def _on_container_resolved(self, video_list, title, err, episode_like, fetch):
+        self._end_container_cursor()
+        if err:
+            msg_error(self.window, tr("解析失败：{err}").format(err=err), tr("错误"))
+            return
+        if not video_list:
+            msg_info(self.window, tr("该番剧 / 合集下没有可下载的分集"), tr("提示"))
+            return
+        if fetch is not None:
+            self._pull_all_and_show(title, fetch)
+        elif len(video_list) == 1:
+            self._add_videos_direct(video_list)
+        elif episode_like:
+            self.show_episode_select(video_list)
+        else:
+            try:
+                self.api.enrich_videos(video_list)
+            except Exception:
+                pass
+            self.show_video_select(video_list)
 
     def _secondary_button(self, text, command):
         """创建 Fluent 次要操作按钮。"""

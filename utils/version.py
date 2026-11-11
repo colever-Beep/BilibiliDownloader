@@ -12,8 +12,8 @@ import re
 # 应用名（同时用于窗口标题、关于页、更新日志来源标识）
 APP_NAME = "BilibiliDownloader"
 
-# 当前版本（三段式）；v2.1.1 开发线
-APP_VERSION = "2.1.1"
+# 当前版本（三段式 + 修复后缀）；v2.1.1 开发线
+APP_VERSION = "2.1.1-fix_1"
 
 # GitHub 仓库（更新检查与「主页」链接的来源）
 GITHUB_REPO = "colever-Beep/BilibiliDownloader"
