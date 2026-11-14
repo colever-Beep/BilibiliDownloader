@@ -173,7 +173,9 @@ def build_dmg():
     codesign_app(app)
 
     # .app.zip（便于直接下载）
-    zip_base = os.path.join(DIST, "%s-macos-%s" % (NAME, arch))
+    # 必须带 .app：产出 *-macos-<arch>.app.zip，与 CI upload-artifact 的
+    # dist/BilibiliDownloader-macos-<arch>.app.zip 收集规则一致。
+    zip_base = os.path.join(DIST, "%s-macos-%s.app" % (NAME, arch))
     shutil.make_archive(zip_base, "zip", root_dir=DIST, base_dir=NAME + ".app")
 
     # .dmg（含 /Applications 快捷方式）

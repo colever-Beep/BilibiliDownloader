@@ -135,9 +135,9 @@ SET_W, SET_H = 980, 700
 
 # 更新页演示数据：构造一个「发现新版本」状态（不联网、不触发下载）
 DEMO_UPDATE = UpdateInfo(
-    version="2.1.1-fix_1",
-    tag="v2.1.1-fix_1",
-    name="BilibiliDownloader v2.1.1-fix_1",
+    version="2.1.1.1",
+    tag="v2.1.1.1",
+    name="BilibiliDownloader v2.1.1.1",
     body=(
         "### 新增\n"
         "- 内置更新检查：支持 **稳定版 / 测试版** 两条通道\n"
@@ -151,9 +151,9 @@ DEMO_UPDATE = UpdateInfo(
     published_at="2026-10-31",
     prerelease=False,
     assets=[
-        Asset(name="BilibiliDownloader_Setup_v2.1.1-fix_1.exe",
+        Asset(name="BilibiliDownloader_Setup_v2.1.1.1.exe",
               url="https://example.invalid/setup.exe", size=98 * 1024 * 1024),
-        Asset(name="BilibiliDownloader_v2.1.1-fix_1_portable.zip",
+        Asset(name="BilibiliDownloader_v2.1.1.1_portable.zip",
               url="https://example.invalid/portable.zip", size=112 * 1024 * 1024),
     ],
 )
@@ -370,7 +370,7 @@ def build_settings_window(app, config):
 
 
 def show_update_state(app, sw):
-    """把更新页切到「发现新版本 2.1.1-fix_1」，用于演示截图。"""
+    """把更新页切到「发现新版本 2.1.1.1」，用于演示截图。"""
     try:
         sw.switchTo(sw._update)
     except Exception:

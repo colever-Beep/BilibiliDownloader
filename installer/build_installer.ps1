@@ -37,10 +37,14 @@ try {
     }
     if (-not $Version) { $Version = "0.0.0" }
     $Version = $Version -replace '^v', ''
-    if ($Version -notmatch '^\d+(\.\d+){0,3}$') {
-        Write-Host "版本号 '$Version' 不是 Inno Setup 支持的数字格式，回退到 0.0.0"
-        $Version = "0.0.0"
+    # tag 可能带非数字后缀（如 2.1.1-rc1 / continuous）；Inno Setup 只接受
+    # 纯数字版本，先取开头的数字主干，避免整串不匹配时直接回退成 0.0.0。
+    $numeric = ($Version -split '[-+_]')[0]
+    if ($numeric -notmatch '^\d+(\.\d+){0,3}$') {
+        Write-Host "版本号 '$Version' 无法解析出数字版本，回退到 0.0.0"
+        $numeric = "0.0.0"
     }
+    $Version = $numeric
     Write-Host "==> 版本号: $Version"
 
     # ---- 1. 构建 onedir 便携版 ----

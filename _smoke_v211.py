@@ -13,11 +13,14 @@ app = QApplication(sys.argv)
 
 # ---------------------------------------------------------------- 1. 版本工具
 from utils.version import APP_VERSION, is_newer, normalize_version
-assert APP_VERSION == "2.1.1-fix_1", APP_VERSION
-assert normalize_version("v2.1.1") == (2, 1, 1)
-assert normalize_version("2.1.2") == (2, 1, 2)
-assert normalize_version("v3.0") == (3, 0, 0)
-assert normalize_version("garbage") == (0, 0, 0)
+assert APP_VERSION == "2.1.1.1", APP_VERSION
+assert normalize_version("v2.1.1") == (2, 1, 1, 0)
+assert normalize_version("2.1.2") == (2, 1, 2, 0)
+assert normalize_version("v3.0") == (3, 0, 0, 0)
+assert normalize_version("garbage") == (0, 0, 0, 0)
+assert normalize_version("v2.1.1.1") == (2, 1, 1, 1)
+assert is_newer("2.1.1.1", "2.1.1") is True
+assert is_newer("2.1.1.1", "2.1.1.1") is False
 assert is_newer("2.1.2", "2.1.1") is True
 assert is_newer("2.1.1", "2.1.1") is False
 assert is_newer("2.1.0", "2.1.1") is False
@@ -70,8 +73,8 @@ rel_beta = {"tag_name": "v2.2.0-beta1", "name": "Beta", "body": "b",
                         "browser_download_url": "u3", "size": 200}]}
 i_s = svc._select_release([rel_beta, rel_stable], CHANNEL_STABLE)
 i_b = svc._select_release([rel_beta, rel_stable], CHANNEL_BETA)
-assert i_s.version == "2.1.1", i_s.version
-assert i_b.version == "2.2.0", i_b.version
+assert i_s.version == "2.1.1.0", i_s.version
+assert i_b.version == "2.2.0.0", i_b.version
 assert i_s.default_asset.name.endswith("portable.zip"), i_s.default_asset.name
 assert "source code" not in i_s.default_asset.name.lower()
 assert build_proxies({"proxy_type": "none"}) is None
