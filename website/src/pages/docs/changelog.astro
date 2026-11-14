@@ -25,6 +25,16 @@ const changes = [
       <div class="changelog-list">
         <div class="rel-card">
           <div class="rel-head">
+            <span class="rel-ver">v2.1.2</span>
+            <span class="rel-tag">重要变更</span>
+          </div>
+          <ul class="rel-list">
+            {changes212.map((c) => <li>{c}</li>)}
+          </ul>
+          <a class="rel-link" href={releases} target="_blank" rel="noopener">查看 GitHub Releases →</a>
+        </div>
+        <div class="rel-card">
+          <div class="rel-head">
             <span class="rel-ver">v2.1.1.1</span>
             <span class="rel-tag">重要变更</span>
           </div>

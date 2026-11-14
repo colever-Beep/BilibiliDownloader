@@ -183,7 +183,7 @@ goto :eof
 :do_tag_prompt
 set "VER="
 set "MSG="
-set /p "VER=版本号 (如 v2.1.1.1): "
+set /p "VER=版本号 (如 v2.1.2): "
 if "%VER%"=="" (echo [tag] 已取消。 & goto :eof)
 set /p "MSG=标签备注 (留空用默认): "
 call :do_tag "%VER%" "%MSG%"

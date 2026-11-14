@@ -15,7 +15,7 @@ import re
 APP_NAME = "BilibiliDownloader"
 
 # 当前版本（四段式纯数字）；v2.1.1 开发线的修复重发
-APP_VERSION = "2.1.1.1"
+APP_VERSION = "2.1.2"
 
 # GitHub 仓库（更新检查与「主页」链接的来源）
 GITHUB_REPO = "colever-Beep/BilibiliDownloader"

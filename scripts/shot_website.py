@@ -151,9 +151,9 @@ DEMO_UPDATE = UpdateInfo(
     published_at="2026-10-31",
     prerelease=False,
     assets=[
-        Asset(name="BilibiliDownloader_Setup_v2.1.1.1.exe",
+        Asset(name="BilibiliDownloader_Setup_v2.1.2.exe",
               url="https://example.invalid/setup.exe", size=98 * 1024 * 1024),
-        Asset(name="BilibiliDownloader_v2.1.1.1_portable.zip",
+        Asset(name="BilibiliDownloader_v2.1.2_portable.zip",
               url="https://example.invalid/portable.zip", size=112 * 1024 * 1024),
     ],
 )
@@ -370,7 +370,7 @@ def build_settings_window(app, config):
 
 
 def show_update_state(app, sw):
-    """把更新页切到「发现新版本 2.1.1.1」，用于演示截图。"""
+    """把更新页切到「发现新版本 2.1.2」，用于演示截图。"""
     try:
         sw.switchTo(sw._update)
     except Exception:

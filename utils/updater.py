@@ -278,17 +278,26 @@ class UpdateService:
     def _select_release(self, releases: list, channel: str) -> Optional[UpdateInfo]:
         """按通道从 Release 列表里挑出版本最高、且符合通道规则的一项。
 
-        - stable：首个 ``prerelease == False`` 的 Release（只认稳定版）。
-        - beta  ：列表里最新的一个（无论是否 prerelease，指向最新构建）。
-        GitHub API 默认按发布时间倒序返回，故首个即最新。
+        - stable：所有 ``prerelease == False`` 的 Release 中，按语义版本号取最高者。
+          不依赖 GitHub API 的「发布时间倒序」，避免「后发的低版本被当成最新」而误报
+          「已是最新版本」（用户反馈：明明有新版本却一直显示已是最新）。
+        - beta  ：取发布时间最新的一项（含 prerelease），指向最新构建。
         """
         candidates = list(releases)
         if channel == CHANNEL_STABLE:
             candidates = [r for r in candidates if not r.get("prerelease")]
         if not candidates:
             return None
-        latest = candidates[0]
-        return self._to_info(latest, channel)
+        if channel == CHANNEL_STABLE:
+            # 稳定版：按语义版本号从大到小排序，取最高版本，杜绝「后发低版本遮蔽高版本」。
+            candidates.sort(
+                key=lambda r: normalize_version(r.get("tag_name", "")),
+                reverse=True)
+        else:
+            # 测试版：按发布时间倒序取最新（含 prerelease）。
+            candidates.sort(
+                key=lambda r: str(r.get("published_at", "")), reverse=True)
+        return self._to_info(candidates[0], channel)
 
     @staticmethod
     def _to_info(release: dict, channel: str) -> UpdateInfo:

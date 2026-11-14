@@ -13,7 +13,7 @@ app = QApplication(sys.argv)
 
 # ---------------------------------------------------------------- 1. 版本工具
 from utils.version import APP_VERSION, is_newer, normalize_version
-assert APP_VERSION == "2.1.1.1", APP_VERSION
+assert APP_VERSION == "2.1.2", APP_VERSION
 assert normalize_version("v2.1.1") == (2, 1, 1, 0)
 assert normalize_version("2.1.2") == (2, 1, 2, 0)
 assert normalize_version("v3.0") == (3, 0, 0, 0)
