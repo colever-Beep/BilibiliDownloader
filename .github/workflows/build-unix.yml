@@ -1,6 +1,8 @@
 name: Build packages
 
 # 手动触发（Actions 页面 Run workflow）或推送 v* tag 时构建；构建完成后自动发布到 Releases：
+#   发行说明自动附带：若存在 release_notes/<tag>.md（如 release_notes/v2.1.2.md），
+#   则作为「## 更新说明」拼接到 Release 正文最前面（其后为下载表与注意事项）。
 #   - Windows: 安装版 Setup.exe（向导安装，内置 ffmpeg，离线可用）+ 便携版 .zip（解压即用，内置 ffmpeg），均 x86_64
 #   - Linux: AppImage（单文件，赋予执行权限即可运行），按架构拆分 x86_64 / aarch64
 #   - macOS: ad-hoc 签名 .app 的 .dmg / .app.zip，按架构拆分 arm64（Apple Silicon）/ x86_64（Intel）
@@ -166,6 +168,8 @@ jobs:
             echo "prerelease=--prerelease" >> "$GITHUB_OUTPUT"
             echo "title=BilibiliDownloader 持续构建 ($(date +%Y-%m-%d))" >> "$GITHUB_OUTPUT"
           fi
+      - name: Checkout repo (for release notes)
+        uses: actions/checkout@v6
       - name: Download all artifacts
         uses: actions/download-artifact@v7
         with:
@@ -173,21 +177,24 @@ jobs:
           merge-multiple: true
       - name: List collected files
         run: ls -lh dist
-      # 注意：本 job 不 checkout 源码（无需 .git），因此必须显式用 --repo 指定仓库，
-      # 否则 gh 会回退到 git 命令去探测 remote，在无 .git 目录时直接报
-      # “failed to run git: fatal: not a git repository”，导致发布失败。
-      - name: Create or update Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPOSITORY: ${{ github.repository }}
-          TAG: ${{ steps.tag.outputs.tag }}
-          TITLE: ${{ steps.tag.outputs.title }}
-          PRERELEASE: ${{ steps.tag.outputs.prerelease }}
+      # 发行说明位于仓库 release_notes/${TAG}.md，已在上方显式 checkout 取得；
+      # gh 仍用 --repo 指定仓库，避免在无 .git 探测时失败。
+      - name: Build release notes body
+        id: body
         run: |
           set -euo pipefail
-          REPO="$GITHUB_REPOSITORY"
-          notes=$(mktemp)
+          TAG="${{ steps.tag.outputs.tag }}"
+          NOTES_FILE="release_notes/${TAG}.md"
+          body=$(mktemp)
           {
+            if [[ -f "$NOTES_FILE" ]]; then
+              echo "## 更新说明"
+              echo
+              cat "$NOTES_FILE"
+              echo
+              echo "---"
+              echo
+            fi
             echo "## 下载"
             echo
             echo "| 平台 | 架构 | 文件 | 说明 |"
@@ -216,14 +223,26 @@ jobs:
             echo
             echo "> Windows 安装版 / 便携版均已**内置 FFmpeg**（无需联网即可下载视频）。"
             echo "> Linux AppImage / macOS 仍会在首次使用时自动按平台下载并缓存 FFmpeg。"
-          } > "$notes"
+          } > "$body"
+          echo "file=$body" >> "$GITHUB_OUTPUT"
+      - name: Create or update Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          TITLE: ${{ steps.tag.outputs.title }}
+          PRERELEASE: ${{ steps.tag.outputs.prerelease }}
+          BODY_FILE: ${{ steps.body.outputs.file }}
+        run: |
+          set -euo pipefail
+          REPO="$GITHUB_REPOSITORY"
           files=(dist/*)
           if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
             gh release upload "$TAG" --repo "$REPO" "${files[@]}" --clobber
-            gh release edit "$TAG" --repo "$REPO" --title "$TITLE" --notes-file "$notes" $PRERELEASE
+            gh release edit "$TAG" --repo "$REPO" --title "$TITLE" --notes-file "$BODY_FILE" $PRERELEASE
             echo "Release $TAG 已更新"
           else
             gh release create "$TAG" --repo "$REPO" "${files[@]}" \
-              --title "$TITLE" --notes-file "$notes" $PRERELEASE
+              --title "$TITLE" --notes-file "$BODY_FILE" $PRERELEASE
             echo "Release $TAG 已创建"
           fi
