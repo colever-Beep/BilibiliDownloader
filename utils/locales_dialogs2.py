@@ -53,6 +53,31 @@ FRAGMENT = {
         "en": "Search",
         "ja": "検索",
     },
+    "添加到下载队列": {
+        "zh_TW": "新增至下載佇列",
+        "en": "Add to download queue",
+        "ja": "ダウンロードキューに追加",
+    },
+    "收藏夹为空，没有可下载的视频": {
+        "zh_TW": "收藏夾中沒有可下載的影片",
+        "en": "No downloadable videos in this favorites folder",
+        "ja": "このお気に入りフォルダーにダウンロード可能な動画はありません",
+    },
+    "历史记录为空，没有可下载的视频": {
+        "zh_TW": "歷史記錄中沒有可下載的影片",
+        "en": "No downloadable videos in watch history",
+        "ja": "視聴履歴にダウンロード可能な動画はありません",
+    },
+    "稍后再看列表为空，没有可下载的视频": {
+        "zh_TW": "稍後再看清單中沒有可下載的影片",
+        "en": "No downloadable videos in Watch Later",
+        "ja": "「後で見る」にダウンロード可能な動画はありません",
+    },
+    "该UP主暂无可下载视频": {
+        "zh_TW": "該UP主目前沒有可下載的影片",
+        "en": "This uploader has no downloadable videos",
+        "ja": "この投稿者にダウンロード可能な動画はありません",
+    },
     "输入关键词后点击搜索": {
         "zh_TW": "輸入關鍵字後點擊搜尋",
         "en": "Enter a keyword then click Search",

@@ -774,7 +774,7 @@ class QueueView(QWidget):
         self._tabs.addItem("completed", tr("下载完成"))
         self._tab_badges = {
             key: InfoBadge.error(
-                "1", parent=self._tabs, target=self._tabs.widget(key))
+                "1", parent=self, target=self._tabs.widget(key))
             for key in self._unread_counts
         }
         for badge in self._tab_badges.values():

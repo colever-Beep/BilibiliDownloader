@@ -202,6 +202,7 @@ class MainWindow:
         self.parse_dropdown.setIcon(FluentIcon.CHEVRON_DOWN_MED.icon())
         self.parse_dropdown.setIconSize(QSize(12, 12))
         self.parse_dropdown.setFixedSize(36, 38)
+        self.parse_dropdown.setStyleSheet("padding:0px;")
         self.parse_dropdown.clicked.connect(self._open_parse_menu)
         pf.addWidget(self.parse_dropdown)
         uf.addWidget(parse_frame)
@@ -388,12 +389,14 @@ class MainWindow:
         """判断列表项是否为「多分集容器」（番剧 / 影视 / 课程 / 合集），需先选集再下载。"""
         if not item:
             return False
+        url = item.get("url", "") or ""
+        if re.search(r"bangumi/(?:play|media)/ep\d+", url):
+            return False
         if item.get("type") == "bangumi":
             return True
         if item.get("season_id"):
             return True
-        url = item.get("url", "") or ""
-        if re.search(r"bangumi/(?:play|media)/(?:ss|md|ep)\d+", url):
+        if re.search(r"bangumi/(?:play|media)/(?:ss|md)\d+", url):
             return True
         if re.search(r"(?:cheese|bilibili\.com/cheese)", url):
             return True
@@ -1351,8 +1354,16 @@ class MainWindow:
                 or self.config.get("last_login_name", None)
                 or tr("用户"))
         title = tr("欢迎，{}!(*^@^*)").format(name)
-        body = tr("欢迎使用bilibildownloader!") + "\n\n" + \
-               tr("已为你刷新登录态，祝你下载愉快～")
+        body = "\n\n".join((
+            tr("欢迎使用bilibildownloader!"),
+            tr("已为你刷新登录态，祝你下载愉快～"),
+            tr("《用户协议》要点"),
+            tr("本软件仅供个人学习、研究与非商业用途，不得用于公开传播、分享、转售或牟利。"),
+            tr("请仅访问本人账号已获授权的内容；不得绕过付费、会员限制或技术保护措施。"),
+            tr("禁止批量抓取、未经授权再分发，或违反目标平台服务条款的行为。"),
+            tr("使用本软件及其获取内容所产生的责任与风险由使用者承担。"),
+            tr("完整协议可在「关于」中的「用户协议」查看。"),
+        ))
         try:
             msg_info(self.window, body, title)
         except Exception as e:  # noqa: BLE001
@@ -1395,6 +1406,7 @@ class MainWindow:
         # 导航栏图标随明暗/强调色自绘，主题变化后强制重绘
         if changed and getattr(self, "sidebar", None) is not None:
             self.sidebar.update()
+        self.parse_dropdown.setIcon(FluentIcon.CHEVRON_DOWN_MED.icon())
 
     def _preview_theme(self, values):
         if values is None:
@@ -1404,6 +1416,7 @@ class MainWindow:
             set_accent(values["accent"])
         if "appearance" in values:
             apply_appearance(values["appearance"])
+        self.parse_dropdown.setIcon(FluentIcon.CHEVRON_DOWN_MED.icon())
         if getattr(self, "sidebar", None) is not None:
             self.sidebar.update()
 
@@ -1453,8 +1466,8 @@ class MainWindow:
             return items, res.get("has_more", False), total_pages
         self.browse_page.set_on_confirm(self._browse_confirm)
         self.browse_page.configure_paginated(
-            folder_title or tr("收藏夹"), fetch, ps=20,
-            empty_msg=tr("收藏夹为空，没有可下载的视频"))
+            folder_title or "收藏夹", fetch, ps=20,
+            empty_msg="收藏夹为空，没有可下载的视频")
         self._switch_to(self.browse_page)
 
     def _select_favorite_folder(self):
@@ -1499,8 +1512,8 @@ class MainWindow:
         # 2.1.0：历史记录内联到主界面（不再弹分页选择子窗口）
         self.browse_page.set_on_confirm(self._browse_confirm)
         self.browse_page.configure_paginated(
-            tr("历史记录"), fetch, ps=20,
-            empty_msg=tr("历史记录为空，没有可下载的视频"))
+            "历史记录", fetch, ps=20,
+            empty_msg="历史记录为空，没有可下载的视频")
         self._switch_to(self.browse_page)
 
     def _map_history_items(self, raw):
@@ -1567,8 +1580,8 @@ class MainWindow:
             return items, res.get("has_more", False), total_pages
         self.browse_page.set_on_confirm(self._browse_confirm)
         self.browse_page.configure_paginated(
-            tr("UP主空间"), fetch, ps=30,
-            empty_msg=tr("该UP主暂无可下载视频"))
+            "UP主空间", fetch, ps=30,
+            empty_msg="该UP主暂无可下载视频")
         self._switch_to(self.browse_page)
 
     def load_season_list(self):
@@ -1620,8 +1633,8 @@ class MainWindow:
             return items, res.get("has_more", False), total_pages
         self.browse_page.set_on_confirm(self._browse_confirm)
         self.browse_page.configure_paginated(
-            tr("稍后再看"), fetch, ps=20,
-            empty_msg=tr("稍后再看列表为空，没有可下载的视频"))
+            "稍后再看", fetch, ps=20,
+            empty_msg="稍后再看列表为空，没有可下载的视频")
         self._switch_to(self.browse_page)
 
     def _map_toview_items(self, raw):
@@ -1643,14 +1656,14 @@ class MainWindow:
     def load_popular(self):
         self.logger.log("加载每周必看（最新一期）...")
         self.browse_page.set_on_confirm(self._browse_confirm)
-        self.browse_page.configure_oneshot(tr("每周必看"))
+        self.browse_page.configure_oneshot("每周必看")
         self._switch_to(self.browse_page)
         def _worker():
             try:
                 video_list = self.api.get_popular_weekly()
                 if not video_list:
                     run_on_main(lambda: self.browse_page.set_loading(
-                        False, tr("每周必看为空或获取失败")))
+                        False, message_key="每周必看为空或获取失败"))
                     return
                 self.api.enrich_videos(video_list)
                 run_on_main(lambda n=len(video_list): self.logger.log(
@@ -1658,20 +1671,20 @@ class MainWindow:
                 run_on_main(lambda: self.browse_page.fill(video_list))
             except Exception as e:
                 run_on_main(lambda err=str(e): self.browse_page.show_error(
-                    tr("加载每周必看失败：{}").format(err)))
+                    "", "加载每周必看失败：{}", err))
         threading.Thread(target=_worker, daemon=True).start()
 
     def load_ranking(self):
         self.logger.log("加载排行榜（全站）...")
         self.browse_page.set_on_confirm(self._browse_confirm)
-        self.browse_page.configure_oneshot(tr("排行榜"))
+        self.browse_page.configure_oneshot("排行榜")
         self._switch_to(self.browse_page)
         def _worker():
             try:
                 video_list = self.api.get_ranking(rid=0)
                 if not video_list:
                     run_on_main(lambda: self.browse_page.set_loading(
-                        False, tr("排行榜为空或获取失败")))
+                        False, message_key="排行榜为空或获取失败"))
                     return
                 self.api.enrich_videos(video_list)
                 run_on_main(lambda n=len(video_list): self.logger.log(
@@ -1679,7 +1692,7 @@ class MainWindow:
                 run_on_main(lambda: self.browse_page.fill(video_list))
             except Exception as e:
                 run_on_main(lambda err=str(e): self.browse_page.show_error(
-                    tr("加载排行榜失败：{}").format(err)))
+                    "", "加载排行榜失败：{}", err))
         threading.Thread(target=_worker, daemon=True).start()
 
     def _record_history(self, video_list, source="manual"):
@@ -1710,14 +1723,14 @@ class MainWindow:
     def open_search(self):
         self.browse_page.set_on_confirm(self._route_search_selected)
         self.browse_page.configure_search(
-            tr("搜索 B站"), self.api.get_search_results,
+            "搜索 B站", self.api.get_search_results,
             "输入关键词后回车或点击搜索")
         self._switch_to(self.browse_page)
 
     def open_music_search(self):
         self.browse_page.set_on_confirm(self._route_search_selected)
         self.browse_page.configure_search(
-            tr("bilibili音乐"), self.api.get_music_search_results,
+            "bilibili音乐", self.api.get_music_search_results,
             "输入关键词后回车或点击搜索")
         self._switch_to(self.browse_page)
 
@@ -1729,7 +1742,7 @@ class MainWindow:
         for s in selected:
             if s.get("type") == "user":
                 users.append(s)
-            elif s.get("type") == "bangumi":
+            elif self._is_episode_container(s):
                 seasons.append(s)
             else:
                 videos.append(s)
@@ -1815,7 +1828,7 @@ class MainWindow:
             msg_info(self.window, tr("该分类下无视频"), tr("提示"))
             return
         self.browse_page.set_on_confirm(self._browse_confirm)
-        self.browse_page.configure_oneshot(tr("选择视频"))
+        self.browse_page.configure_oneshot("选择视频")
         self._switch_to(self.browse_page)
         self.browse_page.fill(video_list)
 
@@ -1826,7 +1839,7 @@ class MainWindow:
             return
         # 2.1.0：分集选择内联到主界面
         self.browse_page.set_on_confirm(self._browse_confirm)
-        self.browse_page.configure_oneshot(tr("选择分集"))
+        self.browse_page.configure_oneshot("选择分集")
         self._switch_to(self.browse_page)
         self.browse_page.fill(episode_list)
 
@@ -1837,7 +1850,7 @@ class MainWindow:
             return
         # 2.1.0：追番选择内联到主界面；确认后展开分集（再次内联切换）
         self.browse_page.set_on_confirm(self._expand_seasons_to_episodes)
-        self.browse_page.configure_oneshot(tr("我的追番"))
+        self.browse_page.configure_oneshot("我的追番")
         self._switch_to(self.browse_page)
         self.browse_page.fill(season_list)
 
@@ -1851,15 +1864,19 @@ class MainWindow:
             failed = []
             for s in series_list:
                 sid = s.get("season_id")
+                season_kind = "ss"
                 if not sid:
-                    m = re.search(r"(?:ss|season_id[=/])(\d+)", s.get("url", ""))
+                    m = re.search(r"(ss|md|season_id[=/])(\d+)", s.get("url", ""))
                     if m:
-                        sid = m.group(1)
+                        season_kind, sid = m.group(1), m.group(2)
                 if not sid:
                     failed.append(s.get("title", "未知番剧"))
                     continue
                 try:
-                    eps = self.api.get_season_episodes(ssid=sid)
+                    if season_kind == "md":
+                        eps = self.api.get_season_episodes(mdid=sid)
+                    else:
+                        eps = self.api.get_season_episodes(ssid=sid)
                 except Exception as e:
                     failed.append(f"{s.get('title', '')}: {e}")
                     continue

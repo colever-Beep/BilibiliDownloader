@@ -103,6 +103,9 @@ class BrowsePage(QWidget):
         self._empty_msg = None
         self._mode = "paginated"
         self._search_placeholder_key = None
+        self._status_key = None
+        self._status_args = ()
+        self._status_kwargs = {}
         self._build()
 
     # ------------------------------------------------------------------ #
@@ -173,7 +176,8 @@ class BrowsePage(QWidget):
         pg.addSpacing(14)
         pg.addWidget(self.page_lbl)
         pg.addStretch(1)
-        pg.addWidget(CaptionLabel(tr("跳至"), self))
+        self.jump_label = CaptionLabel(tr("跳至"), self)
+        pg.addWidget(self.jump_label)
         pg.addWidget(self.jump_spin)
         pg.addWidget(self.btn_jump)
         v.addLayout(pg)
@@ -223,7 +227,10 @@ class BrowsePage(QWidget):
         self._show_search(False)
         self.header.set_title(title_key)
         self.list.set_items([])
-        self._set_status(loading_text if loading_text is not None else tr("加载中..."))
+        if loading_text is None:
+            self._set_status_key("加载中...")
+        else:
+            self._set_status(loading_text)
         self.btn_add.setEnabled(False)
 
     def configure_search(self, title_key, search_fn, placeholder_key, ps=20):
@@ -239,24 +246,35 @@ class BrowsePage(QWidget):
         self.search_box.clear()
         self.header.set_title(title_key)
         self.list.set_items([])
-        self._set_status(tr("输入关键词后回车或点击搜索"))
+        self._set_status_key("输入关键词后回车或点击搜索")
 
     def fill(self, items):
         self._fill_table(items)
         self._set_status("")
 
-    def set_loading(self, on, message=None):
+    def set_loading(self, on, message=None, message_key=None):
         if on:
             self.list.set_items([])
             self.btn_add.setEnabled(False)
-            self._set_status(message if message is not None else tr("加载中..."))
+            if message_key:
+                self._set_status_key(message_key)
+            elif message is None:
+                self._set_status_key("加载中...")
+            else:
+                self._set_status(message)
         else:
-            self._set_status(message if message is not None else "")
+            if message_key:
+                self._set_status_key(message_key)
+            else:
+                self._set_status(message if message is not None else "")
 
-    def show_error(self, message):
+    def show_error(self, message, message_key=None, *args):
         self.list.set_items([])
         self.btn_add.setEnabled(False)
-        self._set_status(message)
+        if message_key:
+            self._set_status_key(message_key, *args)
+        else:
+            self._set_status(message)
 
     # ------------------------------------------------------------------ #
     # 内部辅助
@@ -270,19 +288,33 @@ class BrowsePage(QWidget):
         self.search_btn.setVisible(show)
 
     def _set_status(self, text):
+        self._status_key = None
+        self._status_args = ()
+        self._status_kwargs = {}
         self.status_lbl.setText(text or "")
 
+    def _set_status_key(self, key, *args, **kwargs):
+        self._status_key = key
+        self._status_args = args
+        self._status_kwargs = kwargs
+        self.status_lbl.setText(tr(key, *args, **kwargs))
+
     def _reset(self):
-        self._checked_keys.clear()
-        self._selected.clear()
-        self._suppress = False
-        self.pn = 1
-        self.has_more = True
-        self._busy = False
-        self._total_pn = None
-        self._last_pn = None
-        self._keyword = ""
-        self.check_all.setCheckState(Qt.CheckState.Unchecked)
+        self._suppress = True
+        try:
+            self._checked_keys.clear()
+            self._selected.clear()
+            self.pn = 1
+            self.has_more = True
+            self._busy = False
+            self._total_pn = None
+            self._last_pn = None
+            self._keyword = ""
+            self.check_all.setCheckState(Qt.CheckState.Unchecked)
+            self.list.set_items([])
+            self._set_status("")
+        finally:
+            self._suppress = False
         self._update_count()
 
     # ------------------------------------------------------------------ #
@@ -392,7 +424,7 @@ class BrowsePage(QWidget):
             return
         self._busy = True
         self._set_nav_enabled(False)
-        self._set_status(tr("正在加载第 {pn} 页...").format(pn=pn))
+        self._set_status_key("正在加载第 {pn} 页...", pn=pn)
         threading.Thread(target=self._fetch_thread, args=(pn,), daemon=True).start()
 
     def _fetch_thread(self, pn):
@@ -433,22 +465,22 @@ class BrowsePage(QWidget):
         self._set_nav_enabled(True)
         if not items:
             if pn == 1 and self._empty_msg:
-                self._set_status(self._empty_msg)
+                self._set_status_key(self._empty_msg)
             elif pn == 1:
-                self._set_status(tr("（空）"))
+                self._set_status_key("（空）")
         else:
             if M:
-                self._set_status(tr("第 {pn} / {total} 页，共 {n} 条").format(
-                    pn=pn, total=M, n=len(items)))
+                self._set_status_key("第 {pn} / {total} 页，共 {n} 条",
+                                     pn=pn, total=M, n=len(items))
             else:
-                self._set_status(tr("第 {pn} 页，共 {n} 条").format(
-                    pn=pn, n=len(items)))
+                self._set_status_key("第 {pn} 页，共 {n} 条",
+                                     pn=pn, n=len(items))
         self.search_btn.setEnabled(True)
 
     def _on_error(self, pn, err):
         self._busy = False
         self._set_nav_enabled(True)
-        self._set_status(tr("加载失败"))
+        self._set_status_key("加载失败")
         self.search_btn.setEnabled(True)
         msg_error(self, tr("加载第 {pn} 页失败：{err}").format(pn=pn, err=err))
 
@@ -505,6 +537,7 @@ class BrowsePage(QWidget):
         self.check_all.setText(tr("全选"))
         self.btn_prev.setText(tr("上一页"))
         self.btn_next.setText(tr("下一页"))
+        self.jump_label.setText(tr("跳至"))
         self.btn_jump.setText(tr("跳转"))
         self.search_btn.setText(tr("搜索"))
         self.btn_add.setText(tr("添加到下载队列"))
@@ -512,6 +545,9 @@ class BrowsePage(QWidget):
             self.search_box.setPlaceholderText(tr(self._search_placeholder_key))
         self._update_count()
         self._render_pager_labels()
+        if self._status_key is not None:
+            self.status_lbl.setText(
+                tr(self._status_key, *self._status_args, **self._status_kwargs))
 
     def _render_pager_labels(self):
         M = self._total_pn or self._last_pn

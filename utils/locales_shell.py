@@ -133,6 +133,56 @@ FRAGMENT = {
         "en": "Not Logged In",
         "ja": "未ログイン",
     },
+    "用户": {
+        "zh_TW": "使用者",
+        "en": "User",
+        "ja": "ユーザー",
+    },
+    "欢迎，{}!(*^@^*)": {
+        "zh_TW": "歡迎，{}!(*^@^*)",
+        "en": "Welcome, {}!(*^@^*)",
+        "ja": "ようこそ、{}!(*^@^*)",
+    },
+    "欢迎使用bilibildownloader!": {
+        "zh_TW": "歡迎使用bilibildownloader！",
+        "en": "Welcome to BilibiliDownloader!",
+        "ja": "BilibiliDownloaderへようこそ！",
+    },
+    "已为你刷新登录态，祝你下载愉快～": {
+        "zh_TW": "已為你刷新登入狀態，祝你下載愉快～",
+        "en": "Your login session has been refreshed. Enjoy downloading!",
+        "ja": "ログイン状態を更新しました。ダウンロードをお楽しみください。",
+    },
+    "《用户协议》要点": {
+        "zh_TW": "《使用者協議》要點",
+        "en": "Key points of the User Agreement",
+        "ja": "「利用規約」の要点",
+    },
+    "本软件仅供个人学习、研究与非商业用途，不得用于公开传播、分享、转售或牟利。": {
+        "zh_TW": "本軟體僅供個人學習、研究與非商業用途，不得用於公開傳播、分享、轉售或牟利。",
+        "en": "This software is for personal learning, research, and non-commercial use only. Do not publicly distribute, share, resell, or profit from its content.",
+        "ja": "本ソフトウェアは個人の学習・研究および非営利目的に限り使用できます。コンテンツの公開配布、共有、転売、営利利用は禁止されています。",
+    },
+    "请仅访问本人账号已获授权的内容；不得绕过付费、会员限制或技术保护措施。": {
+        "zh_TW": "請僅存取本人帳號已獲授權的內容；不得繞過付費、會員限制或技術保護措施。",
+        "en": "Access only content authorized for your own account. Do not bypass payment, membership restrictions, or technical protection measures.",
+        "ja": "ご自身のアカウントで許可されたコンテンツのみ利用してください。支払い・会員制限や技術的保護措置を回避してはなりません。",
+    },
+    "禁止批量抓取、未经授权再分发，或违反目标平台服务条款的行为。": {
+        "zh_TW": "禁止批次擷取、未經授權再散布，或違反目標平台服務條款的行為。",
+        "en": "Bulk scraping, unauthorized redistribution, and any conduct that violates the platform's terms of service are prohibited.",
+        "ja": "一括スクレイピング、無許可の再配布、および対象プラットフォームの利用規約に違反する行為は禁止されています。",
+    },
+    "使用本软件及其获取内容所产生的责任与风险由使用者承担。": {
+        "zh_TW": "使用本軟體及其取得內容所產生的責任與風險由使用者承擔。",
+        "en": "You are responsible for all risks and consequences arising from your use of this software and any content obtained with it.",
+        "ja": "本ソフトウェアおよび取得したコンテンツの利用に伴う責任とリスクは、利用者が負うものとします。",
+    },
+    "完整协议可在「关于」中的「用户协议」查看。": {
+        "zh_TW": "完整協議可於「關於」中的「使用者協議」查看。",
+        "en": "Read the full agreement under About > User Agreement.",
+        "ja": "完全な利用規約は「概要」>「利用規約」から確認できます。",
+    },
     "请先登录以查看关注列表": {
         "zh_TW": "請先登入以查看關注列表",
         "en": "Please log in to view the following list",
