@@ -184,6 +184,7 @@ jobs:
         run: |
           set -euo pipefail
           TAG="${{ steps.tag.outputs.tag }}"
+          PRERELEASE="${{ steps.tag.outputs.prerelease }}"
           NOTES_FILE="release_notes/${TAG}.md"
           body=$(mktemp)
           {
