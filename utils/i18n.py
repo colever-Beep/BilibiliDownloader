@@ -86,11 +86,12 @@ def set_language(lang: str) -> None:
         _CURRENT = lang
 
 
-def tr(key, *args, **kwargs) -> str:
-    """翻译键（简体中文原文）。
+def translate(key, *args, **kwargs) -> str:
+    """纯翻译：返回当前语言文本，不追加看板娘语气。
 
-    返回当前语言文本；缺失或为非字符串时回退到简体中文原文。
-    支持 ``tr("a {} b").format(x)`` 形式的占位符。
+    ``tr()`` 在它之上叠加语气层；语气词自身的翻译（见
+    ``utils.mascot_voice`` 的 ``{词}`` 占位）也走这里，避免 ``tr() →
+    suffix_for() → tr()`` 的递归。
     """
     if not isinstance(key, str):
         return key
@@ -105,6 +106,25 @@ def tr(key, *args, **kwargs) -> str:
         elif args:
             text = text.format(*args)
     except (KeyError, IndexError, ValueError):
+        pass
+    return text
+
+
+def tr(key, *args, **kwargs) -> str:
+    """翻译键（简体中文原文）。
+
+    返回当前语言文本；缺失或为非字符串时回退到简体中文原文。
+    支持 ``tr("a {} b").format(x)`` 形式的占位符。
+    """
+    text = translate(key, *args, **kwargs)
+    # 看板娘语气：仅对白名单中的「展示型文案」追加 emoji / 颜文字。
+    # 在格式化之后拼接，因此带 {} 的模板也安全；配置值 / 字典键 / 逻辑文案
+    # 不在白名单，绝不受影响。语气词中的文字部分由 mascot_voice 调 translate()
+    # 翻译成当前语言（emoji / 颜文字语言无关）。
+    try:
+        from utils.mascot_voice import suffix_for
+        text = text + suffix_for(key)
+    except Exception:
         pass
     return text
 

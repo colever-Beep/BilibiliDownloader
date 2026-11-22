@@ -216,6 +216,20 @@ def extract_strings(root: Path) -> list[str]:
                 found.add(node.args[0].value)
             if name == "register" and len(node.args) >= 2 and isinstance(node.args[1], ast.Constant) and isinstance(node.args[1].value, str):
                 found.add(node.args[1].value)
+    # 看板娘语气词：以 {词} 占位写在 mascot_voice.py 里，经 translate() 渲染，
+    # 不会出现在 tr()/register() 扫描中；把 locales_voice.py 的 FRAGMENT 键一并纳入，
+    # 确保这些词进入 .pot/.po，可被 Weblate 继续维护。
+    voice_frag = UTILS / "locales_voice.py"
+    if voice_frag.exists():
+        try:
+            spec = importlib.util.spec_from_file_location("locales_voice_extract", voice_frag)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            frag = getattr(mod, "FRAGMENT", None)
+            if isinstance(frag, dict):
+                found.update(k for k in frag if isinstance(k, str))
+        except Exception:
+            pass
     return sorted(found)
 
 

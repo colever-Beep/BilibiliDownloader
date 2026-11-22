@@ -19,6 +19,15 @@ const changes212 = [
   '登录后温馨提示：每次登录成功（扫码 / Cookie 任一方式）后弹出温馨提示；标题为「欢迎，（用户名）!(*^@^*)」，正文首句为「欢迎使用bilibildownloader!」。',
   '修复触屏误选 / 番剧整季误下载：按住到释放的位移超过阈值时只滚动、不勾选；番剧 / 影视 / 课程 / 合集等多分集容器改为先解析分集并打开选集界面，默认零勾选、确认按钮在未选时禁用。',
 ];
+
+const changes220 = [
+  '多类型混合选集重构：当一次勾选同时包含「有分集」（番剧 / 影视 / 课程 / 合集 / 多分P）与「无分集」视频时，改为按勾选顺序依次解析每个有分集的视频供挑选；底部「加入下载队列」在选集过程中切换为「上一个 / 下一个」，每段各自保留勾选状态，全部选完再统一入队，不再出现只剩最后一个容器、前面选择丢失的问题。',
+  '搜索混合勾选适配：搜索结果中同时勾选 UP主 与视频 / 番剧时，UP主空间也作为一段接入同一套顺序选集流程，逐个让你挑选空间视频，全部选完统一入队。',
+  '内联页标题显示上下文：浏览 / 搜索 / 关注 / 批量解析等内联页标题会显示 UP主名称（如「UP主名」的个人空间）或分集所属视频标题（如 选择你想下载「视频标题」的分集），切语言时标题同步刷新。',
+  '首次启动的用户协议在正文上方用水平排列的语言按钮罗列简体中文 / 繁體中文 / English / 日本語，点击哪种语言就只切换显示那一种协议正文（非四语并排），并自动切换软件界面语言。',
+  '批量解析内联页适配：批量解析命中的多个分集容器走同一套顺序选集流程，与浏览 / 搜索页体验一致。',
+  '修复/优化部分BUG或功能。',
+];
 ---
 
 <BaseLayout title="更新日志 - BilibiliDownloader" active="更新日志" prose={false}>
@@ -30,6 +39,16 @@ const changes212 = [
       </div>
 
       <div class="changelog-list">
+        <div class="rel-card">
+          <div class="rel-head">
+            <span class="rel-ver">v2.2.0</span>
+            <span class="rel-tag">重要变更</span>
+          </div>
+          <ul class="rel-list">
+            {changes220.map((c) => <li>{c}</li>)}
+          </ul>
+          <a class="rel-link" href={releases} target="_blank" rel="noopener">查看 GitHub Releases →</a>
+        </div>
         <div class="rel-card">
           <div class="rel-head">
             <span class="rel-ver">v2.1.2</span>

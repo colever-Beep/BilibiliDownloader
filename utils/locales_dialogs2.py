@@ -53,10 +53,60 @@ FRAGMENT = {
         "en": "Search",
         "ja": "検索",
     },
+    "搜索当前列表（标题 / UP主）…": {
+        "zh_TW": "搜尋目前清單（標題 / UP主）…",
+        "en": "Filter current list (title / uploader)…",
+        "ja": "現在のリストを検索（タイトル / UP主）…",
+    },
     "添加到下载队列": {
         "zh_TW": "新增至下載佇列",
         "en": "Add to download queue",
         "ja": "ダウンロードキューに追加",
+    },
+    "浏览TA的个人空间": {
+        "zh_TW": "瀏覽TA的個人空間",
+        "en": "View their profile",
+        "ja": "TAの個人ページを見る",
+    },
+    "浏览该视频的分集": {
+        "zh_TW": "瀏覽該影片的分集",
+        "en": "View video episodes",
+        "ja": "動画のエピソードを見る",
+    },
+    "下一步": {
+        "zh_TW": "下一步",
+        "en": "Next step",
+        "ja": "次へ",
+    },
+    "排序": {
+        "zh_TW": "排序",
+        "en": "Sort",
+        "ja": "並び替え",
+    },
+    "默认排序": {
+        "zh_TW": "預設排序",
+        "en": "Default",
+        "ja": "既定の並び",
+    },
+    "按发布时间": {
+        "zh_TW": "依發布時間",
+        "en": "By publish time",
+        "ja": "投稿日時順",
+    },
+    "按播放量": {
+        "zh_TW": "依播放量",
+        "en": "By views",
+        "ja": "再生数順",
+    },
+    "按时长": {
+        "zh_TW": "依時長",
+        "en": "By duration",
+        "ja": "長さ順",
+    },
+    "按标题": {
+        "zh_TW": "依標題",
+        "en": "By title",
+        "ja": "タイトル順",
     },
     "收藏夹为空，没有可下载的视频": {
         "zh_TW": "收藏夾中沒有可下載的影片",
@@ -650,5 +700,187 @@ FRAGMENT = {
         "zh_TW": "打開TA的個人空間",
         "en": "Open Their Personal Space",
         "ja": "その個人スペースを開く",
+    },
+    # ---------- 顺序选集（v2.2.0，多类型混合勾选） ----------
+    "上一个": {
+        "zh_TW": "上一個",
+        "en": "Previous",
+        "ja": "前へ",
+    },
+    "下一个": {
+        "zh_TW": "下一個",
+        "en": "Next",
+        "ja": "次へ",
+    },
+    "分集视频 {i}/{n}": {
+        "zh_TW": "分集影片 {i}/{n}",
+        "en": "Episode video {i}/{n}",
+        "ja": "エピソード動画 {i}/{n}",
+    },
+    "未勾选任何分集": {
+        "zh_TW": "未勾選任何分集",
+        "en": "No episodes selected",
+        "ja": "エピソードが選択されていません",
+    },
+    "“{}”的个人空间": {
+        "zh_TW": "「{}」的個人空間",
+        "en": "{}'s Space",
+        "ja": "「{}」の個人スペース",
+    },
+    "选择你想下载“{}”的分集": {
+        "zh_TW": "選擇你想下載「{}」的分集",
+        "en": "Select episodes of {} to download",
+        "ja": "「{}」のエピソードを選択してダウンロード",
+    },
+    "未命名": {
+        "zh_TW": "未命名",
+        "en": "Untitled",
+        "ja": "無題",
+    },
+    "UP主空间": {
+        "zh_TW": "UP主空間",
+        "en": "Uploader's Space",
+        "ja": "UP主のスペース",
+    },
+    "用户协议": {
+        "zh_TW": "使用者協議",
+        "en": "User Agreement",
+        "ja": "利用規約",
+    },
+    "请滚动阅读至底部后，方可同意": {
+        "zh_TW": "請捲動閱讀至底部後，方可同意",
+        "en": "Scroll to the bottom before agreeing",
+        "ja": "同意するには末尾までスクロールしてください",
+    },
+    "不同意并退出": {
+        "zh_TW": "不同意並結束",
+        "en": "Disagree and Exit",
+        "ja": "同意せず終了",
+    },
+    "同意并继续": {
+        "zh_TW": "同意並繼續",
+        "en": "Agree and Continue",
+        "ja": "同意して続ける",
+    },
+    # ---------- 反馈页 ----------
+    "反馈": {
+        "zh_TW": "回饋",
+        "en": "Feedback",
+        "ja": "フィードバック",
+    },
+    "支持作者（自愿）": {
+        "zh_TW": "支援作者（自願）",
+        "en": "Support the Author (optional)",
+        "ja": "作者を支援（任意）",
+    },
+    "Bug 反馈": {
+        "zh_TW": "Bug 回饋",
+        "en": "Report a Bug",
+        "ja": "バグを報告",
+    },
+    "功能建议": {
+        "zh_TW": "功能建議",
+        "en": "Feature Request",
+        "ja": "機能要望",
+    },
+    "反馈与建议": {
+        "zh_TW": "回饋與建議",
+        "en": "Feedback & Suggestions",
+        "ja": "フィードバックと提案",
+    },
+    "填写反馈后将在浏览器打开已填好的 GitHub 议题页，确认无误点发布即可。内容会先存为本地草稿，中途离开不会丢失。": {
+        "zh_TW": "填寫回饋後將在瀏覽器開啟已填好的 GitHub 議題頁，確認無誤點釋出即可。內容會先存為本機草稿，中途離開不會遺失。",
+        "en": "After filling in the feedback, a pre-filled GitHub issue page will open in your browser—just confirm and submit. Your input is auto-saved as a local draft.",
+        "ja": "入力後、記入済みのGitHubイシューページがブラウザで開きます。内容はローカル下書きとして自動保存されます。",
+    },
+    "一句话概括你的问题或建议": {
+        "zh_TW": "一句話概括你的問題或建議",
+        "en": "Summarize your issue or suggestion in one line",
+        "ja": "問題や提案を一行で要約",
+    },
+    "请详细描述：问题现象 / 复现步骤 / 期望结果，或建议的使用场景与方案": {
+        "zh_TW": "請詳細描述：問題現象 / 重現步驟 / 預期結果，或建議的使用情境與方案",
+        "en": "Describe in detail: what happened / steps to reproduce / expected result, or the use case and solution of your suggestion",
+        "ja": "詳細に記述してください：発生内容 / 再現手順 / 期待結果、または提案の利用場面と方案",
+    },
+    "将自动附带环境信息：": {
+        "zh_TW": "將自動附上環境資訊：",
+        "en": "Environment info will be attached automatically: ",
+        "ja": "環境情報は自動的に添付されます：",
+    },
+    "提交反馈": {
+        "zh_TW": "提交回饋",
+        "en": "Submit Feedback",
+        "ja": "フィードバックを送信",
+    },
+    "清空草稿": {
+        "zh_TW": "清空草稿",
+        "en": "Clear Draft",
+        "ja": "下書きを消去",
+    },
+    "草稿已自动保存": {
+        "zh_TW": "草稿已自動儲存",
+        "en": "Draft auto-saved",
+        "ja": "下書きを自動保存しました",
+    },
+    "草稿保存失败（不影响提交）": {
+        "zh_TW": "草稿儲存失敗（不影響提交）",
+        "en": "Draft save failed (does not affect submission)",
+        "ja": "下書きの保存に失敗（送信には影響しません）",
+    },
+    "已恢复上次的草稿": {
+        "zh_TW": "已還原上次的草稿",
+        "en": "Restored your last draft",
+        "ja": "前回の下書きを復元しました",
+    },
+    "草稿已清空": {
+        "zh_TW": "草稿已清空",
+        "en": "Draft cleared",
+        "ja": "下書きを消去しました",
+    },
+    "反馈信息不完整": {
+        "zh_TW": "回饋資訊不完整",
+        "en": "Incomplete feedback",
+        "ja": "フィードバックの情報が不足しています",
+    },
+    "请填写标题和详细内容后再提交": {
+        "zh_TW": "請填寫標題和詳細內容後再提交",
+        "en": "Please fill in the title and details before submitting",
+        "ja": "送信する前にタイトルと詳細を入力してください",
+    },
+    "即将提交反馈": {
+        "zh_TW": "即將提交回饋",
+        "en": "Submitting Feedback",
+        "ja": "フィードバックを送信中",
+    },
+    "已在浏览器打开发布页面，确认无误后点击 Submit new issue 即可。你的反馈进入公开议题区后，会由 AI 预筛 + 维护者审核决定是否采纳。": {
+        "zh_TW": "已在瀏覽器開啟釋出頁面，確認無誤後點擊 Submit new issue 即可。你的回饋進入公開議題區後，會由 AI 預篩 + 維護者審核決定是否採納。",
+        "en": "The publish page is open in your browser; confirm and click 'Submit new issue'. Once public, your feedback is AI-pre-screened and reviewed by maintainers for acceptance.",
+        "ja": "公開ページがブラウザで開きました。確認して「Submit new issue」をクリックしてください。公開後はAI予選とメンテナーの審査で採否が決まります。",
+    },
+    "正在提交反馈...": {
+        "zh_TW": "正在提交回饋...",
+        "en": "Submitting feedback...",
+        "ja": "フィードバックを送信中...",
+    },
+    "提交成功": {
+        "zh_TW": "提交成功",
+        "en": "Submitted",
+        "ja": "送信完了",
+    },
+    "反馈已提交：": {
+        "zh_TW": "回饋已提交：",
+        "en": "Feedback submitted: ",
+        "ja": "フィードバックを送信しました：",
+    },
+    "反馈已成功提交，感谢你的支持！": {
+        "zh_TW": "回饋已成功提交，感謝你的支援！",
+        "en": "Feedback submitted successfully. Thanks for your support!",
+        "ja": "フィードバックを送信しました。ご協力ありがとうございます！",
+    },
+    "代理提交失败，已改为打开浏览器发布页": {
+        "zh_TW": "代理提交失敗，已改為開啟瀏覽器釋出頁",
+        "en": "Proxy submission failed; opened the browser publish page instead",
+        "ja": "プロキシ送信に失敗したため、ブラウザの公開ページを開きました",
     },
 }

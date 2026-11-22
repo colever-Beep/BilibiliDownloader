@@ -16,17 +16,20 @@ LayoutModeToggle），与设置窗口、下载选项窗口保持一致；并通�
 import threading
 
 import requests
-from PySide6.QtCore import Qt, QThread, QByteArray, Signal
+from PySide6.QtCore import (
+    Qt, QEvent, QPropertyAnimation, QEasingCurve, QThread, QTimer, QByteArray,
+    Signal,
+)
 from PySide6.QtGui import QImage, QPixmap, QGuiApplication
 from PySide6.QtWidgets import (
-    QFrame, QHBoxLayout, QLabel, QListWidgetItem, QScrollArea, QStackedWidget,
-    QVBoxLayout, QWidget,
+    QApplication, QFrame, QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
+    QScrollArea, QStackedWidget, QVBoxLayout, QWidget,
 )
 
 from qfluentwidgets import (
-    BodyLabel, CaptionLabel, CheckBox, FluentIcon, FlowLayout, ImageLabel,
-    ListWidget, PrimaryPushButton, PushButton, SearchLineEdit, SpinBox,
-    TransparentToolButton,
+    BodyLabel, CaptionLabel, CheckBox, ComboBox, FluentIcon, FlowLayout,
+    ImageLabel, ListWidget, PrimaryPushButton, PushButton, SearchLineEdit,
+    SpinBox, TransparentToolButton,
 )
 
 from utils.i18n import tr
@@ -40,6 +43,15 @@ from ui.dialogs import _LiveRoomCard
 
 
 # --------------------------------------------------------------------------- #
+# 视频列表排序 / 本地过滤：公共实现在 ui.list_tools（与选择对话框共用，避免循环 import）
+# --------------------------------------------------------------------------- #
+from ui.list_tools import (  # noqa: E402
+    SORT_KEYS, SORT_LABELS, sort_items, filter_items,
+)
+from ui.loading_overlay import LoadingOverlay, wrap as wrap_loading  # noqa: E402
+
+
+# --------------------------------------------------------------------------- #
 # 通用页头：返回按钮 + 标题
 # --------------------------------------------------------------------------- #
 class _Header(QWidget):
@@ -48,6 +60,8 @@ class _Header(QWidget):
     def __init__(self, parent=None, title_key=""):
         super().__init__(parent)
         self._title_key = title_key
+        self._title_args = ()
+        self._title_kwargs = {}
         lay = QHBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(8)
@@ -62,12 +76,19 @@ class _Header(QWidget):
         lay.addStretch(1)
         self.set_title(title_key)
 
-    def set_title(self, key):
+    def set_title(self, key, *args, **kwargs):
+        """设置标题（翻译键 + 格式化参数），供动态标题（UP主名 / 父视频标题）使用。
+
+        参数会被保存，语言切换时由 ``retranslate()`` 用新语言重新格式化。
+        """
         self._title_key = key
-        self.title_lbl.setText(tr(key))
+        self._title_args = tuple(args)
+        self._title_kwargs = dict(kwargs)
+        self.title_lbl.setText(tr(key, *args, **kwargs))
 
     def retranslate(self):
-        self.title_lbl.setText(tr(self._title_key))
+        self.title_lbl.setText(tr(self._title_key, *self._title_args,
+                                  **self._title_kwargs))
         self.back_btn.setToolTip(tr("返回"))
 
 
@@ -106,7 +127,36 @@ class BrowsePage(QWidget):
         self._status_key = None
         self._status_args = ()
         self._status_kwargs = {}
+        # 顺序选集模式：多个「有分集容器」依次让用户勾选，底部按钮切换为
+        # 「上一个 / 下一个」，全部完成后恢复「加入下载队列」。
+        self._seq_mode = False
+        self._seq_on_prev = None
+        self._seq_on_next = None
+        self._seq_index = 0
+        self._seq_total = 0
+        self._seq_title = ""
+        # 「添加到下载队列」按钮文案随选中项类型动态切换（解析器由 MainWindow 注入，
+        # 复用其路由判定，保证文案与实际点击行为一致）；未注入时保持默认文案。
+        self._add_text_key = "添加到下载队列"
+        self._add_text_resolver = None
+        # 视频列表排序键（SORT_KEYS 之一）
+        self._sort_key = "default"
+        # 当前已加载项（分页的一页 / oneshot 的一批），用于本地过滤 + 排序叠加
+        self._all_items = []
+        # 搜索联想：函数由 MainWindow 注入；防抖定时器 + 弹出列表 + 序号防串扰
+        self._suggest_fn = None
+        self._suggest_popup = None
+        self._suggest_animation = None
+        self._suggest_closing = False
+        self._suggest_seq = 0
+        self._suggest_timer = QTimer(self)
+        self._suggest_timer.setSingleShot(True)
+        self._suggest_timer.setInterval(280)
+        self._suggest_timer.timeout.connect(self._fetch_suggest)
         self._build()
+        app = QApplication.instance()
+        if app is not None:
+            app.installEventFilter(self)
 
     # ------------------------------------------------------------------ #
     # 构建
@@ -120,20 +170,33 @@ class BrowsePage(QWidget):
         self.header.backClicked.connect(self._on_back_clicked)
         v.addWidget(self.header)
 
-        # 搜索栏（默认隐藏，仅 search 模式显示）
+        # 搜索栏：两种用途共用同一行
+        #   - 网络搜索（search 模式）：search_box + search_btn + 联想
+        #   - 本地过滤（paginated / oneshot / 顺序选集模式）：local_filter，
+        #     样式同「我的关注」搜索框（SearchLineEdit + 清除按钮 + 输入即时过滤已加载项）
         self.search_box = SearchLineEdit(self)
         self.search_box.setClearButtonEnabled(True)
         self.search_box.returnPressed.connect(self._do_search)
+        # 输入联想：仅在 search 模式下、由 _suggest_fn 存在时生效（防抖）
+        self.search_box.textChanged.connect(self._on_search_text_changed)
         self.search_btn = PrimaryPushButton(tr("搜索"), self)
         self.search_btn.setMinimumWidth(80)
         self.search_btn.setIcon(FluentIcon.SEARCH.icon())
         self.search_btn.clicked.connect(self._do_search)
+
+        self.local_filter = SearchLineEdit(self)
+        self.local_filter.setClearButtonEnabled(True)
+        self.local_filter.setPlaceholderText(tr("搜索当前列表（标题 / UP主）…"))
+        self.local_filter.textChanged.connect(self._on_local_filter_changed)
+
         self.search_box.hide()
         self.search_btn.hide()
+        self.local_filter.hide()
         sh = QHBoxLayout()
         sh.setSpacing(10)
         sh.addWidget(self.search_box, 1)
         sh.addWidget(self.search_btn)
+        sh.addWidget(self.local_filter, 1)
         v.addLayout(sh)
 
         # 全选 + 计数
@@ -146,12 +209,20 @@ class BrowsePage(QWidget):
         sel.addWidget(self.check_all)
         sel.addWidget(self.count_lab)
         sel.addStretch(1)
+        self.sort_label = CaptionLabel(tr("排序"), self)
+        sel.addWidget(self.sort_label)
+        self.sort_combo = ComboBox(self)
+        self.sort_combo.addItems([tr(SORT_LABELS[k]) for k in SORT_KEYS])
+        self.sort_combo.setMinimumWidth(120)
+        self.sort_combo.currentIndexChanged.connect(self._on_sort_changed)
+        sel.addWidget(self.sort_combo)
         v.addLayout(sel)
 
-        # 列表
+        # 列表（包一层带转圈动画的加载遮罩，加载中在中央提示）
         self.list = SelectListView(self._checked_keys, self)
         self.list.rowClicked.connect(self._on_row_clicked)
-        v.addWidget(self.list, 1)
+        self._list_container, self._loading = wrap_loading(self.list)
+        v.addWidget(self._list_container, 1)
 
         # 状态行
         self.status_lbl = CaptionLabel("", self)
@@ -184,16 +255,30 @@ class BrowsePage(QWidget):
         self._pager_widgets = [self.btn_prev, self.btn_next, self.page_lbl,
                                self.jump_spin, self.btn_jump]
 
-        # 底部：左侧布局切换 + 右侧「添加到下载队列」
+        # 底部：左侧布局切换 + 右侧「添加到下载队列」/「上一个·下一个」
         bottom = QHBoxLayout()
         bottom.setSpacing(10)
         bottom.addWidget(LayoutModeToggle(self))
         bottom.addStretch(1)
+        # 顺序选集进度提示（仅 seq 模式显示）
+        self.seq_progress_lbl = CaptionLabel("", self)
+        self.seq_progress_lbl.setVisible(False)
+        bottom.addWidget(self.seq_progress_lbl)
+        self.btn_seq_prev = PushButton(tr("上一个"), self)
+        self.btn_seq_prev.setVisible(False)
+        self.btn_seq_prev.clicked.connect(self._on_seq_prev)
+        bottom.addWidget(self.btn_seq_prev)
+        self.btn_seq_next = PushButton(tr("下一个"), self)
+        self.btn_seq_next.setVisible(False)
+        self.btn_seq_next.clicked.connect(self._on_seq_next)
+        bottom.addWidget(self.btn_seq_next)
         self.btn_add = PrimaryPushButton(tr("添加到下载队列"), self)
         self.btn_add.setIcon(FluentIcon.DOWNLOAD.icon())
         self.btn_add.setEnabled(False)
         self.btn_add.clicked.connect(self._on_add)
         bottom.addWidget(self.btn_add)
+        self._bottom_btns = (self.btn_seq_prev, self.btn_seq_next,
+                             self.seq_progress_lbl, self.btn_add)
         v.addLayout(bottom)
 
     # ------------------------------------------------------------------ #
@@ -204,6 +289,14 @@ class BrowsePage(QWidget):
 
     def set_on_confirm(self, fn):
         self.on_confirm = fn
+
+    def set_add_text_resolver(self, fn):
+        """注入「选中项 → 按钮文案翻译键」解析器（MainWindow 复用路由判定）。"""
+        self._add_text_resolver = fn
+
+    def set_header_title(self, key, *args, **kwargs):
+        """设置页头标题（支持翻译键 + 格式化参数，语言切换自动刷新）。"""
+        self.header.set_title(key, *args, **kwargs)
 
     def _on_back_clicked(self):
         if callable(self._on_back):
@@ -228,9 +321,11 @@ class BrowsePage(QWidget):
         self.header.set_title(title_key)
         self.list.set_items([])
         if loading_text is None:
-            self._set_status_key("加载中...")
+            self._show_loading(tr("加载中..."))
+            self._set_status_key("")
         else:
-            self._set_status(loading_text)
+            self._show_loading(loading_text)
+            self._set_status("")
         self.btn_add.setEnabled(False)
 
     def configure_search(self, title_key, search_fn, placeholder_key, ps=20):
@@ -250,6 +345,7 @@ class BrowsePage(QWidget):
 
     def fill(self, items):
         self._fill_table(items)
+        self._hide_loading()
         self._set_status("")
 
     def set_loading(self, on, message=None, message_key=None):
@@ -257,12 +353,16 @@ class BrowsePage(QWidget):
             self.list.set_items([])
             self.btn_add.setEnabled(False)
             if message_key:
-                self._set_status_key(message_key)
+                self._show_loading(tr(message_key))
+                self._set_status("")
             elif message is None:
-                self._set_status_key("加载中...")
+                self._show_loading(tr("加载中..."))
+                self._set_status("")
             else:
-                self._set_status(message)
+                self._show_loading(message)
+                self._set_status("")
         else:
+            self._hide_loading()
             if message_key:
                 self._set_status_key(message_key)
             else:
@@ -271,6 +371,7 @@ class BrowsePage(QWidget):
     def show_error(self, message, message_key=None, *args):
         self.list.set_items([])
         self.btn_add.setEnabled(False)
+        self._hide_loading()
         if message_key:
             self._set_status_key(message_key, *args)
         else:
@@ -284,8 +385,14 @@ class BrowsePage(QWidget):
             w.setVisible(show)
 
     def _show_search(self, show):
+        """show=True → 网络搜索框（search 模式）；show=False → 本地过滤框。"""
         self.search_box.setVisible(show)
         self.search_btn.setVisible(show)
+        self.local_filter.setVisible(not show)
+        if show:
+            self.local_filter.clear()
+        else:
+            self.search_box.clear()
 
     def _set_status(self, text):
         self._status_key = None
@@ -299,7 +406,29 @@ class BrowsePage(QWidget):
         self._status_kwargs = kwargs
         self.status_lbl.setText(tr(key, *args, **kwargs))
 
+    def _show_loading(self, text):
+        """在列表中央显示转圈加载动画；text 为已翻译文案。"""
+        try:
+            self._loading.set_text(text)
+            self._loading.show()
+        except Exception:
+            pass
+
+    def _hide_loading(self):
+        try:
+            self._loading.hide()
+        except Exception:
+            pass
+
     def _reset(self):
+        self._suggest_timer.stop()
+        self._hide_suggest()
+        self._all_items = []
+        try:
+            self.local_filter.blockSignals(True)
+            self.local_filter.clear()
+        finally:
+            self.local_filter.blockSignals(False)
         self._suppress = True
         try:
             self._checked_keys.clear()
@@ -315,18 +444,32 @@ class BrowsePage(QWidget):
             self._set_status("")
         finally:
             self._suppress = False
+        # 常规重配置时退出顺序选集导航（若确实要进入，调用方会在之后
+        # 再显式 set_sequential_nav(True, ...)）。
+        if self._seq_mode:
+            self.set_sequential_nav(False)
         self._update_count()
 
     # ------------------------------------------------------------------ #
     # 勾选 / 计数
     # ------------------------------------------------------------------ #
     def _fill_table(self, items):
-        self.list.set_items(items)
-        for it in items:
+        self._all_items = list(items)
+        self._apply_view()
+
+    def _apply_view(self):
+        """对当前已加载项应用「本地过滤 + 排序」，勾选态按 key 保留。"""
+        items = filter_items(self._all_items, self.local_filter.text())
+        self.list.set_items(sort_items(items, self._sort_key))
+        for it in self._all_items:
             key = _key_of(it)
             if key in self._checked_keys:
                 self._selected[key] = it
         self._update_count()
+
+    def _on_local_filter_changed(self, text):
+        """本地过滤框输入变化：即时过滤当前已加载项。"""
+        self._apply_view()
 
     def _selected_items(self):
         return list(self._selected.values())
@@ -375,6 +518,22 @@ class BrowsePage(QWidget):
                     self.check_all.setCheckState(Qt.CheckState.PartiallyChecked)
         finally:
             self._suppress = False
+        # 按钮文案随选中项类型切换（UP主 / 分集容器 / 多类型混合）
+        key = "添加到下载队列"
+        if self._add_text_resolver is not None:
+            try:
+                key = self._add_text_resolver(self._selected_items()) or key
+            except Exception:
+                key = "添加到下载队列"
+        self._add_text_key = key
+        self.btn_add.setText(tr(key))
+
+    def _on_sort_changed(self, index):
+        """切换排序键：对当前已加载的可见项重排（勾选态按 key 保留）。"""
+        if not (0 <= index < len(SORT_KEYS)):
+            return
+        self._sort_key = SORT_KEYS[index]
+        self._apply_view()
 
     def _on_check_all(self, state=None):
         if self._suppress:
@@ -407,6 +566,50 @@ class BrowsePage(QWidget):
         self._update_count()
 
     # ------------------------------------------------------------------ #
+    # 顺序选集模式（多类型混合勾选时，逐个有分集容器让用户勾选）
+    # ------------------------------------------------------------------ #
+    def set_sequential_nav(self, on, on_prev=None, on_next=None):
+        """进入/退出「上一个·下一个」导航模式。
+
+        进入时隐藏「添加到下载队列」，显示「上一个 / 下一个」及进度标签；
+        退出时恢复常规底部按钮。回调由 MainWindow 提供，负责切换当前段。
+        """
+        self._seq_mode = bool(on)
+        if on:
+            self._seq_on_prev = on_prev
+            self._seq_on_next = on_next
+        self.seq_progress_lbl.setVisible(self._seq_mode)
+        self.btn_seq_prev.setVisible(self._seq_mode)
+        self.btn_seq_next.setVisible(self._seq_mode)
+        self.btn_add.setVisible(not self._seq_mode)
+
+    def update_sequential_nav(self, index, total, title=""):
+        """刷新第 index 段（0 基）的进度文案与按钮可用态。
+
+        ``title`` 兼容旧调用：非空时作为翻译键设置页头（无格式化参数）。
+        带参数的动态标题请改用 :meth:`set_header_title`。
+        """
+        self._seq_index = index
+        self._seq_total = total
+        self._seq_title = title or ""
+        self.seq_progress_lbl.setText(
+            tr("分集视频 {i}/{n}").format(i=index + 1, n=total))
+        self.btn_seq_prev.setEnabled(index > 0)
+        # 最后一段：下一个按钮变回「添加到下载队列」语义由回调内部处理，
+        # 文案仍显示「下一个」以保持视觉稳定；完成时由 MainWindow 恢复常规模式。
+        self.btn_seq_next.setEnabled(True)
+        if title:
+            self.header.set_title(title)
+
+    def _on_seq_prev(self):
+        if callable(self._seq_on_prev):
+            self._seq_on_prev()
+
+    def _on_seq_next(self):
+        if callable(self._seq_on_next):
+            self._seq_on_next()
+
+    # ------------------------------------------------------------------ #
     # 确认 / 添加
     # ------------------------------------------------------------------ #
     def _on_add(self):
@@ -424,7 +627,8 @@ class BrowsePage(QWidget):
             return
         self._busy = True
         self._set_nav_enabled(False)
-        self._set_status_key("正在加载第 {pn} 页...", pn=pn)
+        self._show_loading(tr("正在加载第 {pn} 页...").format(pn=pn))
+        self._set_status("")
         threading.Thread(target=self._fetch_thread, args=(pn,), daemon=True).start()
 
     def _fetch_thread(self, pn):
@@ -452,6 +656,7 @@ class BrowsePage(QWidget):
         if not has_more:
             self._last_pn = pn
         self._busy = False
+        self._hide_loading()
         self._fill_table(items)
         M = self._total_pn or self._last_pn
         if M:
@@ -479,6 +684,7 @@ class BrowsePage(QWidget):
 
     def _on_error(self, pn, err):
         self._busy = False
+        self._hide_loading()
         self._set_nav_enabled(True)
         self._set_status_key("加载失败")
         self.search_btn.setEnabled(True)
@@ -519,8 +725,143 @@ class BrowsePage(QWidget):
             items, has_more = (res or []), False
         return items, has_more
 
+    # ------------------------------------------------------------------ #
+    # 搜索联想（suggest）
+    # ------------------------------------------------------------------ #
+    def set_suggest_fn(self, fn):
+        """注入联想词获取函数 ``fn(keyword) -> list[str]``；None 表示禁用。"""
+        self._suggest_fn = fn
+
+    def _on_search_text_changed(self, text):
+        """输入变化：仅在搜索模式 + 已注入联想函数时防抖拉取联想。"""
+        self._suggest_timer.stop()
+        if self._mode != "search" or self._suggest_fn is None:
+            self._hide_suggest()
+            return
+        if len((text or "").strip()) < 1:
+            self._hide_suggest()
+            return
+        self._suggest_timer.start()
+
+    def _fetch_suggest(self):
+        """后台拉取联想词（序号防串扰：只接受最后一次请求的结果）。"""
+        kw = self.search_box.text().strip()
+        if not kw or self._suggest_fn is None:
+            return
+        self._suggest_seq += 1
+        seq = self._suggest_seq
+
+        def worker():
+            try:
+                return kw, seq, self._suggest_fn(kw) or []
+            except Exception:
+                return kw, seq, []
+
+        def done(result):
+            rkw, rseq, words = result
+            # 过期结果 / 输入已变化：丢弃
+            if rseq != self._suggest_seq or rkw != self.search_box.text().strip():
+                return
+            if words:
+                self._show_suggest(words)
+            else:
+                self._hide_suggest()
+
+        def target():
+            result = worker()                       # 线程内完成网络请求
+            run_on_main(lambda: done(result))       # 回主线程刷新弹窗
+
+        if not hasattr(self, "_suggest_threads"):
+            self._suggest_threads = []
+        self._suggest_threads = [t for t in self._suggest_threads
+                                 if t.is_alive()]
+        t = threading.Thread(target=target, daemon=True)
+        self._suggest_threads.append(t)
+        t.start()
+
+    def _show_suggest(self, words):
+        """在搜索框下方弹出联想列表。"""
+        if self._suggest_popup is None:
+            popup = QListWidget(self)
+            popup.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint)
+            popup.setAttribute(Qt.WA_ShowWithoutActivating, True)
+            popup.setUniformItemSizes(True)
+            popup.itemClicked.connect(self._on_suggest_picked)
+            self._suggest_popup = popup
+        self._stop_suggest_animation()
+        popup = self._suggest_popup
+        self._suggest_closing = False
+        popup.clear()
+        for w in words[:10]:
+            popup.addItem(QListWidgetItem(str(w)))
+        popup.setFixedWidth(self.search_box.width())
+        pos = self.search_box.mapToGlobal(self.search_box.rect().bottomLeft())
+        popup.move(pos)
+        popup.setWindowOpacity(0.0)
+        popup.show()
+        popup.raise_()
+        self._animate_suggest_opacity(1.0, 150)
+
+    def _hide_suggest(self):
+        self._suggest_seq += 1  # 使在途结果失效
+        popup = self._suggest_popup
+        if popup is None or not popup.isVisible() or self._suggest_closing:
+            return
+        self._suggest_closing = True
+        self._stop_suggest_animation()
+        self._animate_suggest_opacity(0.0, 120, hide_on_finish=True)
+
+    def _stop_suggest_animation(self):
+        animation = self._suggest_animation
+        if animation is not None:
+            animation.stop()
+            animation.deleteLater()
+            self._suggest_animation = None
+
+    def _animate_suggest_opacity(self, opacity, duration, hide_on_finish=False):
+        popup = self._suggest_popup
+        animation = QPropertyAnimation(popup, b"windowOpacity", self)
+        animation.setDuration(duration)
+        animation.setStartValue(popup.windowOpacity())
+        animation.setEndValue(opacity)
+        animation.setEasingCurve(
+            QEasingCurve.Type.OutCubic if opacity else QEasingCurve.Type.InCubic)
+        self._suggest_animation = animation
+
+        def finish():
+            if self._suggest_animation is not animation:
+                return
+            self._suggest_animation = None
+            animation.deleteLater()
+            if hide_on_finish and self._suggest_closing:
+                popup.hide()
+                popup.setWindowOpacity(1.0)
+                self._suggest_closing = False
+
+        animation.finished.connect(finish)
+        animation.start()
+
+    def eventFilter(self, watched, event):
+        popup = self._suggest_popup
+        if (event.type() == QEvent.Type.MouseButtonPress
+                and popup is not None and popup.isVisible()):
+            global_pos = event.globalPosition().toPoint()
+            in_search_box = self.search_box.rect().contains(
+                self.search_box.mapFromGlobal(global_pos))
+            if not popup.frameGeometry().contains(global_pos) and not in_search_box:
+                self._hide_suggest()
+        return super().eventFilter(watched, event)
+
+    def _on_suggest_picked(self, item):
+        """点选联想词：填入搜索框并立即发起搜索。"""
+        text = item.text()
+        self._hide_suggest()
+        self.search_box.setText(text)
+        self._do_search()
+
     def _do_search(self):
         kw = self.search_box.text().strip()
+        self._hide_suggest()
         if not kw:
             return
         self._keyword = kw
@@ -540,7 +881,23 @@ class BrowsePage(QWidget):
         self.jump_label.setText(tr("跳至"))
         self.btn_jump.setText(tr("跳转"))
         self.search_btn.setText(tr("搜索"))
-        self.btn_add.setText(tr("添加到下载队列"))
+        self.btn_add.setText(tr(self._add_text_key))
+        self.sort_label.setText(tr("排序"))
+        self.local_filter.setPlaceholderText(tr("搜索当前列表（标题 / UP主）…"))
+        try:
+            self.sort_combo.blockSignals(True)
+            cur = self.sort_combo.currentIndex()
+            self.sort_combo.clear()
+            self.sort_combo.addItems([tr(SORT_LABELS[k]) for k in SORT_KEYS])
+            self.sort_combo.setCurrentIndex(max(0, cur))
+        finally:
+            self.sort_combo.blockSignals(False)
+        self.btn_seq_prev.setText(tr("上一个"))
+        self.btn_seq_next.setText(tr("下一个"))
+        if self._seq_mode:
+            self.seq_progress_lbl.setText(
+                tr("分集视频 {i}/{n}").format(i=self._seq_index + 1,
+                                              n=self._seq_total))
         if self._mode == "search" and self._search_placeholder_key:
             self.search_box.setPlaceholderText(tr(self._search_placeholder_key))
         self._update_count()
@@ -700,7 +1057,8 @@ class FollowingPage(QWidget):
         h.addLayout(info, stretch=1)
 
         open_btn = PrimaryPushButton(tr("打开TA的个人空间"), row)
-        open_btn.clicked.connect(lambda _=False, m=mid: self._open_space(m))
+        open_btn.clicked.connect(
+            lambda _=False, m=mid, n=uname: self._open_space(m, n))
         h.addWidget(open_btn)
 
         browser_btn = TransparentToolButton(FluentIcon.LINK, row)
@@ -732,11 +1090,14 @@ class FollowingPage(QWidget):
         lab.setImage(pix)
         lab.setFixedSize(56, 56)
 
-    def _open_space(self, mid):
+    def _open_space(self, mid, name=None):
         if mid is None:
             return
         if callable(self.on_open_space):
-            self.on_open_space(mid)
+            try:
+                self.on_open_space(mid, name)
+            except TypeError:
+                self.on_open_space(mid)
 
     def retranslate(self):
         self.header.retranslate()

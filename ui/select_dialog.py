@@ -20,12 +20,14 @@ import threading
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout
 
-from qfluentwidgets import CaptionLabel, CheckBox, PushButton, SpinBox
+from qfluentwidgets import CaptionLabel, CheckBox, ComboBox, PushButton, SpinBox, SearchLineEdit
 
 from utils.i18n import tr
 from utils.main_thread import run_on_main
 from ui.fluent_dialog import FluentContentDialog, msg_info, msg_error
 from ui.select_list_view import SelectListView, _key_of
+from ui.list_tools import SORT_KEYS, SORT_LABELS, sort_items, filter_items
+from ui.loading_overlay import wrap as wrap_loading
 from ui.list_layout import LayoutModeToggle
 
 
@@ -38,6 +40,10 @@ class SelectDialogBase(FluentContentDialog):
         self._selected = {}          # key(url/bvid) -> item dict，跨页保留已选项
         self._checked_keys = set()   # 勾选真值源（SelectListView 读取）
         self._suppress = False
+        self._all_items = []         # 当前已加载项（用于本地过滤 + 排序）
+        self._sort_key = "default"
+        self._add_text_key = "确认"  # 确认按钮文案翻译键（可由外部注入 resolver 动态改）
+        self._add_text_resolver = None
         self._build_content()
 
     # ------------------------------------------------------------------ #
@@ -54,12 +60,26 @@ class SelectDialogBase(FluentContentDialog):
         top.addWidget(self.check_all)
         top.addWidget(self.count_lab)
         top.addStretch(1)
+        # 样式同「我的关注」搜索框：SearchLineEdit + 清除按钮 + 输入即时本地过滤
+        self.local_filter = SearchLineEdit(self)
+        self.local_filter.setClearButtonEnabled(True)
+        self.local_filter.setPlaceholderText(tr("搜索当前列表（标题 / UP主）…"))
+        self.local_filter.setMinimumWidth(200)
+        self.local_filter.textChanged.connect(self._on_local_filter_changed)
+        top.addWidget(self.local_filter)
+        self.sort_combo = ComboBox(self)
+        self.sort_combo.addItems([tr(SORT_LABELS[k]) for k in SORT_KEYS])
+        self.sort_combo.setMinimumWidth(110)
+        self.sort_combo.currentIndexChanged.connect(self._on_sort_changed)
+        top.addWidget(self.sort_combo)
         self.add_layout(top)
 
         # 选择列表（圆角封面 + 勾选框 + 副信息，参照 bili23）
+        # 包一层加载遮罩：解析/翻页时中央显示转圈动画
         self.list = SelectListView(self._checked_keys, self)
         self.list.rowClicked.connect(self._on_row_clicked)
-        self.add_widget(self.list, 1)
+        self._list_container, self._loading = wrap_loading(self.list)
+        self.add_widget(self._list_container, 1)
 
         # 子类可在此插入额外控件（如分页栏）
         self._build_extra()
@@ -79,6 +99,19 @@ class SelectDialogBase(FluentContentDialog):
     # ------------------------------------------------------------------ #
     # 选择 / 计数
     # ------------------------------------------------------------------ #
+    def _show_loading(self, text):
+        try:
+            self._loading.set_text(text)
+            self._loading.show()
+        except Exception:
+            pass
+
+    def _hide_loading(self):
+        try:
+            self._loading.hide()
+        except Exception:
+            pass
+
     def _fill_table(self, items):
         """清空并填入一页 items；勾选态由 self._checked_keys 还原（跨页保留）。
 
@@ -91,12 +124,27 @@ class SelectDialogBase(FluentContentDialog):
         注意：绝不能「只保留当前页存在的键」——那会误删其它页的已选项，违背
         跨页保留需求。
         """
-        self.list.set_items(items)
-        for it in items:
+        self._all_items = list(items)
+        self._apply_view()
+        for it in self._all_items:
             key = _key_of(it)
             if key in self._checked_keys:
                 self._selected[key] = it
+
+    def _apply_view(self):
+        """对当前已加载项应用「本地过滤 + 排序」，勾选态按 key 保留。"""
+        items = filter_items(self._all_items, self.local_filter.text())
+        self.list.set_items(sort_items(items, self._sort_key))
         self._update_count()
+
+    def _on_local_filter_changed(self, text):
+        self._apply_view()
+
+    def _on_sort_changed(self, index):
+        if not (0 <= index < len(SORT_KEYS)):
+            return
+        self._sort_key = SORT_KEYS[index]
+        self._apply_view()
 
     def _selected_items(self):
         return list(self._selected.values())
@@ -148,6 +196,20 @@ class SelectDialogBase(FluentContentDialog):
                     self.check_all.setCheckState(Qt.CheckState.PartiallyChecked)
         finally:
             self._suppress = False
+        # 确认按钮文案随选中项类型切换（批量解析入口注入 resolver）
+        key = "确认"
+        if self._add_text_resolver is not None:
+            try:
+                key = self._add_text_resolver(self._selected_items()) or key
+            except Exception:
+                key = "确认"
+        self._add_text_key = key
+        self.btn_ok.setText(tr(key))
+
+    def set_add_text_resolver(self, fn):
+        """注入「选中项 → 确认按钮文案翻译键」解析器。"""
+        self._add_text_resolver = fn
+        self._update_count()
 
     def _on_check_all(self, state=None):
         if self._suppress:
@@ -221,10 +283,12 @@ class SelectDialog(SelectDialogBase):
         - on=False：清除提示（可附 ``message`` 作为终态文案，如「获取失败」）。
         """
         if on:
-            self._status.setText(message or tr("加载中..."))
+            self._status.setText("")
+            self._show_loading(message or tr("加载中..."))
             self.list.set_items([])
             self.btn_ok.setEnabled(False)
         else:
+            self._hide_loading()
             self._status.setText(message or "")
 
     def set_status(self, text):
@@ -233,6 +297,7 @@ class SelectDialog(SelectDialogBase):
     def fill(self, items):
         """后台拉取完成后填充数据并结束加载态。"""
         self._fill_table(list(items))
+        self._hide_loading()
         self._status.setText("")
 
 
@@ -297,7 +362,8 @@ class PaginationMixin:
             return
         self._busy = True
         self._set_nav_enabled(False)
-        self.status_lbl.setText(tr("正在加载第 {pn} 页...").format(pn=pn))
+        self._show_loading(tr("正在加载第 {pn} 页...").format(pn=pn))
+        self.status_lbl.setText("")
         threading.Thread(target=self._fetch_thread, args=(pn,), daemon=True).start()
 
     def _fetch_thread(self, pn):
@@ -320,6 +386,7 @@ class PaginationMixin:
     def _render_page(self, pn, items, has_more, total=None):
         self.pn = pn
         self.has_more = has_more
+        self._hide_loading()
         if total is not None:
             self._total_pn = total
         if not has_more:
@@ -352,6 +419,7 @@ class PaginationMixin:
 
     def _on_error(self, pn, err):
         self._busy = False
+        self._hide_loading()
         self._set_nav_enabled(True)
         self.status_lbl.setText(tr("加载失败"))
         msg_error(self, tr("加载第 {pn} 页失败：{err}").format(pn=pn, err=err))

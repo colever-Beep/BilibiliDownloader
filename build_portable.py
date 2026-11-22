@@ -38,15 +38,15 @@ except Exception:
 datas = []
 for loc in glob.glob(os.path.join(ROOT, "utils", "locales_*.py")):
     datas.append(f"{loc};utils")
-# 应用图标 icon.ico：源文件保留在根目录（D:\VScode\b\icon.ico）不随包作为松散文件分发，
+# 应用图标 icon.ico：源文件位于 ui/assets/brand/icon.ico，
 # 但需随包进入 _MEIPASS 临时目录，供运行时 resource_path("icon.ico") 取到 -> 窗口标题栏图标生效。
 # 同时用 --icon 把图标嵌入 exe（任务栏 / 资源管理器图标）。dist 根目录不出现松散 icon.ico。
-ICON = os.path.join(ROOT, "icon.ico")
+ICON = os.path.join(ROOT, "ui", "assets", "brand", "icon.ico")
 if os.path.exists(ICON):
     datas.append(f"{ICON};.")
 
-# 未登录占位头像 not_logged_in.jpeg（根目录），随包进入 _MEIPASS，供 resource_path("not_logged_in.jpeg") 取到
-PLACEHOLDER_AVATAR = os.path.join(ROOT, "not_logged_in.jpeg")
+# 未登录占位头像 not_logged_in.jpeg（ui/assets/avatars/），
+PLACEHOLDER_AVATAR = os.path.join(ROOT, "ui", "assets", "avatars", "not_logged_in.jpeg")
 if os.path.exists(PLACEHOLDER_AVATAR):
     datas.append(f"{PLACEHOLDER_AVATAR};.")
 

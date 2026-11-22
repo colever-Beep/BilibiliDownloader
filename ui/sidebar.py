@@ -32,6 +32,11 @@ from PySide6.QtWidgets import QSizePolicy
 from qfluentwidgets import (
     NavigationInterface, NavigationItemPosition, FluentIcon, RoundMenu, Action,
 )
+
+# 主导航分组放进 SCROLL 区（可滚动），而非默认 TOP 固定区。
+# qfluentwidgets 的 topLayout 是固定高度（不滚动），若把 10+ 个导航项都放 TOP，
+# 总高度超出面板时会把项挤重叠（曾导致 user_card 与「我的」标题重叠 43px）。
+_SCROLL = NavigationItemPosition.SCROLL
 from qfluentwidgets.components.navigation.navigation_panel import NavigationDisplayMode
 from qfluentwidgets.components.navigation.navigation_widget import (
     NavigationItemHeader, NavigationWidget,
@@ -72,7 +77,7 @@ def _nav_fluent_icon(name):
         "following": "HEART", "season": "LIBRARY", "popular": "TAG",
         "ranking": "PEOPLE", "search": "SEARCH", "music": "MUSIC",
         "live_center": "VIDEO", "settings": "SETTING", "about": "INFO",
-        "language": "LANGUAGE",
+        "language": "LANGUAGE", "feedback": "FEEDBACK",
     }
     member = mapping.get(name, "TAG")
     return getattr(FluentIcon, member, FluentIcon.TAG)
@@ -117,6 +122,17 @@ class NavigationBar(NavigationInterface):
         # 未登录占位头像（根目录 not_logged_in.jpeg，随包走 _MEIPASS）
         self._set_placeholder_avatar()
 
+        # 头像缩放与面板折叠同步：
+        # qfluentwidgets 默认在折叠动画「结束」后才把头像从 64px 缩到 24px，
+        # 而面板折叠动画只有 150ms——头像来不及缩就被收窄的面板裁切（截断闪烁）。
+        # 这里禁用 user_card 自带的滞后动画，改为按面板当前宽度实时插值头像半径，
+        # 让头像与面板同步缩放，消除截断。
+        try:
+            self.user_card._animationGroup.stop()
+            self.panel.expandAni.valueChanged.connect(self._sync_avatar_radius)
+        except Exception:
+            pass
+
         # 依据配置决定初始展开 / 折叠
         self._collapsed = bool(config.get("sidebar_collapsed", False)) if config else False
         if not self._collapsed:
@@ -124,6 +140,8 @@ class NavigationBar(NavigationInterface):
             self.expand(False)
             # 立即固定宽度，避免首帧从 48 闪到 220（expand 的几何更新需事件循环派发）
             self.setFixedWidth(self.panel.expandWidth)
+            # 头像同步到展开终态（禁用自带动画后需手动设一次，否则 radius 停在 12）
+            self._sync_avatar_radius()
             # 分组标题立即到位（不依赖高度动画时序，避免启动瞬间标题缺失）
             for h in self.findChildren(NavigationItemHeader):
                 h.setCompacted(False)
@@ -151,14 +169,14 @@ class NavigationBar(NavigationInterface):
             position=NavigationItemPosition.TOP, aboveMenuButton=False,
         )
 
-        # 分组：我的
-        self._header_my = self.addItemHeader(tr("我的"))
+        # 分组：我的（放 SCROLL 区，避免 TOP 固定区过载导致与用户卡片重叠）
+        self._header_my = self.addItemHeader(tr("我的"), _SCROLL)
         for route_key, text_fn, icon in _NAV_GROUPS[0][1]:
             self._add_nav_item(route_key, text_fn, icon)
 
         # 分隔 + 分组：发现
-        self.addSeparator()
-        self._header_discover = self.addItemHeader(tr("发现"))
+        self.addSeparator(_SCROLL)
+        self._header_discover = self.addItemHeader(tr("发现"), _SCROLL)
         for route_key, text_fn, icon in _NAV_GROUPS[1][1]:
             self._add_nav_item(route_key, text_fn, icon)
 
@@ -167,6 +185,11 @@ class NavigationBar(NavigationInterface):
             "language", _nav_fluent_icon("language"), tr("界面语言"),
             onClick=self._open_language_menu, selectable=False,
             position=NavigationItemPosition.BOTTOM, tooltip=tr("界面语言"),
+        )
+        self.feedback_item = self.addItem(
+            "feedback", _nav_fluent_icon("feedback"), tr("反馈"),
+            onClick=lambda _checked=False: self._on_item("feedback"), selectable=False,
+            position=NavigationItemPosition.BOTTOM, tooltip=tr("反馈"),
         )
         self.settings_item = self.addItem(
             "settings", _nav_fluent_icon("settings"), tr("设置"),
@@ -183,7 +206,7 @@ class NavigationBar(NavigationInterface):
         item = self.addItem(
             route_key, _nav_fluent_icon(icon), text_fn(),
             onClick=lambda _checked=False, rk=route_key: self._on_item(rk),
-            selectable=True, tooltip=text_fn(),
+            selectable=True, tooltip=text_fn(), position=_SCROLL,
         )
         self._items[route_key] = item
 
@@ -192,6 +215,27 @@ class NavigationBar(NavigationInterface):
         self.setCurrentItem(route_key)
         if self.on_nav_click:
             self.on_nav_click(route_key, None)
+
+    def _sync_avatar_radius(self, *_args):
+        """按面板当前宽度插值头像半径，使头像与折叠动画同步缩放，避免被裁切。
+
+        面板宽度在 48（紧凑）~ expandWidth（展开）之间变化；头像半径对应
+        12（24px）~ 32（64px）。同时更新头像位置，防止展开态头像偏上。
+        """
+        card = getattr(self, "user_card", None)
+        if card is None or not hasattr(card, "avatar"):
+            return
+        try:
+            expand_w = float(self.panel.expandWidth) or 220.0
+            cur_w = float(self.panel.width())
+            lo, hi = 48.0, expand_w
+            t = 0.0 if hi <= lo else max(0.0, min(1.0, (cur_w - lo) / (hi - lo)))
+            radius = 12.0 + 20.0 * t  # 12 -> 32
+            card.avatar.setRadius(radius)
+            card.avatar.move(8, 6) if t < 0.5 else card.avatar.move(
+                16, (card.height() - card.avatar.height()) // 2)
+        except Exception:
+            pass
 
     def _on_user_card_click(self):
         if self.api.uid:
@@ -281,6 +325,8 @@ class NavigationBar(NavigationInterface):
         # 底部项
         self.lang_item.setText(tr("界面语言"))
         self.lang_item.setToolTip(tr("界面语言"))
+        self.feedback_item.setText(tr("反馈"))
+        self.feedback_item.setToolTip(tr("反馈"))
         self.settings_item.setText(tr("设置"))
         self.settings_item.setToolTip(tr("设置"))
         self.about_item.setText(tr("关于"))

@@ -143,8 +143,6 @@ def main():
                     # 刷新侧边栏用户卡（头像/昵称/状态）与登录提示态。
                     # 注意：必须用 run_on_main 回到主线程，否则 Qt 控件操作在工作线程会崩。
                     win.update_login_hint()
-                    # 首次登录成功展示一次接口频率限制提醒（持久化，之后不再弹）。
-                    # 自动校验登录态时同样只在「从未弹过」时弹一次，不会反复打扰。
                     win._maybe_show_login_api_warning()
                 run_on_main(_after)
             else:

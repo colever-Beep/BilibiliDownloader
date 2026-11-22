@@ -59,4 +59,13 @@ FRAGMENT = {
     "点击查看更新详情或下载。": {"zh_TW": "點擊查看更新詳情或下載。", "en": "Click to view update details or download.", "ja": "クリックして更新詳細を表示またはダウンロード。"},
     "查看": {"zh_TW": "查看", "en": "View", "ja": "表示"},
     "点击运行安装程序完成更新。": {"zh_TW": "點擊執行安裝程式完成更新。", "en": "Click to run the installer and finish updating.", "ja": "クリックしてインストーラーを実行し、更新を完了してください。"},
+    # ---- 下载镜像 ----
+    "下载镜像": {"zh_TW": "下載鏡像", "en": "Download mirror", "ja": "ダウンロードミラー"},
+    "GitHub 下载缓慢时可切换加速镜像；失效请切回官方": {"zh_TW": "GitHub 下載緩慢時可切換加速鏡像；失效請切回官方", "en": "Switch to a mirror when GitHub downloads are slow; fall back to official if it fails", "ja": "GitHub のダウンロードが遅い場合はミラーに切り替え、失敗したら公式に戻してください"},
+    "GitHub 官方": {"zh_TW": "GitHub 官方", "en": "GitHub (official)", "ja": "GitHub（公式）"},
+    "gh-proxy.com": {"zh_TW": "gh-proxy.com", "en": "gh-proxy.com", "ja": "gh-proxy.com"},
+    "ghproxy.net": {"zh_TW": "ghproxy.net", "en": "ghproxy.net", "ja": "ghproxy.net"},
+    "自定义镜像": {"zh_TW": "自訂鏡像", "en": "Custom mirror", "ja": "カスタムミラー"},
+    "自定义镜像模板": {"zh_TW": "自訂鏡像範本", "en": "Custom mirror template", "ja": "カスタムミラーテンプレート"},
+    "含 {url} 占位符则替换，否则视为网址前缀": {"zh_TW": "含 {url} 佔位符則替換，否則視為網址前綴", "en": "Use {url} placeholder to substitute, otherwise treated as a URL prefix", "ja": "{url} プレースホルダーがあれば置換、なければ URL プレフィックスとして扱う"},
 }

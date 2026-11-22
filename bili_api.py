@@ -821,7 +821,7 @@ class BiliAPI:
             print(f"[番剧] 异常: {e}")
             return []
 
-    # ========== 视频详情 / 合集(ugc_season) / 分P（原生，仿 bili23 video episode parser） ==========
+    # ========== 视频详情 / 合集(ugc_season) / 分P ==========
     def get_video_pages(self, bvid):
         """获取单个视频的详情，并识别其是否属于合集(ugc_season)或多分P。
 
@@ -854,7 +854,7 @@ class BiliAPI:
             "publish_time": self.format_timestamp(data.get("pubdate") or data.get("ctime")),
             "uploader": owner,
         }
-        # 合集（视频页内嵌 ugc_season），仿 bili23 video episode parser
+        # 合集（视频页内嵌 ugc_season）
         collection = []
         ugc = data.get("ugc_season")
         if ugc:
@@ -906,7 +906,7 @@ class BiliAPI:
             "is_collection": bool(collection),
         }
 
-    # ========== 空间合集 / 系列（原生，仿 bili23 ListParser） ==========
+    # ========== 空间合集 / 系列 ==========
     def get_space_season_videos(self, mid, season_id, ps=30, max_pages=20, max_items=600):
         """空间合集(列表)视频，仿 bili23 ListParser.get_seasons_archives_list。
         端点 x/polymer/web-space/seasons_archives_list，总数字段 data.page.total。"""
@@ -1310,6 +1310,35 @@ class BiliAPI:
                 break
         print(f"[动态] 共 {len(all_items)} 个视频")
         return all_items
+
+    # ========== 搜索联想（suggest）==========
+    def get_search_suggest(self, keyword):
+        """搜索框联想词：返回纯文本联想词列表，失败/无结果静默返回 []。
+
+        使用 B 站免签名接口 `s.search.bilibili.com/main/suggest`，仅取 `result.tag`
+        的 `value` 字段（已去除高亮 HTML）。该接口随时可能变动，因此任何异常都
+        静默降级为空列表，绝不影响正常搜索。
+        """
+        kw = (keyword or "").strip()
+        if not kw:
+            return []
+        try:
+            resp = self.session.get(
+                "https://s.search.bilibili.com/main/suggest",
+                params={"term": kw, "main_ver": "v3"}, timeout=6)
+            data = resp.json()
+            if data.get("code") != 0:
+                return []
+            tags = ((data.get("result") or {}).get("tag") or [])
+            out, seen = [], set()
+            for t in tags:
+                val = str((t or {}).get("value") or "").strip()
+                if val and val not in seen:
+                    seen.add(val)
+                    out.append(val)
+            return out[:10]
+        except Exception:
+            return []
 
     # ========== 综合搜索（search）原生，仿 bili23 搜索入口 ==========
     def get_search_results(self, keyword, page=1):

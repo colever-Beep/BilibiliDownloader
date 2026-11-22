@@ -79,7 +79,7 @@ def pyinstaller_args(icns_path):
     datas = []
     for loc in glob.glob(os.path.join(ROOT, "utils", "locales_*.py")):
         datas.append(loc + SEP + "utils")
-    for f in ("icon.ico", "not_logged_in.jpeg"):
+    for f in ("ui/assets/brand/icon.ico", "ui/assets/avatars/not_logged_in.jpeg"):
         p = os.path.join(ROOT, f)
         if os.path.exists(p):
             datas.append(p + SEP + ".")
@@ -155,7 +155,7 @@ def build_dmg():
     bake_i18n()
 
     icns = os.path.join(WORK, "app.icns")
-    ico = os.path.join(ROOT, "icon.ico")
+    ico = os.path.join(ROOT, "ui", "assets", "brand", "icon.ico")
     if os.path.exists(ico):
         make_icns(ico, icns)
     else:

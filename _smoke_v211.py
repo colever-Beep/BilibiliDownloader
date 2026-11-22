@@ -13,15 +13,17 @@ app = QApplication(sys.argv)
 
 # ---------------------------------------------------------------- 1. 版本工具
 from utils.version import APP_VERSION, is_newer, normalize_version
-assert APP_VERSION == "2.1.2", APP_VERSION
+assert APP_VERSION == "2.2.0", APP_VERSION
 assert normalize_version("v2.1.1") == (2, 1, 1, 0)
 assert normalize_version("2.1.2") == (2, 1, 2, 0)
+assert normalize_version("2.2.0") == (2, 2, 0, 0)
 assert normalize_version("v3.0") == (3, 0, 0, 0)
 assert normalize_version("garbage") == (0, 0, 0, 0)
 assert normalize_version("v2.1.1.1") == (2, 1, 1, 1)
 assert is_newer("2.1.1.1", "2.1.1") is True
 assert is_newer("2.1.1.1", "2.1.1.1") is False
 assert is_newer("2.1.2", "2.1.1") is True
+assert is_newer("2.2.0", "2.1.2") is True
 assert is_newer("2.1.1", "2.1.1") is False
 assert is_newer("2.1.0", "2.1.1") is False
 print("1) version OK  APP_VERSION =", APP_VERSION)
@@ -106,6 +108,7 @@ print("6) error-capture lambda OK ->", type(err_holder[0]).__name__)
 from ui.settings_window import SettingsWindow
 sw = SettingsWindow(None, cm, None, None, None)
 try:
+    sw.ensure_all_pages_built()  # 设置窗口采用 show 后分帧懒构建，烟测需同步补齐
     sw.show()
     app.processEvents()
     nav = sw.navigationInterface

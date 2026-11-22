@@ -135,9 +135,9 @@ SET_W, SET_H = 980, 700
 
 # 更新页演示数据：构造一个「发现新版本」状态（不联网、不触发下载）
 DEMO_UPDATE = UpdateInfo(
-    version="2.1.1.1",
-    tag="v2.1.1.1",
-    name="BilibiliDownloader v2.1.1.1",
+    version="2.2.0",
+    tag="v2.2.0",
+    name="BilibiliDownloader v2.2.0",
     body=(
         "### 新增\n"
         "- 内置更新检查：支持 **稳定版 / 测试版** 两条通道\n"
@@ -151,9 +151,9 @@ DEMO_UPDATE = UpdateInfo(
     published_at="2026-10-31",
     prerelease=False,
     assets=[
-        Asset(name="BilibiliDownloader_Setup_v2.1.2.exe",
+        Asset(name="BilibiliDownloader_Setup_v2.2.0.exe",
               url="https://example.invalid/setup.exe", size=98 * 1024 * 1024),
-        Asset(name="BilibiliDownloader_v2.1.2_portable.zip",
+        Asset(name="BilibiliDownloader_v2.2.0_portable.zip",
               url="https://example.invalid/portable.zip", size=112 * 1024 * 1024),
     ],
 )
@@ -358,6 +358,12 @@ def build_settings_window(app, config):
     )
     sw.resize(SET_W, SET_H)
     sw.show()
+    # 设置窗口采用 show 后分帧懒构建，离屏截图环境 QTimer 可能不派发，
+    # 这里同步补齐所有页，确保 _update 等页面可用于后续截图。
+    try:
+        sw.ensure_all_pages_built()
+    except Exception:
+        pass
     QTest.qWait(300)          # 等导航展开/卡片入场动画走完
     _pump(app, 8)
     try:
@@ -370,7 +376,7 @@ def build_settings_window(app, config):
 
 
 def show_update_state(app, sw):
-    """把更新页切到「发现新版本 2.1.2」，用于演示截图。"""
+    """把更新页切到「发现新版本 2.2.0」，用于演示截图。"""
     try:
         sw.switchTo(sw._update)
     except Exception:

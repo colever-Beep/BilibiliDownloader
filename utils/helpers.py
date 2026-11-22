@@ -257,8 +257,12 @@ def duration_to_seconds(value):
         return 0
 
 
-def send_windows_notification(title, message, duration=5):
-    """通过应用的可见托盘图标发送系统通知。"""
+def send_windows_notification(title, message, duration=5, on_clicked=None):
+    """通过应用的可见托盘图标发送 Windows 系统通知（气泡）。
+
+    on_clicked: 可选，点击通知气泡时在主线程调用的回调（如打开更新对话框）。
+    用 tray 的 messageClicked 信号；采用「一次性连接」避免多次通知后回调累积。
+    """
     try:
         from PySide6.QtCore import QThread
         from PySide6.QtWidgets import QApplication, QSystemTrayIcon
@@ -278,6 +282,17 @@ def send_windows_notification(title, message, duration=5):
             if tray_icon is None:
                 print("[Notification] No visible tray icon supports system messages.")
                 return False
+            if callable(on_clicked):
+                def _clicked():
+                    try:
+                        tray_icon.messageClicked.disconnect(_clicked)
+                    except Exception:
+                        pass
+                    on_clicked()
+                try:
+                    tray_icon.messageClicked.connect(_clicked)
+                except Exception:
+                    pass
             tray_icon.showMessage(
                 title,
                 message,

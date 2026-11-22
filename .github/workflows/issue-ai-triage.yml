@@ -1,0 +1,105 @@
+name: Issue AI 预筛
+
+# 新提交的 Bug 反馈 / 功能建议进入议题区后：
+# - 若仓库配置了 AI 密钥（Secrets: AI_API_KEY），由 AI 给出「是否采纳」的参考意见；
+# - 未配置密钥则静默跳过，完全交由人工审核（对应「如果可用」）。
+# AI 只打建议标签 + 发表评论，绝不自动关闭议题；open/closed 最终由维护者人工决定。
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: AI 预筛并给出建议
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_API_BASE: ${{ vars.AI_API_BASE || 'https://api.openai.com/v1' }}
+          AI_MODEL: ${{ vars.AI_MODEL || 'gpt-4o-mini' }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+
+          key = os.environ.get("AI_API_KEY", "")
+          if not key:
+              print("未配置 AI_API_KEY，跳过 AI 预筛，交由人工审核。")
+              raise SystemExit(0)
+
+          title = os.environ.get("ISSUE_TITLE", "")
+          body = (os.environ.get("ISSUE_BODY") or "")[:6000]
+          number = os.environ["ISSUE_NUMBER"]
+          repo = os.environ["REPO"]
+          base = os.environ.get("AI_API_BASE", "https://api.openai.com/v1").rstrip("/")
+          model = os.environ.get("AI_MODEL", "gpt-4o-mini")
+
+          system = (
+              "你是开源项目 BilibiliDownloader（B站下载器）的议题审核助手。"
+              "判断该议题是否值得采纳（采纳=保持 open 纳入处理，不采纳=可关闭并说明原因）。"
+              "只输出 JSON：{\"decision\": \"accept\" 或 \"reject\", \"reason\": \"简短中文理由\"}。"
+              "不要输出其它内容。理由要具体、礼貌。"
+          )
+          payload = {
+              "model": model,
+              "messages": [
+                  {"role": "system", "content": system},
+                  {"role": "user", "content": f"标题：{title}\n\n正文：\n{body}"},
+              ],
+              "temperature": 0.2,
+          }
+          req = urllib.request.Request(
+              base + "/chat/completions",
+              data=json.dumps(payload).encode("utf-8"),
+              headers={"Authorization": "Bearer " + key,
+                       "Content-Type": "application/json"},
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=60) as resp:
+                  data = json.load(resp)
+              content = data["choices"][0]["message"]["content"]
+              result = json.loads(content.strip().strip("`"))
+              decision = "accept" if result.get("decision") == "accept" else "reject"
+              reason = str(result.get("reason", ""))[:500]
+          except Exception as exc:  # AI 不可用时不影响人工审核
+              print("AI 预筛失败（忽略，交由人工审核）：", exc)
+              raise SystemExit(0)
+
+          label = "ai:建议采纳" if decision == "accept" else "ai:建议关闭"
+          verdict = "建议采纳（保持 open）" if decision == "accept" else "建议关闭（closed）"
+          comment = (
+              "**AI 预筛意见（仅供参考）**：" + verdict + "\n\n"
+              + reason + "\n\n"
+              + "> 本意见由 AI 自动生成，最终是否采纳由维护者人工决定。"
+              + "AI 不会自动关闭议题。"
+          )
+
+          def gh_api(path, obj):
+              r = urllib.request.Request(
+                  "https://api.github.com/repos/" + repo + path,
+                  data=json.dumps(obj).encode("utf-8"),
+                  headers={"Authorization": "Bearer " + os.environ["GH_TOKEN"],
+                           "Accept": "application/vnd.github+json",
+                           "Content-Type": "application/json"},
+                  method="POST",
+              )
+              with urllib.request.urlopen(r, timeout=60) as resp:
+                  return resp.status
+
+          try:
+              gh_api(f"/issues/{number}/comments", {"body": comment})
+          except Exception as exc:
+              print("发表评论失败：", exc)
+          try:
+              gh_api(f"/issues/{number}/labels", {"labels": [label]})
+          except Exception as exc:
+              print("添加标签失败：", exc)
+          PY

@@ -23,19 +23,21 @@ from __future__ import annotations
 import os
 
 from PySide6.QtCore import QEventLoop, QSize, QTimer, Qt
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtWidgets import (
-    QApplication, QButtonGroup, QDialog, QHBoxLayout, QVBoxLayout,
+    QApplication, QButtonGroup, QDialog, QHBoxLayout, QVBoxLayout, QWidget,
 )
 
 from qfluentwidgets import (
     BodyLabel, CaptionLabel, FluentWidget, FluentWidgetTitleBar, MessageBox,
-    Pivot, PopUpAniStackedWidget, PrimaryPushButton, PushButton, RadioButton,
+    MessageBoxBase, Pivot, PopUpAniStackedWidget, PrimaryPushButton, PushButton,
+    RadioButton,
 )
 
 from utils.i18n import tr, register
 from utils.resources import get_app_icon_path
 from utils.window_helpers import bring_to_foreground
+from ui.mascot import inject_into_message_box
 
 # --------------------------------------------------------------------------- #
 # qframelesswindow 兼容性补丁
@@ -364,8 +366,12 @@ class _MessageDialog(FluentContentDialog):
     """无父窗口时的自绘兜底消息框（qfluentwidgets.MessageBox 必须有 parent）。"""
 
     def __init__(self, parent, title, content, with_cancel=False,
-                 ok_text=None, cancel_text=None):
+                 ok_text=None, cancel_text=None, mascot_kind=None):
         super().__init__((420, 210), parent, title)
+        if mascot_kind:
+            from ui.mascot import make_mascot_label
+            mascot = make_mascot_label(mascot_kind, 100, self)
+            self.contentLayout.addWidget(mascot, alignment=Qt.AlignHCenter)
         lab = BodyLabel(content, self)
         lab.setWordWrap(True)
         self.add_widget(lab, 1)
@@ -394,17 +400,30 @@ def _resolve_parent(parent):
 
 
 def _message(parent, title, content, with_cancel=False,
-             ok_text=None, cancel_text=None):
+             ok_text=None, cancel_text=None, mascot_kind=None):
     """弹一个 Fluent 消息框，返回 1（确定 / 关闭）或 0（取消）。"""
     global _message_dialog_active
     if _message_dialog_active:
         return 0
     _message_dialog_active = True
+    # 看板娘语气：标题加表情徽标、短正文加落款（在显示层装饰，两条路径通用）。
+    # 标题若已含同一 emoji（例如 tr("下载完成") 白名单已带 🎉）则不重复叠加。
+    try:
+        from utils.mascot_voice import badge_for, signoff_for
+        badge = badge_for(mascot_kind)
+        if badge and badge not in title:
+            title = f"{badge} {title}"
+        content = content + signoff_for(mascot_kind, content)
+    except Exception:
+        pass
     try:
         parent = _resolve_parent(parent)
         if parent is None:
-            return int(bool(_MessageDialog(None, title, content, with_cancel).exec()))
+            return int(bool(_MessageDialog(None, title, content, with_cancel,
+                                           mascot_kind=mascot_kind).exec()))
         mb = MessageBox(title, content, parent)
+        if mascot_kind:
+            inject_into_message_box(mb, mascot_kind)
         try:
             mb.setWindowIcon(_child_window_icon(parent))
         except Exception:
@@ -424,24 +443,34 @@ def _message(parent, title, content, with_cancel=False,
 
 
 def msg_info(parent, content, title=None, ok_text=None):
-    """提示消息框（仅「确定」）。"""
-    return _message(parent, title or tr("提示"), content, ok_text=ok_text)
+    """提示消息框（仅「确定」），带看板娘（挥手）。"""
+    return _message(parent, title or tr("提示"), content, ok_text=ok_text,
+                    mascot_kind="info")
 
 
 def msg_warn(parent, content, title=None, ok_text=None):
-    """警告消息框（仅「确定」）。"""
-    return _message(parent, title or tr("提示"), content, ok_text=ok_text)
+    """警告消息框（仅「确定」），带看板娘（挥手）。"""
+    return _message(parent, title or tr("提示"), content, ok_text=ok_text,
+                    mascot_kind="warn")
 
 
 def msg_error(parent, content, title=None, ok_text=None):
-    """错误消息框（仅「确定」）。"""
-    return _message(parent, title or tr("错误"), content, ok_text=ok_text)
+    """错误消息框（仅「确定」），带看板娘（慌张）。"""
+    return _message(parent, title or tr("错误"), content, ok_text=ok_text,
+                    mascot_kind="error")
+
+
+def msg_success(parent, content, title=None, ok_text=None):
+    """完成 / 成功消息框（仅「确定」），带看板娘（欢呼点赞）。"""
+    return _message(parent, title or tr("完成"), content, ok_text=ok_text,
+                    mascot_kind="success")
 
 
 def msg_confirm(parent, content, title=None, ok_text=None, cancel_text=None):
-    """确认消息框，点「确定」返回 True。"""
+    """确认消息框，点「确定」返回 True，带看板娘（歪头疑惑思考）。"""
     return _message(parent, title or tr("确认"), content, with_cancel=True,
-                    ok_text=ok_text, cancel_text=cancel_text) == 1
+                    ok_text=ok_text, cancel_text=cancel_text,
+                    mascot_kind="question") == 1
 
 
 class ChoiceDialog(FluentContentDialog):
@@ -509,3 +538,63 @@ class ChoiceDialog(FluentContentDialog):
     def pick(self, value):
         self.value = value
         self.accept()
+
+
+# --------------------------------------------------------------------------- #
+# 基于 MessageBoxBase 的内容对话框（对标 bili23 的 DialogBase）
+# --------------------------------------------------------------------------- #
+class FluentDialogBase(MessageBoxBase):
+    """qfluentwidgets 原生对话框：真正的 QDialog + 遮罩 + 确定/取消按钮。
+
+    与自制的 ``FluentModalDialog``（FluentWidget + QEventLoop 模拟模态）不同，
+    ``MessageBoxBase`` 直接继承 ``QDialog``，拥有原生 ``exec()`` / 焦点管理，
+    且外观与 qfluentwidgets 其它对话框一致。用于「首次协议」「关于」等需要
+    标准对话框语义的场景（对齐 bili23 ``gui/component/dialog.py::DialogBase``）。
+
+    结构（MessageBoxBase 提供）：
+        ``self.widget``       居中卡片
+        ``self.viewLayout``   内容区（margin 24）
+        ``self.yesButton`` / ``self.cancelButton``   底部按钮
+    子类把内容加进 ``viewLayout``，按需 ``hideCancelButton()`` 或改按钮文案。
+
+    注意：``MaskDialogBase.__init__`` 会读 ``parent.width()``，parent 必须非空；
+    这里复用 ``_resolve_parent`` 兜底，仍拿不到则用隐藏的兜底窗口。
+    """
+
+    def __init__(self, parent=None, minimum_size=None):
+        real_parent = _resolve_parent(parent)
+        if real_parent is None:
+            # 极端兜底（无活动窗口，如脚本直接实例化）：一个不显示的宿主
+            real_parent = QWidget()
+            real_parent.resize(1280, 720)
+            self._fallback_parent = real_parent
+        super().__init__(real_parent)
+        try:
+            self.setWindowIcon(_child_window_icon(parent))
+        except Exception:
+            pass
+        if minimum_size:
+            w, h = minimum_size
+            # 高 DPI / 小屏：clamp 到可用工作区，避免被任务栏遮挡
+            try:
+                screen = QGuiApplication.primaryScreen()
+                if screen is not None:
+                    avail = screen.availableGeometry()
+                    w = min(int(w), max(320, avail.width() - 40))
+                    h = min(int(h), max(240, avail.height() - 40))
+            except Exception:
+                pass
+            self.widget.setMinimumSize(w, h)
+
+    def set_buttons(self, yes_text=None, cancel_text=None, hide_cancel=False):
+        """统一设置底部按钮文案（对齐 i18n，走 tr 的由调用方传入）。"""
+        if yes_text is not None:
+            self.yesButton.setText(yes_text)
+        if cancel_text is not None:
+            self.cancelButton.setText(cancel_text)
+        if hide_cancel:
+            self.hideCancelButton()
+
+    def retranslate(self, yes_text=None, cancel_text=None):
+        """语言切换时刷新底部按钮（供对话框在 on_language_change 中调用）。"""
+        self.set_buttons(yes_text=yes_text, cancel_text=cancel_text)

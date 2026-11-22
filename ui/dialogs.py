@@ -31,7 +31,7 @@ from PySide6.QtWidgets import (
 from qfluentwidgets import (
     BodyLabel, CaptionLabel, FluentIcon, FlowLayout, HyperlinkLabel,
     ImageLabel, LargeTitleLabel, LineEdit, ListWidget, PrimaryPushButton,
-    PushButton, RadioButton, SearchLineEdit, TableWidget,     TextEdit,
+    PushButton, RadioButton, SearchLineEdit, SubtitleLabel, TableWidget, TextEdit,
 )
 
 from utils.touch_scroll import enable_touch_scroll
@@ -45,7 +45,7 @@ from utils.bili_qrcode import (
 )
 
 from ui.fluent_dialog import (
-    FluentContentDialog, TopNavigationDialog,
+    FluentContentDialog, FluentDialogBase, TopNavigationDialog,
     msg_info, msg_warn, msg_error, msg_confirm,
 )
 from ui.list_layout import LayoutModeToggle, manager, is_compact
@@ -81,17 +81,22 @@ _ABOUT_LINK_TEXT = "GitHub 仓库"
 _ABOUT_LINK_URL = "https://github.com/colever-Beep/BilibiliDownloader"
 
 
-class AboutDialog(FluentContentDialog):
-    """关于：使用 qfluentwidgets 原生组件（图标卡片 / 超链接 / 许可证说明）。"""
+class AboutDialog(FluentDialogBase):
+    """关于：使用 qfluentwidgets 原生对话框 + 原生的信息展示组件。"""
 
     def __init__(self, parent=None, config=None):
-        super().__init__((480, 380), parent, title=tr("关于"))
+        # 对标 bili23：关于窗口用 MessageBoxBase 对话框，而非自制 FluentWidget 窗口
+        super().__init__(parent, minimum_size=(520, 420))
         self.config = config
+
+        # 标题（MessageBoxBase 无自制标题栏，用 SubtitleLabel 呈现）
+        self._title_lbl = SubtitleLabel(tr("关于"), self.widget)
+        self.viewLayout.addWidget(self._title_lbl)
 
         # 头部：应用图标 + 名称 + 版本
         head = QHBoxLayout()
         head.setSpacing(16)
-        self.icon_lbl = ImageLabel(self)
+        self.icon_lbl = ImageLabel(self.widget)
         self.icon_lbl.setFixedSize(64, 64)
         self.icon_lbl.setBorderRadius(14, 14, 14, 14)
         self.icon_lbl.setScaledContents(True)
@@ -105,36 +110,58 @@ class AboutDialog(FluentContentDialog):
 
         info = QVBoxLayout()
         info.setSpacing(4)
-        self.name_lbl = LargeTitleLabel(APP_NAME, self)
-        self.ver_lbl = CaptionLabel(f"v{APP_VERSION} · PySide6 · qfluentwidgets", self)
+        self.name_lbl = LargeTitleLabel(APP_NAME, self.widget)
+        self.ver_lbl = CaptionLabel(f"v{APP_VERSION} · PySide6 · qfluentwidgets", self.widget)
         info.addWidget(self.name_lbl)
         info.addWidget(self.ver_lbl)
         info.addStretch(1)
         head.addLayout(info, 1)
-        self.add_layout(head)
+        self.viewLayout.addLayout(head)
 
         # 主页链接（qfluentwidgets 原生超链接，跟随主题强调色）
-        self.link_lbl = HyperlinkLabel(self)
+        links = FlowLayout()
+        links.setContentsMargins(0, 0, 0, 0)
+        links.setSpacing(18)
+        self.link_lbl = HyperlinkLabel(self.widget)
         self.link_lbl.setText(tr(_ABOUT_LINK_TEXT))
         self.link_lbl.setUrl(_ABOUT_LINK_URL)
-        self.add_widget(self.link_lbl)
+        links.addWidget(self.link_lbl)
+        # 赞助入口（纯自愿、非强制）：仅在配置了 sponsor_url 时显示
+        self.sponsor_url = ""
+        try:
+            if self.config is not None:
+                self.sponsor_url = (self.config.get("sponsor_url", "") or "").strip()
+        except Exception:
+            self.sponsor_url = ""
+        if self.sponsor_url:
+            self.sponsor_lbl = HyperlinkLabel(self.widget)
+            self.sponsor_lbl.setText(tr("支持作者（自愿）"))
+            self.sponsor_lbl.setUrl(self.sponsor_url)
+            links.addWidget(self.sponsor_lbl)
+            register(self.sponsor_lbl, "支持作者（自愿）")
+        self.viewLayout.addLayout(links)
 
         # 简介
-        desc = BodyLabel(tr(_ABOUT_DESC), self)
+        desc = BodyLabel(tr(_ABOUT_DESC), self.widget)
         desc.setWordWrap(True)
-        self.add_widget(desc, 1)
+        self.viewLayout.addWidget(desc, 1)
 
         # 许可证说明
-        self.lic_lbl = CaptionLabel(tr(_ABOUT_LICENSE), self)
+        self.lic_lbl = CaptionLabel(tr(_ABOUT_LICENSE), self.widget)
         self.lic_lbl.setWordWrap(True)
-        self.add_widget(self.lic_lbl)
+        self.viewLayout.addWidget(self.lic_lbl)
 
         # 左下角：查看《用户协议》（只读，不接受也不退出程序）
-        terms = self.add_button(tr("用户协议"), slot=self._open_terms, right=False)
+        # MessageBoxBase 没有 add_button：自建 PushButton 插入按钮布局左侧
+        terms = PushButton(tr("用户协议"), self.widget)
+        terms.clicked.connect(self._open_terms)
+        self.buttonLayout.insertWidget(0, terms)
         register(terms, "用户协议")
 
-        ok = self.add_button(tr("确定"), primary=True, slot=self.accept)
-        register(ok, "确定")
+        # 确定按钮：复用 yesButton，隐藏 cancel
+        self.yesButton.setText(tr("确定"))
+        self.hideCancelButton()
+        register(self.yesButton, "确定")
 
         # i18n：语言切换时刷新静态文本
         register(self.name_lbl, APP_NAME)
@@ -729,6 +756,7 @@ class _LiveRoomCard(QFrame):
         self.room = room
         self._selected = False
         self._cover_pm = None
+        self.setObjectName("liveRoomCard")
         self.setFixedWidth(self.WIDTH)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
@@ -813,10 +841,12 @@ class _LiveRoomCard(QFrame):
             bg, border, accent = "#ffffff", "#d0d0d0", "#2080f0"
         if self._selected:
             self.setStyleSheet(
-                f"background:{bg};border:2px solid {accent};border-radius:8px;")
+                f"QFrame#liveRoomCard {{ background:{bg};"
+                f"border:2px solid {accent};border-radius:8px; }}")
         else:
             self.setStyleSheet(
-                f"background:{bg};border:1px solid {border};border-radius:8px;")
+                f"QFrame#liveRoomCard {{ background:{bg};"
+                f"border:1px solid {border};border-radius:8px; }}")
 
 
 class LiveCenterDialog(FluentContentDialog):

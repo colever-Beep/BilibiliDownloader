@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import os
 
-from PySide6.QtCore import Qt, QUrl
+from PySide6.QtCore import Qt, QUrl, QTimer
 from PySide6.QtGui import QColor, QDesktopServices
 from PySide6.QtWidgets import (QApplication, QFileDialog, QScrollArea, QWidget,
                              QVBoxLayout, QHBoxLayout, QLabel)
@@ -22,10 +22,11 @@ from PySide6.QtWidgets import (QApplication, QFileDialog, QScrollArea, QWidget,
 from utils.i18n import tr, LANGUAGES, register
 from utils.touch_scroll import enable_touch_scroll
 from ui.icons import FluentIcon, icon_pixmap
-from ui.theme import get_accent, is_dark, set_accent, resolve_appearance
+from ui.theme import get_accent, set_accent
 from utils.updater import (
     UpdateService, UpdateStatus, CHANNEL_STABLE, CHANNEL_BETA,
     UPDATE_MODE_NEVER, UPDATE_MODE_NOTIFY, UPDATE_MODE_DOWNLOAD, UPDATE_MODE_INSTALL,
+    MIRRORS, MIRROR_GITHUB, MIRROR_CUSTOM,
 )
 from utils.version import APP_VERSION, GITHUB_HOMEPAGE
 
@@ -33,8 +34,8 @@ from utils.version import APP_VERSION, GITHUB_HOMEPAGE
 from qfluentwidgets import (
     MSFluentWindow, NavigationItemPosition, SettingCard, SettingCardGroup,
     SwitchButton, ComboBox, PushButton, PrimaryPushButton, SpinBox, LineEdit,
-    ColorPickerButton, PushSettingCard, ExpandGroupSettingCard, setTheme,
-    setThemeColor, Theme, ProgressBar, TextBrowser, InfoBar, InfoBarPosition,
+    ColorPickerButton, PushSettingCard, ExpandGroupSettingCard,
+    ProgressBar, TextBrowser, InfoBar, InfoBarPosition,
 )
 from qfluentwidgets.components.settings.expand_setting_card import GroupWidget
 
@@ -156,12 +157,10 @@ class SettingsWindow(MSFluentWindow):
         self._update_retrans = []  # 更新页需随语言刷新的静态文本控件
         self._lang_rev = {v: k for k, v in LANGUAGES.items()}
 
-        # 同步 Fluent 主题（明暗 + 强调色）与主程序一致
-        try:
-            setTheme(Theme.DARK if is_dark() else Theme.LIGHT)
-            setThemeColor(QColor(get_accent()))
-        except Exception:
-            pass
+        # 主题（明暗 + 强调色）由 ui.theme 全局管理，主窗口启动时已 apply_theme，
+        # qfluentwidgets 的 setTheme / setThemeColor 是全局状态，子窗口自动继承。
+        # 早期这里同步调用 setTheme+setThemeColor（各约 200ms），导致设置窗口
+        # 构造耗时 360ms+、打开明显卡顿——已移除，主题统一走 ui.theme 模块。
 
         self.setWindowTitle(tr("设置"))
         self.resize(900, 640)
@@ -185,41 +184,84 @@ class SettingsWindow(MSFluentWindow):
         except Exception:
             pass
 
-        # 构建五个分类子界面
-        self._basic = self._build_basic()
-        self._download = self._build_download()
-        self._options = self._build_options()
-        self._advanced = self._build_advanced()
-        self._update = self._build_update()
+        # 分类子界面懒构建：首屏「基本设置」同步建好立即显示，其余四页放到
+        # show() 之后的逐帧空闲时间构建（每帧一页 qfluentwidgets 卡片组，约 40ms）。
+        # 五页同步全建的固有成本约 170ms，是设置窗口首次打开卡顿的主因；分帧后
+        # 窗口能立刻显示首屏，后续页在用户阅读首屏期间后台补齐，感知延迟大幅降低。
+        self._page_builders = {
+            "basic": (self._build_basic, "SETTING", "基本设置"),
+            "download": (self._build_download, "DOWNLOAD", "下载"),
+            "options": (self._build_options, "DOCUMENT", "附加文件"),
+            "advanced": (self._build_advanced, "DEVELOPER_TOOLS", "高级"),
+            "update": (self._build_update, "UPDATE", "更新"),
+        }
+        self._built_pages = set()
+        self._pages_pending = []
 
-        # MSFluentWindow 用 interface.objectName() 作为导航项的 routeKey，
-        # 因此必须在 addSubInterface 之前设置好。
-        self._basic.setObjectName("basic")
-        self._download.setObjectName("download")
-        self._options.setObjectName("options")
-        self._advanced.setObjectName("advanced")
-        self._update.setObjectName("update")
-
-        self.addSubInterface(self._basic, _icon("SETTING"), tr("基本设置"),
-                             position=NavigationItemPosition.SCROLL)
-        self.addSubInterface(self._download, _icon("DOWNLOAD"), tr("下载"),
-                             position=NavigationItemPosition.SCROLL)
-        self.addSubInterface(self._options, _icon("DOCUMENT"), tr("附加文件"),
-                             position=NavigationItemPosition.SCROLL)
-        self.addSubInterface(self._advanced, _icon("DEVELOPER_TOOLS"), tr("高级"),
-                             position=NavigationItemPosition.SCROLL)
-        self.addSubInterface(self._update, _icon("UPDATE"), tr("更新"),
-                             position=NavigationItemPosition.SCROLL)
-
+        # _nav 一次填全（retranslate 会遍历）；未构建页的导航项 widget 尚不存在，
+        # _retranslate 里已用 try 保护，构建时再用当前语言 tr() 生成文字，最终一致。
         self._nav.extend([
             ("basic", "基本设置"), ("download", "下载"),
             ("options", "附加文件"), ("advanced", "高级"), ("update", "更新"),
         ])
 
+        # 首屏 basic 立即构建注册
+        self._build_and_register_page("basic")
         try:
             self.navigationInterface.setCurrentItem("basic")
         except Exception:
             pass
+
+        # 其余页排队，show() 后逐帧构建
+        self._pages_pending = ["download", "options", "advanced", "update"]
+
+    def _build_and_register_page(self, route_key):
+        """构建并注册单个分类页（供首屏同步调用 / 分帧懒构建调用）。"""
+        if route_key in self._built_pages:
+            return getattr(self, route_key, None)
+        entry = self._page_builders.get(route_key)
+        if entry is None:
+            return None
+        builder, icon_name, title_key = entry
+        w = builder()
+        w.setObjectName(route_key)
+        # 属性名沿用外部契约：basic→self._basic, update→self._update ...
+        setattr(self, "_" + route_key, w)
+        self.addSubInterface(w, _icon(icon_name), tr(title_key),
+                             position=NavigationItemPosition.SCROLL)
+        self._built_pages.add(route_key)
+        return w
+
+    def _process_pending_pages(self):
+        """事件循环空闲时每帧构建一页，直到队列清空。"""
+        if not self._pages_pending:
+            return
+        route_key = self._pages_pending.pop(0)
+        try:
+            self._build_and_register_page(route_key)
+        except Exception:
+            pass
+        if self._pages_pending:
+            QTimer.singleShot(0, self._process_pending_pages)
+
+    def ensure_all_pages_built(self):
+        """同步构建所有尚未构建的页（供不经过 show() 的场景，如离屏烟测/脚本调用）。
+
+        UI 正常路径下由 showEvent 分帧补齐，无需调用本方法。
+        """
+        pending = list(self._pages_pending)
+        self._pages_pending.clear()
+        for route_key in pending:
+            try:
+                self._build_and_register_page(route_key)
+            except Exception:
+                pass
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        # 首帧显示后启动分帧懒构建（只启动一次）
+        if getattr(self, "_pages_pending", None):
+            QTimer.singleShot(0, self._process_pending_pages)
 
     # ------------------------------------------------------------------ #
     # 构造辅助
@@ -677,6 +719,29 @@ class SettingsWindow(MSFluentWindow):
             {tr("稳定版"): CHANNEL_STABLE, tr("测试版"): CHANNEL_BETA},
             CHANNEL_STABLE)
 
+        # 更新下载镜像：GitHub 下载慢时可切换更快的反代（仅作用于下载）
+        mirror_labels = {k: tr(v) for k, v in MIRRORS.items()}
+        self._combo_card(
+            g, "GLOBE", "下载镜像", "GitHub 下载缓慢时可切换加速镜像；失效请切回官方", "update_mirror",
+            [mirror_labels[k] for k in MIRRORS],
+            {mirror_labels[k]: k for k in MIRRORS},
+            MIRROR_GITHUB, on_change=self._on_mirror_changed)
+        # 自定义镜像模板输入框（仅选「自定义镜像」时启用）
+        mc = SettingCard(_icon("LINK"), tr("自定义镜像模板"),
+                         tr("含 {url} 占位符则替换，否则视为网址前缀"), self)
+        self._mirror_custom_edit = LineEdit(mc)
+        self._mirror_custom_edit.setText(self.config.get("update_mirror_custom", "") or "")
+        self._mirror_custom_edit.setPlaceholderText("https://gh-proxy.com/{url}")
+        self._mirror_custom_edit.setMinimumWidth(260)
+        self._mirror_custom_edit.textChanged.connect(
+            lambda t: self._set("update_mirror_custom", t, callback=False))
+        mc.hBoxLayout.addStretch(1)
+        mc.hBoxLayout.addWidget(self._mirror_custom_edit)
+        g.addSettingCard(mc)
+        self._register_card(mc, "自定义镜像模板", "含 {url} 占位符则替换，否则视为网址前缀")
+        self._mirror_custom_card = mc
+        self._on_mirror_changed(self.config.get("update_mirror", MIRROR_GITHUB))
+
         # ---- 更新日志（Markdown）----
         log_title = QLabel(tr("更新日志"))
         w.vbox.addWidget(log_title)
@@ -695,6 +760,10 @@ class SettingsWindow(MSFluentWindow):
             (self._btn_retry, "重试"),
             (log_title, "更新日志"),
         ])
+
+        # 进入「更新」页即自动检查一次，避免状态头部一直停在「正在初始化…」
+        # （此前只有点「检查更新」按钮才会刷新）。延迟到事件循环，确保构建完成。
+        QTimer.singleShot(0, self._update_check)
         return w
 
     # ------------------------------------------------------------------ #
@@ -966,19 +1035,23 @@ class SettingsWindow(MSFluentWindow):
             except Exception:
                 pass
 
+    def _on_mirror_changed(self, key):
+        """镜像选择变化时，仅当选中「自定义」才启用自定义模板输入框。"""
+        card = getattr(self, "_mirror_custom_card", None)
+        if card is not None:
+            card.setEnabled(key == MIRROR_CUSTOM)
+
     def _on_appearance(self, val):
         # 持久化外观选择（此前只预览不保存，重启后会回退旧主题）
         try:
             self.config.set("appearance", val)
         except Exception:
             pass
+        # 主题切换统一走 ui.theme（_preview_theme → apply_appearance → 防抖提交）。
+        # 早期此处又裸调 qfluentwidgets.setTheme（约 200ms 全量重绘），既绕过
+        # 主题模块防抖又造成「切换一次重绘两遍」，是外观切换卡顿的根因——已移除。
         try:
             self._preview_theme({"appearance": val})
-        except Exception:
-            pass
-        try:
-            resolved = resolve_appearance(val)
-            setTheme(Theme.DARK if resolved == "dark" else Theme.LIGHT)
         except Exception:
             pass
 

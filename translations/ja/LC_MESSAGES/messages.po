@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bili23 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-03 00:26\n"
-"PO-Revision-Date: 2026-10-03 00:26\n"
+"POT-Creation-Date: 2026-11-22 16:44\n"
+"PO-Revision-Date: 2026-11-22 16:44\n"
 "Last-Translator: \n"
 "Language: ja\n"
 "Language-Team: \n"
@@ -13,20 +13,32 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 
-msgid " / 共 {} 页"
-msgstr " / 全 {} ページ"
+msgid ""
+msgstr ""
 
 msgid "0 分。今天诸事不宜，建议原地躺平。"
 msgstr "0 点。今日は何をしてもうまくいきません。寝ているのが一番です。"
 
+msgid "1 小时前"
+msgstr ""
+
 msgid "1080p 及以下"
 msgstr "1080p 以下"
 
+msgid "15 分钟前"
+msgstr ""
+
+msgid "2 小时前"
+msgstr ""
+
+msgid "30 分钟前"
+msgstr ""
+
+msgid "5 分钟前"
+msgstr ""
+
 msgid "720p 及以下"
 msgstr "720p 以下"
-
-msgid "<html>欢迎使用本软件。在开始使用前，请仔细阅读以下《用户协议》。\n当您点击「同意并继续」时，即表示您已阅读、理解并同意遵守全部条款。\n\n<p><b>一、使用目的</b><br>\n本软件仅供个人学习、研究与非商业用途。通过本软件获取的任何内容，\n<b>仅限于您个人合理使用，不得用于任何商业目的、公开传播、分享、转售或非法牟利。</b></p>\n\n<p><b>二、访问权限</b><br>\n本软件基于您本人合法的账号登录状态运行，<b>不绕过任何付费内容、会员限制或技术保护措施</b>。\n您仅可访问通过正常登录所授权的内容；对无权限的内容，不得借助本软件获取。</p>\n\n<p><b>三、禁止行为</b><br>\n<b>请勿使用本软件进行批量抓取、未经授权的再分发，或任何违反目标平台服务条款的行为。</b>\n您须对自身使用行为负全部责任，包括但不限于账号封禁、版权纠纷及由此引发的法律责任。</p>\n\n<p><b>四、责任限制</b><br>\n在任何情况下，开发者均不对因使用或无法使用本软件造成的任何直接、间接、附带或后果性损害承担责任。</p>\n\n<p><b>五、协议生效</b><br>\n您继续使用本软件，即视为已阅读、理解并自愿接受上述全部条款与潜在风险。</p></html>"
-msgstr ""
 
 msgid "B站下载器"
 msgstr "Bilibiliダウンローダー"
@@ -40,20 +52,14 @@ msgstr "H.264（互換性良好）"
 msgid "H.265（体积更小）"
 msgstr "H.265（容量削減）"
 
-msgid "UP主"
-msgstr "投稿者"
-
 msgid "bilibili音乐"
 msgstr "bilibiliミュージック"
 
 msgid "{}/{} 已完成"
 msgstr "{}/{} 完了"
 
-msgid "「{}」：{} 视频 / {} 番剧 / {} UP主"
-msgstr "{}: 動画 {} / アニメ {} / 投稿者 {}"
-
-msgid "「{}」：{} 音乐视频"
-msgstr "「{}」：{} 音楽動画"
+msgid "《用户协议》要点"
+msgstr "「利用規約」の要点"
 
 msgid "「仅音频」需要 ffmpeg，请先在「高级」里配置 ffmpeg 路径。"
 msgstr "「音声のみ」には ffmpeg が必要です。「詳細」で ffmpeg のパスを設定してください。"
@@ -61,14 +67,20 @@ msgstr "「音声のみ」には ffmpeg が必要です。「詳細」で ffmpeg
 msgid "一个不该点的按钮"
 msgstr "押すべきではないボタン"
 
+msgid "一句话概括你的问题或建议"
+msgstr "問題や提案を一行で要約"
+
+msgid "上一个"
+msgstr "前へ"
+
 msgid "上一页"
 msgstr "前へ"
 
-msgid "下一页"
+msgid "下一个"
 msgstr "次へ"
 
-msgid "下载"
-msgstr "ダウンロード"
+msgid "下一页"
+msgstr "次へ"
 
 msgid "下载中"
 msgstr "ダウンロード中"
@@ -78,6 +90,9 @@ msgstr "ダウンロード中 {}%（{}、残り {}）"
 
 msgid "下载中..."
 msgstr "ダウンロード中..."
+
+msgid "下载中：{:.1f} / {:.1f} MB（{:.2f} MB/s，剩余 {:.0f}s）"
+msgstr "ダウンロード中: {:.1f} / {:.1f} MB ({:.2f} MB/s, 残り {:.0f}秒)"
 
 msgid "下载失败"
 msgstr "ダウンロード失敗"
@@ -90,6 +105,9 @@ msgstr "ダウンロード完了"
 
 msgid "下载完成。"
 msgstr "ダウンロード完了。"
+
+msgid "下载并安装"
+msgstr "ダウンロードしてインストール"
 
 msgid "下载正在进行中"
 msgstr "ダウンロード実行中です"
@@ -136,6 +154,18 @@ msgstr "音声のみ（m4a）"
 msgid "今日人品"
 msgstr "今日の運勢"
 
+msgid "从不自动更新"
+msgstr "自動更新しない"
+
+msgid "从直播开始"
+msgstr ""
+
+msgid "从直播开始录制"
+msgstr ""
+
+msgid "代理提交失败，已改为打开浏览器发布页"
+msgstr "プロキシ送信に失敗したため、ブラウザの公開ページを開きました"
+
 msgid "任务开始：{}"
 msgstr "タスク開始：{}"
 
@@ -145,11 +175,17 @@ msgstr "まだ押してるの？"
 msgid "你的耐心让我有点害怕。"
 msgstr "あなたの根気に少し怖くなってきました。"
 
+msgid "你说呢～"
+msgstr "どうかな～"
+
 msgid "你还没有创建任何收藏夹"
 msgstr "お気に入りがまだ作成されていません"
 
 msgid "使用 Cookie 登录"
 msgstr "Cookie でログイン"
+
+msgid "使用本软件及其获取内容所产生的责任与风险由使用者承担。"
+msgstr "本ソフトウェアおよび取得したコンテンツの利用に伴う責任とリスクは、利用者が負うものとします。"
 
 msgid "保存到"
 msgstr "保存先"
@@ -163,20 +199,17 @@ msgstr "停止例外：{}"
 msgid "停止录制"
 msgstr "録画を停止"
 
-msgid "全站热门"
-msgstr "全体人気"
+msgid "先加点视频吧～"
+msgstr "まず動画を追加して～"
+
+msgid "先登录嘛～"
+msgstr "まずログインして～"
+
+msgid "先贴个链接嘛～"
+msgstr "まずリンクを貼って～"
 
 msgid "全选"
 msgstr "すべて選択"
-
-msgid "全选全部"
-msgstr "すべて選択"
-
-msgid "全选已加载"
-msgstr "読み込み済みを全選択"
-
-msgid "全选当前页"
-msgstr "現在のページを全選択"
 
 msgid "全部结束"
 msgstr "すべて完了"
@@ -186,9 +219,6 @@ msgstr "全 {n} のお気に入り"
 
 msgid "共 {} 个直播间"
 msgstr "全 {} のライブルーム"
-
-msgid "共 {} 行"
-msgstr "{} 行"
 
 msgid "关于"
 msgstr "このアプリについて"
@@ -205,11 +235,20 @@ msgstr "終了時の動作"
 msgid "关闭程序时："
 msgstr "プログラム終了時："
 
+msgid "再刷一次吧"
+msgstr "もう一度更新して～"
+
 msgid "再点下去要出事了……"
 msgstr "これ以上押すと大変なことに……"
 
 msgid "写入解析记录失败：{}"
 msgstr "解析記録の書き込みに失敗しました：{}"
+
+msgid "冲鸭！"
+msgstr "いけー！"
+
+msgid "准备下载…"
+msgstr "ダウンロードの準備中…"
 
 msgid "准备中…"
 msgstr "準備中…"
@@ -220,8 +259,8 @@ msgstr "準備完了"
 msgid "出错"
 msgstr "エラー"
 
-msgid "分区"
-msgstr "カテゴリ"
+msgid "分集视频 {i}/{n}"
+msgstr "エピソード動画 {i}/{n}"
 
 msgid "创建保存目录失败：{}"
 msgstr "保存先フォルダの作成に失敗しました：{}"
@@ -232,11 +271,17 @@ msgstr "削除"
 msgid "删除选中"
 msgstr "選択を削除"
 
+msgid "别慌，看板娘在呢"
+msgstr "大丈夫、ここにいるよ"
+
 msgid "刷新"
 msgstr "更新"
 
 msgid "刷新二维码"
 msgstr "QRコードを更新"
+
+msgid "前往下载页"
+msgstr "ダウンロードページへ"
 
 msgid "加入队列"
 msgstr "キューに追加"
@@ -256,32 +301,20 @@ msgstr "読み込み失敗"
 msgid "加载失败：{}"
 msgstr "読み込み失敗：{}"
 
-msgid "加载排行榜失败：{}"
-msgstr "ランキングの読み込みに失敗しました：{}"
-
 msgid "加载收藏夹失败：{}"
 msgstr "お気に入りの読み込みに失敗しました：{}"
-
-msgid "加载更多"
-msgstr "もっと読み込む"
-
-msgid "加载每周必看失败：{}"
-msgstr "「今週の見どころ」の読み込みに失敗しました：{}"
 
 msgid "加载热门直播中..."
 msgstr "人気ライブを読み込み中..."
 
-msgid "加载直播列表失败：{}"
-msgstr "ライブ一覧の読み込み失敗: {}"
-
 msgid "加载第 {pn} 页失败：{err}"
 msgstr "ページ{pn}の読み込みに失敗しました：{err}"
 
-msgid "加载第 {} 页…"
-msgstr "ページ {} を読み込み中…"
-
 msgid "加载追番列表失败：{}"
 msgstr "アニメリストの読み込みに失敗しました：{}"
+
+msgid "勾一个嘛～"
+msgstr "ひとつ選んで～"
 
 msgid "千万别点"
 msgstr "絶対に押すな"
@@ -289,20 +322,41 @@ msgstr "絶対に押すな"
 msgid "占卜中……"
 msgstr "占い中……"
 
+msgid "即将提交反馈"
+msgstr "フィードバックを送信中"
+
 msgid "即将清空日志窗口，同时会清空同目录下的 download.log 文件。\n是否继续？"
 msgstr "ログウィンドウをクリアすると、同じフォルダの download.log も空になります。\n続行しますか？"
 
 msgid "历史记录"
 msgstr "履歴"
 
-msgid "历史记录为空，没有可下载的视频"
-msgstr ""
-
 msgid "原始流（不转码）"
 msgstr "元ストリーム（変換なし）"
 
+msgid "反馈"
+msgstr "フィードバック"
+
+msgid "反馈信息不完整"
+msgstr "フィードバックの情報が不足しています"
+
+msgid "反馈已成功提交，感谢你的支持！"
+msgstr "フィードバックを送信しました。ご協力ありがとうございます！"
+
+msgid "反馈已提交："
+msgstr "フィードバックを送信しました："
+
+msgid "发呆中～"
+msgstr "ぼーっと中～"
+
 msgid "发现"
 msgstr "発見"
+
+msgid "发现新版本"
+msgstr "新バージョンが見つかりました"
+
+msgid "发现新版本 {}"
+msgstr "新バージョン {} が見つかりました"
 
 msgid "发生未处理的界面异常："
 msgstr "処理されないUI例外が発生しました："
@@ -322,17 +376,26 @@ msgstr ""
 msgid "名字"
 msgstr "名前"
 
+msgid "含 {url} 占位符则替换，否则视为网址前缀"
+msgstr "{url} プレースホルダーがあれば置換、なければ URL プレフィックスとして扱う"
+
+msgid "喵～"
+msgstr "にゃ～"
+
+msgid "嘿嘿～"
+msgstr "へへ～"
+
 msgid "在浏览器中打开"
 msgstr ""
 
 msgid "在浏览器中打开主页"
 msgstr "ブラウザでホームページを開く"
 
-msgid "基于 PySide6 重构的 B 站视频下载工具，支持视频 / 番剧 / 直播录制与批量下载、弹幕字幕元数据抓取。"
-msgstr "PySide6 で再構築された Bilibili 動画ダウンローダー。動画 / アニメ / ライブ録画と一括ダウンロード、弾幕・字幕・メタデータ取得に対応。"
+msgid "填一下嘛～"
+msgstr "入力して～"
 
-msgid "基本设置"
-msgstr "一般設定"
+msgid "填写反馈后将在浏览器打开已填好的 GitHub 议题页，确认无误点发布即可。内容会先存为本地草稿，中途离开不会丢失。"
+msgstr "入力後、記入済みのGitHubイシューページがブラウザで開きます。内容はローカル下書きとして自動保存されます。"
 
 msgid "复制链接"
 msgstr "リンクをコピー"
@@ -340,14 +403,32 @@ msgstr "リンクをコピー"
 msgid "失败"
 msgstr "失敗"
 
+msgid "好耶！"
+msgstr "やったー！"
+
 msgid "媒体设置"
 msgstr "メディア"
 
 msgid "完成"
 msgstr "完了"
 
+msgid "完整协议可在「关于」中的「用户协议」查看。"
+msgstr "完全な利用規約は「概要」>「利用規約」から確認できます。"
+
+msgid "将自动附带环境信息："
+msgstr "環境情報は自動的に添付されます："
+
+msgid "尚未检查更新，点击「检查更新」获取最新动态。"
+msgstr "まだ確認していません。「アップデートを確認」をクリックして最新情報を取得してください。"
+
+msgid "已下载到本地，点击操作完成更新。"
+msgstr "ローカルにダウンロードされました。クリックして更新を完了してください。"
+
 msgid "已下载：{}"
 msgstr "ダウンロード済み：{}"
+
+msgid "已为你刷新登录态，祝你下载愉快～"
+msgstr "ログイン状態を更新しました。ダウンロードをお楽しみください。"
 
 msgid "已停止"
 msgstr "停止済み"
@@ -364,20 +445,26 @@ msgstr "キャンセルしました。"
 msgid "已取消录制"
 msgstr "録画キャンセル済み"
 
+msgid "已在浏览器打开发布页面，确认无误后点击 Submit new issue 即可。你的反馈进入公开议题区后，会由 AI 预筛 + 维护者审核决定是否采纳。"
+msgstr "公開ページがブラウザで開きました。確認して「Submit new issue」をクリックしてください。公開後はAI予選とメンテナーの審査で採否が決まります。"
+
 msgid "已开始录制：{}"
 msgstr "録画を開始しました：{}"
 
 msgid "已录制"
 msgstr "録画済み"
 
+msgid "已恢复上次的草稿"
+msgstr "前回の下書きを復元しました"
+
 msgid "已扫码，请在手机端确认"
 msgstr "スキャンされました。スマホで確認してください"
 
+msgid "已是最新版本"
+msgstr "最新バージョンです"
+
 msgid "已暂停"
 msgstr "一時停止"
-
-msgid "已清空"
-msgstr "クリア済み"
 
 msgid "已登录"
 msgstr "ログイン済み"
@@ -412,6 +499,12 @@ msgstr "解析開始"
 msgid "强调色"
 msgstr "アクセントカラー"
 
+msgid "当前位置（直播最前沿）"
+msgstr ""
+
+msgid "当前版本 v{}"
+msgstr "現在のバージョン v{}"
+
 msgid "录制"
 msgstr "録画"
 
@@ -423,6 +516,9 @@ msgstr "ライブ録画"
 
 msgid "录制设置"
 msgstr "録画設定"
+
+msgid "录制起点"
+msgstr ""
 
 msgid "录制选项弹窗异常，按默认设置开始：{}"
 msgstr "録画オプション画面エラー、既定設定で開始：{}"
@@ -436,20 +532,29 @@ msgstr "おまけゲット：今日の運勢 +5。「今日の運勢」ページ
 msgid "彩蛋触发成功：今日人品 +5（当前加成 +{}）。"
 msgstr "おまけ発動：今日の運勢 +5（現在のボーナス +{}）。"
 
+msgid "快来看看！"
+msgstr "ちょっと見て！"
+
+msgid "快登录嘛～"
+msgstr "ログインして～"
+
 msgid "总计 {total} 个分集"
 msgstr "合計 {total} エピソード"
 
 msgid "总计 {total} 个分集（匹配 {matched}）"
 msgstr "合計 {total} エピソード（{matched} 件一致）"
 
-msgid "总计 {} 个视频"
-msgstr "合計 {} 個の動画"
-
 msgid "总进度"
 msgstr "全体進捗"
 
 msgid "恢复默认列宽"
 msgstr "デフォルトの列幅に戻す"
+
+msgid "您已在使用最新版本。"
+msgstr "すでに最新バージョンをご利用です。"
+
+msgid "您已在使用最新版本，无需更新。"
+msgstr "すでに最新バージョンです。更新は必要ありません。"
 
 msgid "我的"
 msgstr "マイ"
@@ -478,8 +583,11 @@ msgstr "開く"
 msgid "打开TA的个人空间"
 msgstr "その個人スペースを開く"
 
-msgid "打开TA的空间"
-msgstr "そのスペースを開く"
+msgid "打开下载文件"
+msgstr "ダウンロードしたファイルを開く"
+
+msgid "打开下载文件夹"
+msgstr "ダウンロードフォルダを開く"
 
 msgid "打开下载目录"
 msgstr "ダウンロードフォルダを開く"
@@ -493,6 +601,9 @@ msgstr "フォルダを開く"
 msgid "打开直播间"
 msgstr "ライブルームを開く"
 
+msgid "扫一扫～"
+msgstr "スキャンして～"
+
 msgid "批量解析"
 msgstr "一括解析"
 
@@ -502,11 +613,17 @@ msgstr "一括解析（1行に1リンク、タイプを自動判別）"
 msgid "换个名字会有不同结果"
 msgstr "名前を変えると結果も変わります"
 
+msgid "排序"
+msgstr "並び替え"
+
 msgid "排行榜"
 msgstr "ランキング"
 
-msgid "排行榜为空或获取失败"
-msgstr "ランキングが空か、取得に失敗しました"
+msgid "提交反馈"
+msgstr "フィードバックを送信"
+
+msgid "提交成功"
+msgstr "送信完了"
 
 msgid "提示"
 msgstr "ヒント"
@@ -529,50 +646,38 @@ msgstr "エピソードタイトルを検索…"
 msgid "搜索失败：{}"
 msgstr "検索失敗：{}"
 
-msgid "搜索异常：{}"
-msgstr "検索エラー: {}"
-
-msgid "搜索标题 / UP主 / 类型…"
-msgstr "タイトル / 投稿者 / タイプを検索…"
-
-msgid "搜索直播"
-msgstr "ライブ検索"
+msgid "搜索当前列表（标题 / UP主）…"
+msgstr "現在のリストを検索（タイトル / UP主）…"
 
 msgid "搜索直播间关键词"
 msgstr "ライブルームのキーワードを検索"
 
-msgid "搜索视频 / 番剧 / UP主…"
-msgstr "動画 / アニメ / 投稿者を検索…"
-
-msgid "搜索需要登录（用于签名校验），请先登录。"
-msgstr "検索にはログインが必要です（署名検証用）。先にログインしてください。"
-
-msgid "搜索音乐 / MV / 歌单…"
-msgstr "音楽 / MV / プレイリストを検索…"
+msgid "搞定啦！"
+msgstr "できたよ！"
 
 msgid "播放"
 msgstr "再生数"
 
+msgid "支持作者（自愿）"
+msgstr "作者を支援（任意）"
+
 msgid "收藏"
 msgstr "お気に入り"
-
-msgid "收藏夹为空，没有可下载的视频"
-msgstr ""
 
 msgid "文件大小"
 msgstr "ファイルサイズ"
 
-msgid "无法获取该番剧的 season_id，无法解析分集"
-msgstr "このアニメの season_id を取得できないため、エピソードを解析できません"
+msgid "无法更新"
+msgstr "更新できません"
 
 msgid "无法识别直播间：{}"
 msgstr "ライブルームを識別できません：{}"
 
-msgid "无法通过搜索打开 UP 主空间"
-msgstr "検索から投稿者の空間を開けません"
-
 msgid "日志"
 msgstr "ログ"
+
+msgid "时移起点不可用，回退到从当前位置录制"
+msgstr ""
 
 msgid "时间"
 msgstr "時間"
@@ -583,8 +688,17 @@ msgstr "ウィンドウを表示"
 msgid "暂停"
 msgstr "一時停止"
 
-msgid "暂无搜索结果"
-msgstr "検索結果はありません"
+msgid "更新已下载"
+msgstr "アップデートをダウンロードしました"
+
+msgid "更新操作"
+msgstr "アップデート"
+
+msgid "更新日志"
+msgstr "更新履歴"
+
+msgid "更新时发生错误"
+msgstr "更新中にエラーが発生しました"
 
 msgid "最佳画质（自动合并）"
 msgstr "最高画質（自動結合）"
@@ -595,29 +709,26 @@ msgstr "最後の警告：もう一度押すとおまけがあります（たぶ
 msgid "最小化到托盘"
 msgstr "トレイに最小化"
 
+msgid "未勾选任何分集"
+msgstr "エピソードが選択されていません"
+
+msgid "未命名"
+msgstr "無題"
+
 msgid "未命名收藏夹"
 msgstr "名前のないお気に入り"
-
-msgid "未开播"
-msgstr "配信外"
 
 msgid "未找到 FFmpeg，无法合并音视频（可在「设置」中指定路径，或留空使用 bin/ffmpeg）"
 msgstr "FFmpeg が見つかりません。音声/映像を結合できません（「設定」でパスを指定するか、空欄にして bin/ffmpeg を使用）"
 
-msgid "未找到与「{}」相关的结果"
-msgstr "「{}」に関連する結果は見つかりませんでした"
-
-msgid "未找到与「{}」相关的音乐视频"
-msgstr "「{}」に関連する音楽動画が見つかりません"
+msgid "未找到可下载的更新文件。"
+msgstr "ダウンロード可能な更新ファイルが見つかりませんでした。"
 
 msgid "未找到直播间"
 msgstr "ライブルームが見つかりません"
 
 msgid "未找到结果"
 msgstr "結果が見つかりません"
-
-msgid "未找到音乐相关视频"
-msgstr "音楽動画が見つかりません"
 
 msgid "未检测到 ffmpeg：本次按最佳单文件下载（不合并、不转码）。"
 msgstr "ffmpeg が見つかりません：今回は最良の単一ファイルでダウンロードします（結合・変換なし）。"
@@ -634,6 +745,9 @@ msgstr "不明な投稿者"
 msgid "未知直播"
 msgstr "不明なライブ"
 
+msgid "未知错误"
+msgstr ""
+
 msgid "未获取到直播流地址（未开播 / 风控拦截）"
 msgstr "ライブ配信URL取得失敗（配信なし / リスク制御）"
 
@@ -645,6 +759,9 @@ msgstr "今回のおまけボーナス +{} を含みます。"
 
 msgid "本次录制设置（确认后生效）"
 msgstr "今回の録画設定（確認後に適用）"
+
+msgid "本软件仅供个人学习、研究与非商业用途，不得用于公开传播、分享、转售或牟利。"
+msgstr "本ソフトウェアは個人の学習・研究および非営利目的に限り使用できます。コンテンツの公開配布、共有、転売、営利利用は禁止されています。"
 
 msgid "来源"
 msgstr "ソース"
@@ -661,8 +778,35 @@ msgstr "アプリ実行ログを表示"
 msgid "查看日志"
 msgstr "ログを見る"
 
+msgid "查看更新日志"
+msgstr "更新履歴を表示"
+
 msgid "标题"
 msgstr "タイトル"
+
+msgid "检查并安装最新版本"
+msgstr "最新バージョンの確認とインストール"
+
+msgid "检查更新"
+msgstr "アップデートを確認"
+
+msgid "检查更新失败"
+msgstr ""
+
+msgid "检查更新完成"
+msgstr "アップデート確認完了"
+
+msgid "检查更新时出现问题，请检查网络连接后重试。"
+msgstr "アップデート確認中に問題が発生しました。ネットワーク接続を確認して再度お試しください。"
+
+msgid "欢迎使用bilibildownloader!"
+msgstr "BilibiliDownloaderへようこそ！"
+
+msgid "欢迎回来！"
+msgstr "おかえり！"
+
+msgid "欢迎，{}!(*^@^*)"
+msgstr "ようこそ、{}!(*^@^*)"
 
 msgid "欧气满满，今天宜抽卡、宜投稿。"
 msgstr "絶好調。今日はガチャも投稿も吉。"
@@ -673,11 +817,8 @@ msgstr "ダウンロード中"
 msgid "正在停止……"
 msgstr "停止しています……"
 
-msgid "正在加载直播列表..."
-msgstr "ライブ一覧を読み込み中..."
-
-msgid "正在加载第 1 页…"
-msgstr "ページ 1 を読み込み中…"
+msgid "正在初始化…"
+msgstr "初期化中…"
 
 msgid "正在加载第 {pn} 页..."
 msgstr "ページ{pn}を読み込み中..."
@@ -685,11 +826,11 @@ msgstr "ページ{pn}を読み込み中..."
 msgid "正在处理文件……"
 msgstr "ファイルを処理しています……"
 
-msgid "正在搜索：{} …"
-msgstr "検索中: {} …"
+msgid "正在提交反馈..."
+msgstr "フィードバックを送信中..."
 
-msgid "正在检查分P…"
-msgstr "分割動画(P)を確認中…"
+msgid "正在检查更新…"
+msgstr "アップデートを確認中…"
 
 msgid "正在生成二维码…"
 msgstr "QRコードを生成中…"
@@ -697,23 +838,17 @@ msgstr "QRコードを生成中…"
 msgid "正在获取直播流地址：roomid={}"
 msgstr "ライブ配信URL取得中：roomid={}"
 
-msgid "正在补全信息…"
-msgstr "情報を補完中…"
-
-msgid "正在解析并补全番剧分集…"
-msgstr "アニメのエピソードを解析・補完中…"
-
 msgid "正在解析链接……"
 msgstr "リンクを解析しています……"
+
+msgid "正在连接更新服务器…"
+msgstr "アップデートサーバーに接続中…"
 
 msgid "正在验证 Cookie…"
 msgstr "Cookieを検証中…"
 
 msgid "每周必看"
 msgstr "週間おすすめ"
-
-msgid "每周必看为空或获取失败"
-msgstr "「今週の見どころ」が空か、取得に失敗しました"
 
 msgid "每行一个链接，支持视频 / 番剧 / 合集 / 用户空间等，自动识别类型"
 msgstr "1行に1リンク。動画 / アニメ / コレクション / ユーザー空間などに対応、種類は自動判別されます"
@@ -727,20 +862,17 @@ msgstr "ライト"
 msgid "测一测今天的手气（纯娱乐）"
 msgstr "今日の運試し（お楽しみ）"
 
+msgid "测试版"
+msgstr "ベータ版"
+
 msgid "浏览"
 msgstr "参照"
 
 msgid "深色"
 msgstr "ダーク"
 
-msgid "添加"
-msgstr "追加"
-
-msgid "添加全部视频结果"
-msgstr "すべての動画結果を追加"
-
-msgid "添加全部音乐结果"
-msgstr "すべての音楽結果を追加"
+msgid "添加到下载队列"
+msgstr "ダウンロードキューに追加"
 
 msgid "添加选中到下载队列"
 msgstr "選択項目をダウンロードキューに追加"
@@ -751,11 +883,11 @@ msgstr "クリア"
 msgid "清空勾选"
 msgstr "選択をクリア"
 
-msgid "清空日志"
-msgstr "ログをクリア"
-
 msgid "清空日志失败：{}"
 msgstr "ログのクリアに失敗しました：{}"
+
+msgid "清空草稿"
+msgstr "下書きを消去"
 
 msgid "清空记录"
 msgstr "記録をクリア"
@@ -772,8 +904,20 @@ msgstr "満点！今日は何をしてもうまくいきます。"
 msgid "点下面的按钮，看看今天的手气。"
 msgstr "下のボタンを押して今日の運試しをしてみましょう。"
 
+msgid "点击「下载并安装」获取此版本"
+msgstr "「ダウンロードしてインストール」をクリックしてこのバージョンを取得"
+
 msgid "点击「打开TA的个人空间」浏览并下载该UP的视频"
 msgstr "「そのスペースを開く」でこの投稿者の動画を閲覧・ダウンロード"
+
+msgid "点击「打开下载文件」进行安装"
+msgstr "「ダウンロードしたファイルを開く」をクリックしてインストール"
+
+msgid "点击查看更新详情或下载。"
+msgstr "クリックして更新詳細を表示またはダウンロード。"
+
+msgid "点击运行安装程序完成更新。"
+msgstr "クリックしてインストーラーを実行し、更新を完了してください。"
 
 msgid "点赞"
 msgstr "高評価"
@@ -799,17 +943,14 @@ msgstr "プレイヤー"
 msgid "用 yt-dlp 下载任意链接（支持非 B 站站点）"
 msgstr "yt-dlp で任意のリンクをダウンロード（B 站以外のサイトにも対応）"
 
+msgid "用户"
+msgstr "ユーザー"
+
 msgid "用户协议"
 msgstr ""
 
 msgid "界面语言"
 msgstr "言語"
-
-msgid "番剧"
-msgstr "アニメ"
-
-msgid "番剧解析失败：{}"
-msgstr "アニメの解析に失敗: {}"
 
 msgid "登录 B站"
 msgstr "Bilibili にログイン"
@@ -841,14 +982,8 @@ msgstr "そのまま終了"
 msgid "直播"
 msgstr "ライブ"
 
-msgid "直播中"
-msgstr "配信中"
-
 msgid "直播中心"
 msgstr "ライブセンター"
-
-msgid "直播列表为空"
-msgstr "ライブ一覧が空です"
 
 msgid "直播录制"
 msgstr "ライブ録画"
@@ -874,20 +1009,35 @@ msgstr "キューから {} 個のタスクを削除しますか？"
 msgid "确认"
 msgstr "確認"
 
+msgid "确认一下嘛"
+msgstr "確認してね～"
+
 msgid "确认添加"
 msgstr "追加を確定"
 
 msgid "确认清空"
 msgstr "削除の確認"
 
+msgid "禁止批量抓取、未经授权再分发，或违反目标平台服务条款的行为。"
+msgstr "一括スクレイピング、無許可の再配布、および対象プラットフォームの利用規約に違反する行為は禁止されています。"
+
 msgid "程序异常"
 msgstr "プログラム異常"
+
+msgid "稍后"
+msgstr "後で"
 
 msgid "稍后再看"
 msgstr "後で見る"
 
-msgid "稍后再看列表为空，没有可下载的视频"
-msgstr ""
+msgid "稍等一下嘛～"
+msgstr "待ってて～"
+
+msgid "稍等一下～"
+msgstr "ちょっと待って～"
+
+msgid "稳定版"
+msgstr "安定版"
 
 msgid "空闲"
 msgstr "待機中"
@@ -919,23 +1069,14 @@ msgstr "ページ{pn}、全{n}件"
 msgid "第 {pn} 页，共 {n} 条结果"
 msgstr ""
 
-msgid "第 {} / {} 页"
-msgstr "{} / {} ページ"
-
-msgid "第 {} 页{}"
-msgstr "{} ページ{}"
-
-msgid "第 {} 页加载失败：{}"
-msgstr "ページ {} の読み込み失敗: {}"
-
-msgid "第 {} 页：{} 个视频"
-msgstr "{} ページ: 動画 {} 件"
-
 msgid "等待"
 msgstr "待機中"
 
 msgid "等待扫码…"
 msgstr "スキャン待機中…"
+
+msgid "等着你～"
+msgstr "待ってるよ～"
 
 msgid "粘贴"
 msgstr "貼り付け"
@@ -955,11 +1096,32 @@ msgstr ""
 msgid "继续"
 msgstr "続行"
 
+msgid "自动检查并下载"
+msgstr "自動確認してダウンロード"
+
+msgid "自动检查并安装"
+msgstr "自動確認してインストール"
+
+msgid "自动检查并通知"
+msgstr "自動確認して通知"
+
 msgid "自动重命名"
 msgstr "自動リネーム"
 
 msgid "自定义链接下载"
 msgstr "カスタムリンクのダウンロード"
+
+msgid "自定义镜像模板"
+msgstr "カスタムミラーテンプレート"
+
+msgid "草稿保存失败（不影响提交）"
+msgstr "下書きの保存に失敗（送信には影響しません）"
+
+msgid "草稿已清空"
+msgstr "下書きを消去しました"
+
+msgid "草稿已自动保存"
+msgstr "下書きを自動保存しました"
 
 msgid "获取流地址中…"
 msgstr "ストリームURL取得中…"
@@ -967,17 +1129,20 @@ msgstr "ストリームURL取得中…"
 msgid "获取流地址失败：{}"
 msgstr "ストリームURL取得失敗：{}"
 
+msgid "要小心哦～"
+msgstr "気をつけて～"
+
 msgid "覆盖"
 msgstr "上書き"
-
-msgid "视频"
-msgstr "動画"
 
 msgid "解析"
 msgstr "解析"
 
 msgid "解析中..."
 msgstr "解析中..."
+
+msgid "解析失败：{err}"
+msgstr ""
 
 msgid "解析记录"
 msgstr "解析履歴"
@@ -994,11 +1159,17 @@ msgstr "このカテゴリーには動画がありません"
 msgid "该分类下没有视频"
 msgstr "このカテゴリに動画はありません"
 
-msgid "该番剧没有可下载的分集"
-msgstr "このアニメにはダウンロード可能なエピソードがありません"
+msgid "该版本未提供更新说明。"
+msgstr "このバージョンのリリースノートはありません。"
+
+msgid "该番剧 / 合集下没有可下载的分集"
+msgstr ""
 
 msgid "详细布局"
 msgstr ""
+
+msgid "请仅访问本人账号已获授权的内容；不得绕过付费、会员限制或技术保护措施。"
+msgstr "ご自身のアカウントで許可されたコンテンツのみ利用してください。支払い・会員制限や技術的保護措置を回避してはなりません。"
 
 msgid "请使用哔哩哔哩客户端扫码登录"
 msgstr "Bilibili クライアントでスキャンしてログインしてください"
@@ -1033,17 +1204,17 @@ msgstr "まずレコードを1件選択してください"
 msgid "请先选择保存目录。"
 msgstr "保存先フォルダを選択してください。"
 
+msgid "请填写标题和详细内容后再提交"
+msgstr "送信する前にタイトルと詳細を入力してください"
+
 msgid "请滚动阅读至底部后，方可同意"
 msgstr ""
 
 msgid "请登录以使用更多功能"
 msgstr ""
 
-msgid "请至少勾选一个视频"
-msgstr "少なくとも1つの動画を選択してください"
-
-msgid "请输入有效页码"
-msgstr "有効なページ番号を入力してください"
+msgid "请详细描述：问题现象 / 复现步骤 / 期望结果，或建议的使用场景与方案"
+msgstr "詳細に記述してください：発生内容 / 再現手順 / 期待結果、または提案の利用場面と方案"
 
 msgid "读取日志失败：{}"
 msgstr "ログの読み取りに失敗しました：{}"
@@ -1057,17 +1228,11 @@ msgstr "移動"
 msgid "跳转"
 msgstr "移動"
 
-msgid "跳转页码："
-msgstr "ページ移動: "
-
 msgid "轮询失败："
 msgstr "ポーリング失敗："
 
 msgid "输入关键词后回车或点击搜索"
 msgstr "キーワードを入力後、Enter または検索をクリック"
-
-msgid "输入关键词后点击搜索"
-msgstr "キーワードを入力して検索をクリック"
 
 msgid "输入直播间链接（https://live.bilibili.com/房间号）或纯房间号"
 msgstr "ライブルームのリンク（https://live.bilibili.com/ルーム番号）またはルーム番号を入力"
@@ -1081,6 +1246,12 @@ msgstr "運は悪くありません。何か始めるのに良い日です。"
 msgid "运气有点差，出门先看看黄历。"
 msgstr "運が少し悪いです。出かける前に六曜を確認しましょう。"
 
+msgid "运行安装程序"
+msgstr "インストーラーを実行"
+
+msgid "返回"
+msgstr ""
+
 msgid "这个按钮没有任何用途。真的。"
 msgstr "このボタンには何の用途もありません。本当です。"
 
@@ -1090,14 +1261,14 @@ msgstr "アニメリストが空です"
 msgid "退出"
 msgstr "終了"
 
+msgid "选一个嘛～"
+msgstr "ひとつ選んで～"
+
 msgid "选择 FFmpeg 可执行文件"
 msgstr "FFmpeg 実行ファイルを選択"
 
 msgid "选择下载目录"
 msgstr "ダウンロード先を選択"
-
-msgid "选择下载视频"
-msgstr "ダウンロードする動画を選択"
 
 msgid "选择分集"
 msgstr "エピソードを選択"
@@ -1107,9 +1278,6 @@ msgstr "お気に入りを選択"
 
 msgid "选择界面显示语言"
 msgstr "表示言語を選択"
-
-msgid "选择番剧分集"
-msgstr "番組エピソードを選択"
 
 msgid "选择视频"
 msgstr "動画を選択"
@@ -1138,6 +1306,9 @@ msgstr "リンク解析に失敗しました。有効な Bilibili の URL か確
 msgid "错误"
 msgstr "エラー"
 
+msgid "错误：{}"
+msgstr "エラー: {}"
+
 msgid "队列为空，请先添加视频"
 msgstr "キューが空です。まず動画を追加してください"
 
@@ -1150,20 +1321,8 @@ msgstr "ウィンドウを隠す"
 msgid "需要认证时填写"
 msgstr "認証が必要な場合に入力"
 
-msgid "音乐"
-msgstr "音楽"
-
 msgid "音频格式仅在「音画分离」或「仅下载音频」时生效"
 msgstr "音声形式は「音声分離」または「音声のみ」の場合のみ有効"
 
-msgid "高级"
-msgstr "詳細"
-
 msgid "（匹配 {matched}）"
 msgstr "（{matched} 件一致）"
-
-msgid "（匹配 {}）"
-msgstr "（一致: {}）"
-
-msgid "（还有更多）"
-msgstr "（さらにあり）"

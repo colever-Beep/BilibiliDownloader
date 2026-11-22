@@ -46,6 +46,23 @@ CHANNELS = {
     CHANNEL_BETA: "测试版",
 }
 
+# --------------------------------------------------------------------------- #
+# 下载镜像（GitHub 下载慢时可选更快的反代；镜像服务随时可能失效，失败时可切回官方）
+# --------------------------------------------------------------------------- #
+MIRROR_GITHUB = "github"       # 官方直连（默认）
+MIRROR_CUSTOM = "custom"       # 用户自定义模板
+MIRRORS = {
+    MIRROR_GITHUB: "GitHub 官方",
+    "ghproxy_com": "gh-proxy.com",
+    "ghproxy_net": "ghproxy.net",
+    MIRROR_CUSTOM: "自定义镜像",
+}
+# 前缀式镜像：把完整下载 URL 拼到前缀之后（这类反代普遍支持的用法）
+MIRROR_PREFIXES = {
+    "ghproxy_com": "https://gh-proxy.com/",
+    "ghproxy_net": "https://ghproxy.net/",
+}
+
 # 更新模式（对应设置项 update_mode 的取值）
 UPDATE_MODE_NEVER = "never"        # 从不自动更新
 UPDATE_MODE_NOTIFY = "notify"      # 自动检查并通知
@@ -110,6 +127,30 @@ class UpdateInfo:
 # --------------------------------------------------------------------------- #
 # 工具函数
 # --------------------------------------------------------------------------- #
+def apply_mirror(url: str, mirror_key: str = MIRROR_GITHUB,
+                 custom_template: str = "") -> str:
+    """把 GitHub 下载 URL 按用户所选镜像改写。
+
+    - ``github``：原样返回；
+    - 内建反代：``前缀 + 原 URL``（如 ``https://gh-proxy.com/https://github.com/...``）；
+    - ``custom``：模板中 ``{url}`` 会被替换为原 URL；无占位符则按前缀拼接。
+
+    镜像只作用于「下载」；检查更新仍走 api.github.com，避免反代不支持 API 导致误报。
+    """
+    if not url:
+        return url
+    key = (mirror_key or MIRROR_GITHUB).strip()
+    if key in (MIRROR_GITHUB, ""):
+        return url
+    if key == MIRROR_CUSTOM:
+        tpl = (custom_template or "").strip()
+        if not tpl:
+            return url
+        return tpl.replace("{url}", url) if "{url}" in tpl else tpl.rstrip("/") + "/" + url
+    prefix = MIRROR_PREFIXES.get(key)
+    return (prefix + url) if prefix else url
+
+
 def build_proxies(config) -> Optional[dict]:
     """根据 config 的代理设置构造 requests 用的 proxies 字典；不使用代理时返回 None。"""
     if config is None:
@@ -229,6 +270,10 @@ class UpdateService:
         self.config = config
         self.proxies = proxies if proxies is not None else build_proxies(config)
         self.api_url = api_url
+        # 下载镜像（在 download_asset 时再经 _current_mirror 重读 config，
+        # 保证设置里改了镜像后、被缓存的 service 也能立即生效）
+        self.mirror_key = MIRROR_GITHUB
+        self.mirror_custom = ""
         self.session = requests.Session()
         # GitHub API 要求带 User-Agent，否则会被 403
         self.session.headers.update({
@@ -241,6 +286,17 @@ class UpdateService:
         self.last_info: Optional[UpdateInfo] = None
         self.last_error: Optional[Exception] = None
         self.last_check_time: float = 0.0
+
+    def _current_mirror(self) -> tuple:
+        """返回 (镜像键, 自定义模板)；每次下载时重读 config，避免设置改了不生效。"""
+        key, custom = self.mirror_key, self.mirror_custom
+        if self.config is not None:
+            try:
+                key = self.config.get("update_mirror", key) or key
+                custom = self.config.get("update_mirror_custom", custom) or custom
+            except Exception:
+                pass
+        return key, custom
 
     # ------------------------------------------------------------------ #
     # 检查更新（同步核心，由 *_async 包装到后台线程）
@@ -364,10 +420,13 @@ class UpdateService:
             fname = fname.replace(ch, "_")
         dest_path = os.path.join(dest_dir, fname)
 
+        mirror_key, mirror_custom = self._current_mirror()
+        download_url = apply_mirror(asset.url, mirror_key, mirror_custom)
+
         def _work():
             try:
                 resp = self.session.get(
-                    asset.url, stream=True, timeout=UPDATE_API_TIMEOUT,
+                    download_url, stream=True, timeout=UPDATE_API_TIMEOUT,
                     proxies=self.proxies)
                 resp.raise_for_status()
                 total = int(resp.headers.get("content-length", 0) or 0)

@@ -70,7 +70,7 @@ def pyinstaller_args(png_path):
     datas = []
     for loc in glob.glob(os.path.join(ROOT, "utils", "locales_*.py")):
         datas.append(loc + SEP + "utils")
-    for f in ("icon.ico", "not_logged_in.jpeg"):
+    for f in ("ui/assets/brand/icon.ico", "ui/assets/avatars/not_logged_in.jpeg"):
         p = os.path.join(ROOT, f)
         if os.path.exists(p):
             datas.append(p + SEP + ".")
@@ -87,8 +87,9 @@ def pyinstaller_args(png_path):
         "--workpath", os.path.join(WORK, "pyi"),
         "--specpath", os.path.join(WORK, "pyi"),
     ]
-    if os.path.exists(os.path.join(ROOT, "icon.ico")):
-        args += ["--icon", os.path.join(ROOT, "icon.ico")]
+    _ico = os.path.join(ROOT, "ui", "assets", "brand", "icon.ico")
+    if os.path.exists(_ico):
+        args += ["--icon", _ico]
     for d in datas:
         args += ["--add-data", d]
     for h in hidden:
@@ -142,7 +143,7 @@ def build_appimage():
     bake_i18n()
 
     png = os.path.join(WORK, ICON_NAME + ".png")
-    ico = os.path.join(ROOT, "icon.ico")
+    ico = os.path.join(ROOT, "ui", "assets", "brand", "icon.ico")
     if os.path.exists(ico):
         make_icon_png(ico, png)
     else:

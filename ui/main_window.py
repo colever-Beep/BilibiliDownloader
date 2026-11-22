@@ -29,10 +29,11 @@ from ui.sidebar import NavigationBar
 from ui.queue_view import QueueView, _set_progress_bar
 from ui.select_dialog import SelectDialog, PaginatedSelectDialog
 from ui.episode_select_dialog import EpisodeSelectDialog
+from ui.sequential_select import SequentialSelectSession
 from ui.following_dialog import FollowingDialog
 from ui.download_options_dialog import DownloadOptionsDialog
 from ui.fluent_dialog import (
-    ChoiceDialog, msg_info, msg_warn, msg_error, msg_confirm,
+    ChoiceDialog, msg_info, msg_warn, msg_error, msg_confirm, msg_success,
 )
 from utils.window_helpers import bring_to_foreground
 from ui.dialogs import (AboutDialog, LoginDialog,
@@ -42,6 +43,7 @@ from ui.live_record_window import LiveRecordWindow
 from ui.content_pages import (
     BrowsePage, FollowingPage, FavFolderPage, LiveCenterPage,
 )
+from ui.feedback_page import FeedbackPage
 from ui.theme import (
     set_accent, get_accent, apply_appearance, DEFAULT_ACCENT,
     set_root_window,
@@ -311,6 +313,8 @@ class MainWindow:
         self.browse_page = BrowsePage(parent=self.content_stack,
                                      on_confirm=self._browse_confirm,
                                      on_back=self._show_home)
+        # 「添加到下载队列」按钮文案随选中项类型切换（文案与路由判定同源）
+        self.browse_page.set_add_text_resolver(self._resolve_add_text)
         self.content_stack.addWidget(self.browse_page)
 
         self.following_page = FollowingPage(parent=self.content_stack,
@@ -330,6 +334,12 @@ class MainWindow:
                                               on_open_room=self._open_live_room,
                                               on_back=self._show_home)
         self.content_stack.addWidget(self.livecenter_page)
+
+        # 反馈页：软件内收集 Bug 反馈 / 功能建议，提交到 GitHub Issues
+        self.feedback_page = FeedbackPage(parent=self.content_stack,
+                                          config=self.config,
+                                          on_back=self._show_home)
+        self.content_stack.addWidget(self.feedback_page)
 
         self.content_stack.setCurrentWidget(self.main_panel)
 
@@ -367,23 +377,213 @@ class MainWindow:
     def _browse_confirm(self, selected):
         """浏览页默认确认：勾选视频/分集 → 下载选项 → 入队 → 回首页。
 
-        番剧 / 影视 / 课程 / 合集等多分集容器：不直接入队（否则会拉取整季 / 全部分集，
-        表现为「未选分集却下载全部、或与后续挑选的分集重复下载」）。改为先解析分集、
-        打开选集界面，由用户挑选具体分集后再入队。
+        多类型混合勾选（同时含「有分集容器」与「无分集视频」）时：
+          - 无分集视频照常处理；
+          - 有分集容器按勾选顺序**依次**解析、依次让用户勾选分集，底部按钮
+            切换为「上一个 / 下一个」，全部走完才恢复「加入下载队列」并统一入队。
+        这修复了旧实现「每个容器各起线程、各自覆写同一个选集页 → 只剩最后一个
+        容器的分集、前面选择全丢」的问题。
+
+        单个有分集容器（非混合）仍走原来的单段选集流程，避免改变既有习惯。
         """
         if not selected:
             self._show_home()
             return
         containers = [it for it in selected if self._is_episode_container(it)]
-        if containers:
-            for it in containers:
-                self._resolve_container_to_episodes(it)
-            normals = [it for it in selected if it not in containers]
-            if normals:
-                self._on_videos_selected(normals)
+        if not containers:
+            self._on_videos_selected(selected)
+            self._show_home()
             return
-        self._on_videos_selected(selected)
+        normals = [it for it in selected if it not in containers]
+        if len(containers) == 1 and not normals:
+            # 单容器：沿用既有单段解析流程
+            self._resolve_container_to_episodes(containers[0])
+            return
+        # 多段 / 混合类型：进入顺序选集会话
+        self._start_sequential_selection(containers, normals)
+
+    # ------------------------------------------------------------------ #
+    # 顺序选集会话（多类型混合 / 多个有分集容器）
+    # ------------------------------------------------------------------ #
+    def _start_sequential_selection(self, containers, normals=None):
+        """为每个有分集容器建立一个段，按顺序解析并让用户逐个勾选分集。
+
+        无分集视频（normals）暂存于会话，待全部段完成后随分集一并入队。
+        """
+        session = SequentialSelectSession(containers, normals)
+        self._seq_session = session
+        self.logger.log(
+            f"进入顺序选集：{session.total} 个待选段（有分集 / UP主空间） + "
+            f"{len(session.normals)} 个普通视频")
+        self._seq_render_current()
+
+    @staticmethod
+    def _seq_title_spec(seg):
+        """返回当前段的页头标题（翻译键 + 格式化参数）。
+
+        - UP主空间段：``“UP主名”的个人空间``
+        - 有分集容器段：``选择你想下载“父视频标题”的分集``
+        """
+        name = seg.title or tr("未命名")
+        if getattr(seg, "kind", "episodes") == "space":
+            return "“{}”的个人空间", (name,)
+        return "选择你想下载“{}”的分集", (name,)
+
+    def _seq_render_current(self):
+        """渲染当前段：解析（带缓存）→ 填充选集页 → 刷新导航按钮。"""
+        session = getattr(self, "_seq_session", None)
+        if session is None:
+            return
+        seg = session.current
+        if seg is None:
+            self._seq_finish()
+            return
+        index, total = session.index, session.total
+        title_key, title_args = self._seq_title_spec(seg)
+
+        def show(episodes):
+            # 回到主线程填充当前段的分集列表（配置会重置勾选态，随后恢复本段快照）
+            def _render():
+                cur = getattr(self, "_seq_session", None)
+                if cur is None or cur.index != index:
+                    return  # 用户已切换段，丢弃过期渲染
+                seg.episodes = episodes
+                self.browse_page.set_on_confirm(None)
+                self.browse_page.configure_oneshot(title_key)
+                self.browse_page.fill(list(episodes))
+                # 恢复本段此前勾选（key -> 原 item 需按当前 episodes 重新对齐）
+                checked = getattr(seg, "checked", set()) or set()
+                live = set()
+                for it in episodes:
+                    key = it.get("url") or it.get("bvid") or id(it)
+                    if key in checked:
+                        live.add(key)
+                self.browse_page._checked_keys.clear()
+                self.browse_page._checked_keys.update(live)
+                self.browse_page._selected.clear()
+                for it in episodes:
+                    key = it.get("url") or it.get("bvid") or id(it)
+                    if key in live:
+                        self.browse_page._selected[key] = it
+                self.browse_page._update_count()
+                # 标题带格式化参数（UP主名 / 父视频标题），语言切换自动刷新
+                self.browse_page.set_header_title(title_key, *title_args)
+                self.browse_page.set_sequential_nav(
+                    True, self._seq_prev, self._seq_next)
+                self.browse_page.update_sequential_nav(index, total)
+                self._switch_to(self.browse_page)
+            run_on_main(_render)
+
+        if seg.episodes is not None:
+            show(seg.episodes)
+            return
+        # 批量解析已拿到分集列表：直接填充，避免重复解析
+        pre = seg.source.get("_preloaded_episodes")
+        if pre is not None:
+            seg.episodes = list(pre)
+            show(seg.episodes)
+            return
+        # 未解析：后台线程解析，UI 先显示加载态
+        url = seg.source.get("url") or ""
+        if not url and getattr(seg, "kind", "episodes") == "space":
+            mid = seg.source.get("mid")
+            if mid:
+                url = f"https://space.bilibili.com/{mid}"
+        self.browse_page.set_on_confirm(None)
+        self.browse_page.configure_oneshot(title_key)
+        self.browse_page.set_header_title(title_key, *title_args)
+        self.browse_page.set_loading(True)
+        self.browse_page.set_sequential_nav(True, self._seq_prev, self._seq_next)
+        self.browse_page.update_sequential_nav(index, total)
+        self._switch_to(self.browse_page)
+
+        def worker():
+            try:
+                video_list, title, err, _ep, fetch = self._resolve_videos(url)
+            except Exception as e:  # noqa: BLE001
+                video_list, title, err, fetch = None, "", str(e), None
+            # UP主空间 / 可翻页来源：_resolve_videos 只返回 fetch，须先取第一页
+            if fetch is not None and not video_list and not err:
+                try:
+                    res = fetch(1, 50)
+                    video_list = (res[0] if isinstance(res, tuple) else res) or []
+                except Exception:
+                    video_list = []
+            if err or not video_list:
+                self.logger.log(f"顺序选集第 {index + 1} 段解析失败：{err or '无分集'}")
+                run_on_main(lambda: show([]))
+                return
+            if title and not seg.title:
+                seg.title = title
+            run_on_main(lambda v=list(video_list): show(v))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _seq_snapshot_current(self):
+        """离开当前段前保存勾选态。"""
+        session = getattr(self, "_seq_session", None)
+        if session is None or session.current is None:
+            return
+        checked = set(self.browse_page._checked_keys)
+        selected = list(self.browse_page._selected.values())
+        session.snapshot(checked, selected)
+
+    def _seq_prev(self):
+        self._seq_snapshot_current()
+        session = getattr(self, "_seq_session", None)
+        if session is not None and session.move_prev():
+            self._seq_render_current()
+
+    def _seq_next(self):
+        self._seq_snapshot_current()
+        session = getattr(self, "_seq_session", None)
+        if session is None:
+            return
+        if session.move_next():
+            self._seq_render_current()
+        else:
+            # 最后一段「下一个」→ 汇总所有段勾选 + 普通视频，恢复按钮并入队
+            self._seq_finish()
+
+    def _seq_finish(self):
+        session = getattr(self, "_seq_session", None)
+        self._seq_session = None
+        if session is None:
+            self._show_home()
+            return
+        final = session.final_items()
+        self.logger.log(f"顺序选集完成：共 {len(final)} 项待入队")
+        # 恢复常规底部按钮
+        self.browse_page.set_sequential_nav(False)
+        if not final:
+            msg_info(self.window, tr("未勾选任何分集"), tr("提示"))
+            self._show_home()
+            return
+        self._on_videos_selected(final)
         self._show_home()
+
+    def _resolve_add_text(self, selected):
+        """按选中项类型给出「添加到下载队列」按钮应显示的文案翻译键。
+
+        与 :meth:`_route_search_selected` / :meth:`_browse_confirm` 的分流判定同源，
+        保证「按钮写什么」与「点了会做什么」一致：
+
+        - 仅 UP主（单个）→ 浏览TA的个人空间（单段入口）
+        - 仅有分集容器（单个）→ 浏览该视频的分集（单段入口）
+        - 多段 / 混合类型（UP主 + 视频 / 容器 + 视频 / 多个容器）→ 下一步（顺序选集）
+        - 纯普通视频（含多个）→ 添加到下载队列
+        """
+        if not selected:
+            return "添加到下载队列"
+        segments = [it for it in selected
+                    if it.get("type") == "user" or self._is_episode_container(it)]
+        if not segments:
+            return "添加到下载队列"
+        if len(segments) == 1 and len(selected) == 1:
+            only = segments[0]
+            return ("浏览TA的个人空间" if only.get("type") == "user"
+                    else "浏览该视频的分集")
+        return "下一步"
 
     def _is_episode_container(self, item):
         """判断列表项是否为「多分集容器」（番剧 / 影视 / 课程 / 合集），需先选集再下载。"""
@@ -444,7 +644,7 @@ class MainWindow:
         elif len(video_list) == 1:
             self._add_videos_direct(video_list)
         elif episode_like:
-            self.show_episode_select(video_list)
+            self.show_episode_select(video_list, parent_title=title)
         else:
             try:
                 self.api.enrich_videos(video_list)
@@ -817,10 +1017,12 @@ class MainWindow:
         self.clear_btn.setEnabled(True)
         self._task_speeds.clear()
         self.refresh_overall_progress()
-        msg_info(self.window, tr("下载结束：完成{}，失败{}，取消{}\n保存路径: {}").format(
-                completed, failed, cancelled, self.config.get('download_path')), tr("下载完成"))
+        # 先打开下载目录，再弹完成提示：MessageBox 是模态阻塞的，若先弹窗，
+        # 用户必须关闭弹窗才会执行到打开目录，资源管理器被弹窗挡住、顺序不合逻辑。
         if completed > 0 and self.config.get("open_folder_after_download", True):
             self.open_download_dir()
+        msg_success(self.window, tr("下载结束：完成{}，失败{}，取消{}\n保存路径: {}").format(
+                completed, failed, cancelled, self.config.get('download_path')), tr("下载完成"))
         if failed > 0:
             self.tray.set_error()
         else:
@@ -1096,7 +1298,7 @@ class MainWindow:
             if len(video_list) == 1:
                 self._add_videos_direct(video_list)
             elif episode_like:
-                run_on_main(lambda: self.show_episode_select(video_list))
+                run_on_main(lambda t=title: self.show_episode_select(video_list, parent_title=t))
             else:
                 try:
                     self.api.enrich_videos(video_list)
@@ -1177,36 +1379,49 @@ class MainWindow:
         threading.Thread(target=self._batch_parse_thread, args=(lines,), daemon=True).start()
 
     def _batch_parse_thread(self, links):
-        aggregated = []           # 非翻页来源解析出的整列表
-        pending_dialogs = []      # (title, fetch)：可翻页来源各自弹统一的分页选择框
+        # 有分集容器（番剧/课程/合集/多分P）按链接建段，供后续顺序选集；
+        # 无分集视频汇总；可翻页来源各自弹「按需分页」选择框。
+        episodic = []             # [(url, title, vlist)]，每项一个分集容器
+        normals = []              # 无分集视频
+        pending_dialogs = []      # (title, fetch)
         failed = 0
         for raw in links:
             url = resolve_short_url(raw) or raw
             try:
-                vlist, title, err, _ep, fetch = self._resolve_videos(url)
+                vlist, title, err, ep_like, fetch = self._resolve_videos(url)
                 if err or (not vlist and fetch is None):
                     failed += 1
                     self.logger.log(f"批量解析失败：{raw}")
                     continue
                 if fetch is not None:
-                    # 可翻页来源（UP 主空间等）不再一次性拉全，改为各自弹
-                    # 「按需分页」选择框，与收藏夹/稍后再看保持一致。
                     pending_dialogs.append((title, fetch))
-                else:
-                    aggregated.extend(vlist)
+                elif ep_like and vlist:
+                    # 有分集容器：作为一个段，复用已解析结果
+                    episodic.append((url, title or url, list(vlist)))
+                elif vlist:
+                    normals.extend(vlist)
             except Exception as e:
                 failed += 1
                 self.logger.log(f"批量解析失败：{raw} {e}")
         if failed:
             self.logger.log(f"批量解析：{failed} 个链接解析失败")
-        # 非翻页来源汇总到一个勾选框
-        if aggregated:
-            self.logger.log(f"批量解析：共 {len(aggregated)} 个视频，请在弹窗中勾选")
-            run_on_main(lambda v=list(aggregated): self.show_video_select(v))
+
+        # 有分集容器 → 顺序选集（内联页适配）：逐个让用户勾选，底部「上一个/下一个」；
+        # 无分集视频随最后一段一起入队。多段或混合类型都会进入顺序流程。
+        if episodic:
+            containers = [{"url": u, "title": t, "_preloaded_episodes": v}
+                          for u, t, v in episodic]
+            self.logger.log(
+                f"批量解析：{len(containers)} 个分集容器进入顺序选集，"
+                f"{len(normals)} 个普通视频")
+            run_on_main(lambda: self._start_sequential_selection(containers, normals))
+        elif normals:
+            self.logger.log(f"批量解析：共 {len(normals)} 个视频，请在弹窗中勾选")
+            run_on_main(lambda v=list(normals): self.show_video_select(v))
         # 可翻页来源各自弹统一的「按需分页」选择框
         for title, fetch in pending_dialogs:
             run_on_main(lambda t=title, f=fetch: self._pull_all_and_show(t, f))
-        if not aggregated and not pending_dialogs and not failed:
+        if not episodic and not normals and not pending_dialogs and not failed:
             self.logger.log("批量解析：未获取到任何视频")
 
     def open_settings(self):
@@ -1252,24 +1467,50 @@ class MainWindow:
             pass
 
     def _on_auto_update_result(self, status, info):
-        from utils.updater import UpdateStatus, UPDATE_MODE_DOWNLOAD, UPDATE_MODE_INSTALL
+        from utils.updater import (
+            UpdateStatus, UPDATE_MODE_NOTIFY, UPDATE_MODE_DOWNLOAD, UPDATE_MODE_INSTALL,
+        )
         if status != UpdateStatus.AVAILABLE or info is None:
             return
         mode = self.config.get("update_mode", "notify")
-        # 通知：顶部提示条 + 「查看」动作打开更新详情对话框
+        title = tr("发现新版本 {}").format(info.version)
+        message = tr("点击查看更新详情或下载。")
+        # 「通知」模式：弹出 Windows 系统通知（托盘气泡），点击可打开更新详情；
+        # 系统通知不可用（托盘被禁用 / 不支持）时回退到应用内 InfoBar，避免完全收不到提醒。
+        if mode == UPDATE_MODE_NOTIFY:
+            sent = False
+            try:
+                from utils.helpers import send_windows_notification
+                sent = send_windows_notification(
+                    title, message, duration=8,
+                    on_clicked=lambda: self._open_update_dialog(info))
+            except Exception:
+                pass
+            if not sent:
+                try:
+                    from qfluentwidgets import InfoBar, InfoBarPosition
+                    from PySide6.QtWidgets import QPushButton
+                    bar = InfoBar.info(
+                        title, message, parent=self.window,
+                        position=InfoBarPosition.TOP, duration=8000)
+                    btn = QPushButton(tr("查看"))
+                    btn.clicked.connect(lambda: self._open_update_dialog(info))
+                    bar.addWidget(btn)
+                except Exception:
+                    pass
+            return
+        # 下载 / 安装模式：应用内顶部提示引导 + 发现即自动下载
         try:
             from qfluentwidgets import InfoBar, InfoBarPosition
             from PySide6.QtWidgets import QPushButton
             bar = InfoBar.info(
-                tr("发现新版本 {}").format(info.version),
-                tr("点击查看更新详情或下载。"),
+                title, message,
                 parent=self.window, position=InfoBarPosition.TOP, duration=8000)
             btn = QPushButton(tr("查看"))
             btn.clicked.connect(lambda: self._open_update_dialog(info))
             bar.addWidget(btn)
         except Exception:
             pass
-        # 下载 / 安装模式：发现即自动下载，完成后再次提示
         if mode in (UPDATE_MODE_DOWNLOAD, UPDATE_MODE_INSTALL):
             self._auto_download_update(info)
 
@@ -1300,6 +1541,14 @@ class MainWindow:
             pass
 
     def _on_auto_download_done(self, path):
+        # Windows 系统通知：下载完成后即使用户最小化也能看到
+        try:
+            from utils.helpers import send_windows_notification
+            send_windows_notification(
+                tr("更新已下载"), tr("点击运行安装程序完成更新。"), duration=8,
+                on_clicked=lambda: self._update_open_path(path))
+        except Exception:
+            pass
         try:
             from qfluentwidgets import InfoBar, InfoBarPosition
             from PySide6.QtWidgets import QPushButton
@@ -1448,6 +1697,8 @@ class MainWindow:
             self.open_music_search()
         elif nav_type == "live_center":
             self.open_live_center()
+        elif nav_type == "feedback":
+            self._switch_to(self.feedback_page)
 
     def load_folder_videos(self, media_id, folder_title=None):
         # 未指定具体收藏夹（侧边栏点击「我的收藏夹」时 media_id 为 None）：
@@ -1569,7 +1820,7 @@ class MainWindow:
         self.following_page.set_data(follows)
         self._switch_to(self.following_page)
 
-    def load_uploader_videos(self, mid):
+    def load_uploader_videos(self, mid, name=None):
         self.logger.log(f"加载UP主空间视频... (mid={mid})")
         def fetch(pn, ps):
             res = self.api.get_uploader_videos(mid, pn=pn, ps=ps) or {}
@@ -1579,9 +1830,12 @@ class MainWindow:
             total_pages = (total + ps - 1) // ps if total else None
             return items, res.get("has_more", False), total_pages
         self.browse_page.set_on_confirm(self._browse_confirm)
+        title_key = "“{}”的个人空间" if name else "UP主空间"
         self.browse_page.configure_paginated(
-            "UP主空间", fetch, ps=30,
+            title_key, fetch, ps=30,
             empty_msg="该UP主暂无可下载视频")
+        if name:
+            self.browse_page.set_header_title(title_key, name)
         self._switch_to(self.browse_page)
 
     def load_season_list(self):
@@ -1725,6 +1979,7 @@ class MainWindow:
         self.browse_page.configure_search(
             "搜索 B站", self.api.get_search_results,
             "输入关键词后回车或点击搜索")
+        self.browse_page.set_suggest_fn(self.api.get_search_suggest)
         self._switch_to(self.browse_page)
 
     def open_music_search(self):
@@ -1732,31 +1987,39 @@ class MainWindow:
         self.browse_page.configure_search(
             "bilibili音乐", self.api.get_music_search_results,
             "输入关键词后回车或点击搜索")
+        # 音乐搜索也用同一联想接口（联想词为通用热词）
+        self.browse_page.set_suggest_fn(self.api.get_search_suggest)
         self._switch_to(self.browse_page)
 
     def _route_search_selected(self, selected):
         if not selected:
             self.logger.log("未勾选任何结果")
             return
-        videos, users, seasons = [], [], []
+        videos, segments = [], []
         for s in selected:
-            if s.get("type") == "user":
-                users.append(s)
-            elif self._is_episode_container(s):
-                seasons.append(s)
+            if s.get("type") == "user" or self._is_episode_container(s):
+                # UP主空间与有分集容器都作为「待选择段」，进入顺序选集流程。
+                segments.append(s)
             else:
                 videos.append(s)
-        # UP主结果 → 展开其空间视频（内联切换页）
-        for u in users:
-            mid = u.get("mid")
-            if mid:
-                self.load_uploader_videos(mid)
-        if seasons:
-            self._expand_seasons_to_episodes(seasons)
-        # 视频结果直接入队后回到首页；番剧结果已展开为可选分集。
-        if videos:
+        if not segments:
+            # 纯无分集视频：维持原行为，直接入队回首页。
             self._add_selected_to_queue(videos)
             self._show_home()
+            return
+        # 单个段且无其它视频：沿用各自的单段入口（保留既有习惯），
+        # 但 UP主空间入口会带上名称作为内联标题。
+        if len(segments) == 1 and not videos:
+            only = segments[0]
+            if only.get("type") == "user":
+                self.load_uploader_videos(only.get("mid"),
+                                          name=only.get("title") or only.get("uploader"))
+            else:
+                self._resolve_container_to_episodes(only)
+            return
+        # 多段 / 混合类型（UP主 + 视频 / 番剧 + 视频）：顺序选集，
+        # 底部按钮切换为「上一个 / 下一个」，全部选完统一入队。
+        self._start_sequential_selection(segments, videos)
 
     def _add_videos_via_options(self, video_list):
         if not video_list:
@@ -1782,6 +2045,7 @@ class MainWindow:
                 on_confirm=self._on_videos_selected,
                 title=title,
             )
+            dlg.set_add_text_resolver(self._resolve_add_text)
             dlg.exec()
             return
 
@@ -1820,6 +2084,7 @@ class MainWindow:
             on_confirm=self._on_videos_selected,
             title=title,
         )
+        dlg.set_add_text_resolver(self._resolve_add_text)
         dlg.exec()
 
     def show_video_select(self, video_list):
@@ -1832,14 +2097,19 @@ class MainWindow:
         self._switch_to(self.browse_page)
         self.browse_page.fill(video_list)
 
-    def show_episode_select(self, episode_list):
+    def show_episode_select(self, episode_list, parent_title=None):
         if not episode_list:
             self.logger.log("该分类下无分集")
             msg_info(self.window, tr("该分类下无分集"), tr("提示"))
             return
-        # 2.1.0：分集选择内联到主界面
+        # 2.1.0：分集选择内联到主界面；标题显示所属视频标题（如有）
         self.browse_page.set_on_confirm(self._browse_confirm)
-        self.browse_page.configure_oneshot("选择分集")
+        if parent_title:
+            title_key = "选择你想下载“{}”的分集"
+            self.browse_page.configure_oneshot(title_key)
+            self.browse_page.set_header_title(title_key, parent_title)
+        else:
+            self.browse_page.configure_oneshot("选择分集")
         self._switch_to(self.browse_page)
         self.browse_page.fill(episode_list)
 
@@ -1892,7 +2162,8 @@ class MainWindow:
                 run_on_main(_show_error)
                 return
             self.logger.log(f"已汇总 {len(all_episodes)} 个分集（来自 {total} 个番剧）")
-            run_on_main(lambda: self.show_episode_select(all_episodes))
+            parent = (series_list[0].get("title") if len(series_list) == 1 else None)
+            run_on_main(lambda p=parent: self.show_episode_select(all_episodes, parent_title=p))
 
         threading.Thread(target=worker, daemon=True).start()
 
@@ -2035,7 +2306,8 @@ class MainWindow:
         for _pg in (getattr(self, "browse_page", None),
                     getattr(self, "following_page", None),
                     getattr(self, "favfolder_page", None),
-                    getattr(self, "livecenter_page", None)):
+                    getattr(self, "livecenter_page", None),
+                    getattr(self, "feedback_page", None)):
             if _pg is not None:
                 try:
                     _pg.retranslate()
@@ -2075,7 +2347,9 @@ class MainWindow:
         """
         from ui.terms_dialog import TermsOfUseDialog
 
-        dlg = TermsOfUseDialog(self.window, self.config)
+        # 传入语言切换回调：协议弹窗内点选语言时即时重译主界面并持久化
+        dlg = TermsOfUseDialog(self.window, self.config,
+                               on_language_change=self.on_language_change)
         if not dlg.exec():
             # 用户不接受使用协议 → 关闭程序
             self.logger.log("用户未接受《用户协议》，程序退出")

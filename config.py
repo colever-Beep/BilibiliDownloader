@@ -154,6 +154,8 @@ DEFAULT_CONFIG = {
     # ---- 更新（参照 ClassIsland 更新逻辑）----
     "update_channel": "stable",       # 更新通道：stable（稳定版）/ beta（测试版）
     "update_mode": "notify",          # 发现更新后的行为：never（从不自动更新）/ notify（通知）/ download（下载）/ install（下载并提示安装）
+    "update_mirror": "github",        # 更新下载镜像：github（官方）/ ghproxy_com / ghproxy_net / custom（自定义）
+    "update_mirror_custom": "",       # 自定义镜像模板：含 {url} 占位符则用其替换，否则视为 URL 前缀
 
     # ---- 百宝箱（设置 → 高级）娱乐功能，与下载主流程无关 ----
     "toolbox_download_dir": "",           # 自定义链接下载的保存目录（空 = 跟随 download_path）
@@ -161,6 +163,11 @@ DEFAULT_CONFIG = {
     "toolbox_luck_seed": "",              # 今日人品的名字 / 种子（空 = 当前系统用户名）
     "toolbox_luck_bonus": 0,              # 今日人品彩蛋加成（「千万别点」每次 +5，上限 20）
     "toolbox_dnc_clicks": 0,              # 「千万别点」累计点击次数
+
+    # ---- 反馈 / 赞助 ----
+    "feedback_proxy_url": "",             # 反馈代理端点（可选）。配置后提交反馈直接 POST 建 Issue（免登录）；
+                                          # 留空则回退到「打开预填 GitHub Issue 页」，由用户手动点发布。
+    "sponsor_url": "",                    # 赞助页面链接（纯自愿，非强制；空则关于页不显示赞助入口）
 
     "quality_rules": {
         "8K":  "bestvideo[height<=4320][vcodec^=avc]+bestaudio[acodec^=mp4a]/best[height<=4320]",
