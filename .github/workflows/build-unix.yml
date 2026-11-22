@@ -159,13 +159,15 @@ jobs:
         id: tag
         run: |
           set -euo pipefail
+          # prerelease 一律输出非空布尔值：空字符串输出在下游 set -u / env 插值时
+          # 会被视为未定义，导致 ${PRERELEASE} 报 unbound variable。
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-            echo "prerelease=" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
             echo "title=BilibiliDownloader ${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
           else
             echo "tag=continuous" >> "$GITHUB_OUTPUT"
-            echo "prerelease=--prerelease" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
             echo "title=BilibiliDownloader 持续构建 ($(date +%Y-%m-%d))" >> "$GITHUB_OUTPUT"
           fi
       - name: Checkout repo (for release notes)
@@ -186,6 +188,7 @@ jobs:
           TAG="${{ steps.tag.outputs.tag }}"
           PRERELEASE="${{ steps.tag.outputs.prerelease }}"
           NOTES_FILE="release_notes/${TAG}.md"
+          # 上游 prerelease 输出已是 true/false 非空值，这里再做一次默认值兜底。
           body=$(mktemp)
           {
             if [[ -f "$NOTES_FILE" ]]; then
@@ -214,7 +217,7 @@ jobs:
             echo "| Windows | x86_64 | \`$WIN_SETUP\` | 安装版（向导安装，内置 ffmpeg，离线可用）|"
             echo "| Windows | x86_64 | \`BilibiliDownloader-portable.zip\` | 便携版（解压即用，无需安装） |"
             echo
-            if [[ -n "$PRERELEASE" ]]; then
+            if [[ "${PRERELEASE:-false}" == "true" ]]; then
               echo "> 本发布为**持续构建（prerelease）**，对应最近一次手动触发的构建，可能不稳定。"
               echo
             fi
@@ -236,14 +239,19 @@ jobs:
           BODY_FILE: ${{ steps.body.outputs.file }}
         run: |
           set -euo pipefail
+          # 用显式数组而非裸 $PRERELEASE：即使 env 缺失也不会 unbound，且避免词拆分。
+          prerelease_flags=()
+          if [[ "${PRERELEASE:-false}" == "true" ]]; then
+            prerelease_flags=(--prerelease)
+          fi
           REPO="$GITHUB_REPOSITORY"
           files=(dist/*)
           if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
             gh release upload "$TAG" --repo "$REPO" "${files[@]}" --clobber
-            gh release edit "$TAG" --repo "$REPO" --title "$TITLE" --notes-file "$BODY_FILE" $PRERELEASE
+            gh release edit "$TAG" --repo "$REPO" --title "$TITLE" --notes-file "$BODY_FILE" "${prerelease_flags[@]}"
             echo "Release $TAG 已更新"
           else
             gh release create "$TAG" --repo "$REPO" "${files[@]}" \
-              --title "$TITLE" --notes-file "$BODY_FILE" $PRERELEASE
+              --title "$TITLE" --notes-file "$BODY_FILE" "${prerelease_flags[@]}"
             echo "Release $TAG 已创建"
           fi
