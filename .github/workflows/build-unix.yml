@@ -1,21 +1,115 @@
 name: Build packages
 
-# 手动触发（Actions 页面 Run workflow）或推送 v* tag 时构建；构建完成后自动发布到 Releases：
-#   发行说明自动附带：若存在 release_notes/<tag>.md（如 release_notes/v2.1.2.md），
-#   则作为「## 更新说明」拼接到 Release 正文最前面（其后为下载表与注意事项）。
-#   - Windows: 安装版 Setup.exe（向导安装，内置 ffmpeg，离线可用）+ 便携版 .zip（解压即用，内置 ffmpeg），均 x86_64
-#   - Linux: AppImage（单文件，赋予执行权限即可运行），按架构拆分 x86_64 / aarch64
-#   - macOS: ad-hoc 签名 .app 的 .dmg / .app.zip，按架构拆分 arm64（Apple Silicon）/ x86_64（Intel）
-# 每个工件名都带平台/架构后缀，release 阶段统一收集后发布（tag 触发发正式版，手动触发发 continuous 预发布）。
+# ============================================================================
+# 发布流程（完整说明见 docs/beta-release-flow.md）
+#
+#   1) 推送 v* tag              -> 正式版 Release（tag 即版本号，如 v2.2.0）
+#   2) 提交信息含 [beta] / beta: -> Beta 预发布（tag 为 v<版本号>-beta，滚动覆盖，
+#                                  只保留最新一个 beta Release；正式版 tag 不受影响）
+#   3) 手动 Run workflow        -> continuous 滚动预发布（tag 固定 continuous）
+#   4) 普通 main 提交（无标记）  -> 跳过构建，不浪费 Actions 额度
+#
+# 所有模式由 prepare job 统一判定，下游构建/发布 job 直接复用其 outputs，
+# 避免各处重复解析 ref 与 commit message。
+#
+# 发行说明：正式版读 release_notes/<tag>.md；beta 读 release_notes/beta.md；
+#           continuous 读 release_notes/continuous.md（均可缺省）。
+# ============================================================================
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
 
 jobs:
+  # --------------------------------------------------------------------------
+  # 模式判定：输出 should_build 控制下游是否构建，其余输出供版本号 / Release 使用。
+  # 所有输出一律非空，杜绝 set -u 下的 unbound variable。
+  # --------------------------------------------------------------------------
+  prepare:
+    name: 判定发布模式
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.detect.outputs.mode }}
+      should_build: ${{ steps.detect.outputs.should_build }}
+      version: ${{ steps.detect.outputs.version }}
+      tag: ${{ steps.detect.outputs.tag }}
+      title: ${{ steps.detect.outputs.title }}
+      prerelease: ${{ steps.detect.outputs.prerelease }}
+      notes: ${{ steps.detect.outputs.notes }}
+      sha: ${{ steps.detect.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Detect release mode
+        id: detect
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          set -euo pipefail
+          emit() { printf '%s=%s\n' "$1" "$2" >> "$GITHUB_OUTPUT"; }
+
+          REF="${GITHUB_REF}"
+          EVENT="${GITHUB_EVENT_NAME}"
+          MSG="${COMMIT_MESSAGE:-}"
+          SHORT="${GITHUB_SHA:0:7}"
+          emit sha "$SHORT"
+
+          if [[ "$REF" == refs/tags/v* ]]; then
+            # ---- 正式版：tag push ----
+            TAG="${GITHUB_REF_NAME}"
+            emit mode stable
+            emit should_build true
+            emit version "${TAG#v}"
+            emit tag "$TAG"
+            emit prerelease false
+            emit title "BilibiliDownloader ${TAG}"
+            emit notes "release_notes/${TAG}.md"
+          elif [[ "$EVENT" == "workflow_dispatch" ]]; then
+            # ---- 手动触发：continuous 滚动预发布 ----
+            emit mode continuous
+            emit should_build true
+            emit version continuous
+            emit tag continuous
+            emit prerelease true
+            emit title "BilibiliDownloader 持续构建 ($(date +%Y-%m-%d))"
+            emit notes "release_notes/continuous.md"
+          elif [[ "$MSG" =~ \[beta([^]]*)\] ]] || [[ "$MSG" =~ (^|[[:space:]])beta: ]]; then
+            # ---- Beta：commit message 标记触发 ----
+            # 版本号从提交信息里的三段式数字提取（如 "beta: 2.3.0 新增选集"）；
+            # 没写版本号则回退读取 utils/version.py 的 APP_VERSION。
+            VER=""
+            if [[ "$MSG" =~ ([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+              VER="${BASH_REMATCH[1]}"
+            else
+              VER=$(python -c 'import re,pathlib; print(re.search(r"APP_VERSION = \"([^\"]+)\"", pathlib.Path("utils/version.py").read_text(encoding="utf-8")).group(1))')
+            fi
+            emit mode beta
+            emit should_build true
+            emit version "$VER"
+            emit tag "v${VER}-beta"
+            emit prerelease true
+            emit title "BilibiliDownloader ${VER} Beta (${SHORT})"
+            emit notes "release_notes/beta.md"
+          else
+            # ---- 普通提交：跳过，所有输出给非空占位值 ----
+            emit mode skip
+            emit should_build false
+            emit version skip
+            emit tag skip
+            emit prerelease false
+            emit title skip
+            emit notes skip.md
+          fi
+
+  # --------------------------------------------------------------------------
+  # 各平台构建：仅在 should_build=true 时运行，版本号统一取 prepare 输出。
+  # --------------------------------------------------------------------------
   appimage:
     name: AppImage (${{ matrix.arch }})
+    needs: prepare
+    if: needs.prepare.outputs.should_build == 'true'
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -47,6 +141,8 @@ jobs:
 
   dmg:
     name: DMG (${{ matrix.arch }})
+    needs: prepare
+    if: needs.prepare.outputs.should_build == 'true'
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -83,6 +179,8 @@ jobs:
 
   windows:
     name: Windows exe / portable
+    needs: prepare
+    if: needs.prepare.outputs.should_build == 'true'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
@@ -121,20 +219,11 @@ jobs:
           # 将 ISCC 加入后续步骤的 PATH（与 build_installer.ps1 默认路径一致）
           echo "C:\Program Files (x86)\Inno Setup 6" >> $env:GITHUB_PATH
           Write-Host "Inno Setup 6 安装完成。"
-      - name: Set version
-        id: ver
-        shell: bash
-        run: |
-          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            echo "ver=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-          else
-            echo "ver=continuous" >> "$GITHUB_OUTPUT"
-          fi
       # 一键脚本：产出 onedir + 内置 ffmpeg，再编译出安装版 Setup.exe（取代原单文件 .exe）
       - name: Build installer (Setup.exe) with embedded ffmpeg
         run: .\installer\build_installer.ps1 -Version "$env:BD_VERSION"
         env:
-          BD_VERSION: ${{ steps.ver.outputs.ver }}
+          BD_VERSION: ${{ needs.prepare.outputs.version }}
       - name: Zip portable (with embedded ffmpeg)
         run: python -c "import shutil; shutil.make_archive('dist/BilibiliDownloader-portable', 'zip', 'dist', 'BilibiliDownloader')"
       - uses: actions/upload-artifact@v7
@@ -145,31 +234,18 @@ jobs:
             dist/BilibiliDownloader-portable.zip
           if-no-files-found: error
 
-  # 每次构建完都自动发布到 GitHub Release（永久保留、可直接下载；Actions artifact
-  # 90 天会过期）。推送 v* tag 时发正式版（release 名即 tag）；手动触发（workflow_dispatch）
-  # 时发滚动的 continuous 预发布，每次覆盖更新同名 release 的资源。
+  # --------------------------------------------------------------------------
+  # 发布：收集全部产物 -> 生成正文 -> 创建/更新 Release。
+  # beta 模式会先删除旧的 *-beta Release，始终只保留最新一个。
+  # --------------------------------------------------------------------------
   release:
     name: Publish to GitHub Release
-    needs: [appimage, dmg, windows]
+    needs: [prepare, appimage, dmg, windows]
+    if: needs.prepare.outputs.should_build == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Determine release tag
-        id: tag
-        run: |
-          set -euo pipefail
-          # prerelease 一律输出非空布尔值：空字符串输出在下游 set -u / env 插值时
-          # 会被视为未定义，导致 ${PRERELEASE} 报 unbound variable。
-          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
-            echo "title=BilibiliDownloader ${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag=continuous" >> "$GITHUB_OUTPUT"
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
-            echo "title=BilibiliDownloader 持续构建 ($(date +%Y-%m-%d))" >> "$GITHUB_OUTPUT"
-          fi
       - name: Checkout repo (for release notes)
         uses: actions/checkout@v6
       - name: Download all artifacts
@@ -179,19 +255,20 @@ jobs:
           merge-multiple: true
       - name: List collected files
         run: ls -lh dist
-      # 发行说明位于仓库 release_notes/${TAG}.md，已在上方显式 checkout 取得；
-      # gh 仍用 --repo 指定仓库，避免在无 .git 探测时失败。
       - name: Build release notes body
         id: body
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+          NOTES: ${{ needs.prepare.outputs.notes }}
+          MODE: ${{ needs.prepare.outputs.mode }}
+          SHA: ${{ needs.prepare.outputs.sha }}
         run: |
           set -euo pipefail
-          TAG="${{ steps.tag.outputs.tag }}"
-          PRERELEASE="${{ steps.tag.outputs.prerelease }}"
-          NOTES_FILE="release_notes/${TAG}.md"
-          # 上游 prerelease 输出已是 true/false 非空值，这里再做一次默认值兜底。
+          NOTES_FILE="${NOTES:-}"
           body=$(mktemp)
           {
-            if [[ -f "$NOTES_FILE" ]]; then
+            if [[ -n "$NOTES_FILE" && -f "$NOTES_FILE" ]]; then
               echo "## 更新说明"
               echo
               cat "$NOTES_FILE"
@@ -213,11 +290,13 @@ jobs:
             if [[ -z "$WIN_SETUP_FILE" ]]; then
               WIN_SETUP_FILE="BilibiliDownloader-Setup-${TAG#v}.exe"
             fi
-            WIN_SETUP="$WIN_SETUP_FILE"
-            echo "| Windows | x86_64 | \`$WIN_SETUP\` | 安装版（向导安装，内置 ffmpeg，离线可用）|"
+            echo "| Windows | x86_64 | \`$WIN_SETUP_FILE\` | 安装版（向导安装，内置 ffmpeg，离线可用）|"
             echo "| Windows | x86_64 | \`BilibiliDownloader-portable.zip\` | 便携版（解压即用，无需安装） |"
             echo
-            if [[ "${PRERELEASE:-false}" == "true" ]]; then
+            if [[ "${MODE:-}" == "beta" ]]; then
+              echo "> 这是 **Beta 预发布版**，对应 commit \`${SHA}\`，可能不稳定；建议普通用户使用正式版。"
+              echo
+            elif [[ "${PRERELEASE:-false}" == "true" ]]; then
               echo "> 本发布为**持续构建（prerelease）**，对应最近一次手动触发的构建，可能不稳定。"
               echo
             fi
@@ -232,10 +311,11 @@ jobs:
       - name: Create or update Release
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_REPOSITORY: ${{ github.repository }}
-          TAG: ${{ steps.tag.outputs.tag }}
-          TITLE: ${{ steps.tag.outputs.title }}
-          PRERELEASE: ${{ steps.tag.outputs.prerelease }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          TITLE: ${{ needs.prepare.outputs.title }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+          MODE: ${{ needs.prepare.outputs.mode }}
           BODY_FILE: ${{ steps.body.outputs.file }}
         run: |
           set -euo pipefail
@@ -244,7 +324,16 @@ jobs:
           if [[ "${PRERELEASE:-false}" == "true" ]]; then
             prerelease_flags=(--prerelease)
           fi
-          REPO="$GITHUB_REPOSITORY"
+
+          # beta 滚动：删除除本次外的所有 *-beta Release 及其 tag，始终只留一个。
+          if [[ "${MODE:-}" == "beta" ]]; then
+            while IFS= read -r old; do
+              [[ -n "$old" && "$old" == *-beta && "$old" != "$TAG" ]] || continue
+              echo "清理旧 Beta Release: $old"
+              gh release delete "$old" --repo "$REPO" --yes --cleanup-tag || true
+            done < <(gh release list --repo "$REPO" --json tagName -q '.[].tagName')
+          fi
+
           files=(dist/*)
           if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
             gh release upload "$TAG" --repo "$REPO" "${files[@]}" --clobber
